@@ -1,0 +1,394 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+.welcome-container {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #f5f7fa 0%, white 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  position: relative;
+}
+
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 40px 80px;
+  position: relative;
+  overflow: hidden; 
+}
+
+.hero-wrapper {
+  max-width: 1400px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.hero-circles {
+  position: relative;
+  height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circle-large {
+  position: absolute;
+  width: 450px;
+  height: 650px;
+  border-radius: 60%;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  top: 65%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.circle-dark {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 70%;
+  background: linear-gradient(135deg, #6b21a8 0%, #581c87 100%);
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+}
+.circle-pink-small {
+  position: absolute;
+  width: 400px;
+  height: 350px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.circle-blue {
+  position: absolute;
+  width: 470px;
+  height: 390px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+  top: 35%;
+  right: 0;
+  z-index: 1;
+}
+.circle-pink-medium {
+  position: absolute;
+  width: 550px;
+  height: 380px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  bottom: 0%;
+  top: 60%;
+  right: 5%;
+  z-index: 2;
+}
+.hero-content {
+  text-align: left;
+  color: #1a202c;
+  padding: 20px;
+}
+
+.hero-title {
+  font-size: 4.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  color: #1a202c;
+  letter-spacing: -2px;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  color: #2d3748;
+  max-width: 500px;
+}
+
+.hero-description:last-of-type {
+  margin-bottom: 2.5rem;
+}
+.buy-shop2door-btn {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.buy-shop2door-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 35px rgba(168, 85, 247, 0.4);
+}
+
+.buy-shop2door-btn:active {
+  transform: translateY(-1px) scale(1.02);
+}
+.hero-indicators {
+  position: absolute;
+  bottom: 40px;
+  right: 80px;
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e0;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator:hover {
+  border-color: #a855f7;
+  transform: scale(1.2);
+}
+
+.indicator.active {
+  background: #a855f7;
+  border-color: #a855f7;
+}
+@media (max-width: 1024px) {
+  .hero-wrapper {
+    gap: 60px;
+  }
+
+  .hero-circles {
+    height: 500px;
+  }
+
+  .circle-large {
+    width: 350px;
+    height: 350px;
+  }
+
+  .circle-dark {
+    width: 220px;
+    height: 220px;
+  }
+
+  .circle-pink-small {
+    width: 120px;
+    height: 120px;
+  }
+
+  .circle-blue {
+    width: 260px;
+    height: 260px;
+  }
+
+  .circle-pink-medium {
+    width: 100px;
+    height: 100px;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .buy-shop2door-btn {
+    padding: 14px 40px;
+    font-size: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 100px 20px 80px;
+  }
+
+  .hero-wrapper {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .hero-circles {
+    height: 400px;
+    order: 2;
+  }
+
+  .hero-content {
+    order: 1;
+    text-align: center;
+    padding: 0;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .hero-description {
+    max-width: 100%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .buy-shop2door-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .circle-large {
+    width: 280px;
+    height: 280px;
+  }
+
+  .circle-dark {
+    width: 180px;
+    height: 180px;
+  }
+
+  .circle-pink-small {
+    width: 90px;
+    height: 90px;
+  }
+
+  .circle-blue {
+    width: 200px;
+    height: 200px;
+    right: 0;
+  }
+
+  .circle-pink-medium {
+    width: 80px;
+    height: 80px;
+  }
+
+  .hero-indicators {
+    bottom: 20px;
+    right: 50%;
+    transform: translateX(50%);
+    gap: 15px;
+  }
+
+  .indicator {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+  }
+
+  .buy-shop2door-btn {
+    padding: 14px 35px;
+    font-size: 1rem;
+  }
+
+  .hero-circles {
+    height: 350px;
+  }
+
+  .circle-large {
+    width: 220px;
+    height: 220px;
+  }
+
+  .circle-dark {
+    width: 140px;
+    height: 140px;
+  }
+
+  .circle-pink-small {
+    width: 70px;
+    height: 70px;
+  }
+
+  .circle-blue {
+    width: 160px;
+    height: 160px;
+  }
+
+  .circle-pink-medium {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .hero-wrapper {
+    max-width: 1600px;
+  }
+
+  .hero-title {
+    font-size: 5rem;
+  }
+
+  .hero-description {
+    font-size: 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buy-shop2door-btn,
+  .indicator {
+    transition: none !important;
+  }
+}

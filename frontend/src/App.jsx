@@ -14,6 +14,9 @@ import MySales from "./POSTerminal/MySales";
 import FindProducts from "./POSTerminal/FindProducts";
 import Settingss from "./POSTerminal/Settingss";
 
+import SystemAdminDashboard from "./SystemTerminal/SystemAdminDashboard";
+import ShopRequests from "./SystemTerminal/ShopRequests";
+import ManageShops from "./SystemTerminal/ManageShops";
 
 const App = () => {
   return (
@@ -32,6 +35,10 @@ const App = () => {
       <Route path="/mysales" element={<MySales />} />
       <Route path="/findproducts" element={<FindProducts />} />
       <Route path="/settingss" element={<Settingss />} />
+
+      <Route path="/systemadmindashboard" element={<SystemAdminDashboard/>} />
+      <Route path="/shoprequests" element={<ShopRequests/>} />
+      <Route path="/manageshops" element={<ManageShops/>} />
     </Routes>
   );
 };

@@ -43,7 +43,8 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(data.user));
 
 
-        navigate('/posterminal');
+        // navigate('/posterminal');
+        navigate('/systemadmindashboard')
 
 
       }

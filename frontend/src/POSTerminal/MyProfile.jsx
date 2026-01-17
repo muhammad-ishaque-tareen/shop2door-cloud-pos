@@ -6,23 +6,24 @@ import {
   BarChart3, 
   FileText, 
   Settings, 
-  Package, 
   Search, 
-  RefreshCw 
+  RefreshCw,
+  X,
+  Edit2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './POSTerminalstyles/MyProfile.css';
 
 const MyProfile = () => {
- 
+  const navigate = useNavigate();
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
-  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
   const [profileData, setProfileData] = useState({
     fullName: user.name || 'User',
     email: user.email || 'N/A',
@@ -40,6 +41,7 @@ const MyProfile = () => {
     ordersToday: '0',
     salesToday: 'Rs. 0'
   });
+
   const [formData, setFormData] = useState({
     fullName: profileData.fullName,
     email: profileData.email,
@@ -48,7 +50,7 @@ const MyProfile = () => {
     branch: profileData.branch,
     newPassword: ''
   });
-  
+
   useEffect(() => {
     setFormData({
       fullName: profileData.fullName,
@@ -65,14 +67,6 @@ const MyProfile = () => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(event.target)) {
         setShowMenuDropdown(false);
       }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setShowProfileDropdown(false);
       }
@@ -81,7 +75,6 @@ const MyProfile = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -103,7 +96,6 @@ const MyProfile = () => {
         },
         body: JSON.stringify({
           name: formData.fullName,
-          email: formData.email,
           phone: formData.phone,
           password: formData.newPassword || undefined
         })
@@ -137,9 +129,6 @@ const MyProfile = () => {
       alert('Failed to update profile. Please try again.');
     }
   };
-  const handlePOSTerminal = () => {
-    navigate("/posterminal");
-  };
 
   const handleLogOut = () => {
     localStorage.removeItem('token');
@@ -159,6 +148,7 @@ const MyProfile = () => {
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
+
   const renderProfileImage = (size = 'default') => {
     const imageProps = {
       src: `http://localhost:5000${user.image_url}`,
@@ -194,7 +184,7 @@ const MyProfile = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <button className="nav-item" onClick={handlePOSTerminal}>
+          <button className="nav-item" onClick={() => navigate('/posterminal')}>
             <User size={18} />
             <span>POS Terminal</span>
           </button>
@@ -364,137 +354,175 @@ const MyProfile = () => {
             <p className="profile-subtitle">View and update your information</p>
           </div>
 
-          <div className="profile-layout">
-            {/* Profile Card */}
-            <div className="profile-card">
-              <div className="profile-avatar-section">
-                <div className="avatar-box">
-                  {renderProfileImage('avatar')}
-                </div>
-                <button className="change-picture-btn">Change your picture</button>
+          {/* New Layout - Similar to Screenshot */}
+          <div className="profile-layout-new">
+            {/* Left Column - Profile Card */}
+            <div className="profile-card-new">
+              <div className="profile-avatar-large">
+                {renderProfileImage('avatar')}
               </div>
 
-              <div className="profile-info">
-                <h3 className="profile-name">{profileData.fullName}</h3>
-                <p className="profile-role">{profileData.role} • {profileData.branch}</p>
+              <h3 className="profile-name-large">{profileData.fullName}</h3>
+              
+              <p className="profile-role-large">{profileData.role} • {profileData.branch}</p>
+
+              <button className="btn-edit-profile" onClick={() => setShowUpdateForm(true)}>
+                <Edit2 size={16} />
+                Edit Profile
+              </button>
+
+              <button className="btn-change-picture">
+                Change your picture
+              </button>
+            </div>
+
+            {/* Right Column - Profile Details */}
+            <div className="profile-info-card">
+              <h3 className="info-card-title">Profile Information</h3>
+
+              <div className="info-grid">
+                <div className="info-item">
+                  <div className="info-label">Employee ID</div>
+                  <div className="info-value">{profileData.employeeId}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Full Name</div>
+                  <div className="info-value">{profileData.fullName}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Email Address</div>
+                  <div className="info-value">{profileData.email}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Phone Number</div>
+                  <div className="info-value">{profileData.phone}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Role</div>
+                  <div className="info-value">{profileData.role}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Branch</div>
+                  <div className="info-value">{profileData.branch}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">Joining Date</div>
+                  <div className="info-value">{profileData.joiningDate}</div>
+                </div>
               </div>
 
-              <div className="profile-stats">
-                <div className="stat-card orders">
-                  <div className="stat-number">{profileData.ordersToday}</div>
-                  <div className="stat-label">Orders Today</div>
-                </div>
-                <div className="stat-card sales">
-                  <div className="stat-number">{profileData.salesToday}</div>
-                  <div className="stat-label">Sales Today</div>
-                </div>
-              </div>
-
-              <div className="profile-details">
-                <div className="detail-row">
-                  <div className="detail-item">
-                    <span className="detail-label">Employee ID</span>
-                    <span className="detail-value">{profileData.employeeId}</span>
+              <div className="performance-section">
+                <h4 className="performance-title">Today's Performance</h4>
+                
+                <div className="performance-stats">
+                  <div className="performance-card orders-card">
+                    <div className="performance-number">{profileData.ordersToday}</div>
+                    <div className="performance-label">Orders Today</div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Joining Date</span>
-                    <span className="detail-value">{profileData.joiningDate}</span>
+                  
+                  <div className="performance-card sales-card">
+                    <div className="performance-number sales-number">{profileData.salesToday}</div>
+                    <div className="performance-label">Sales Today</div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Update Form */}
-            {showUpdateForm && (
-              <div className="update-form-card">
-                <h3 className="form-title">Update Profile</h3>
-
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="form-input purple-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="form-input gray-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Phone</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="form-input purple-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Role</label>
-                  <input
-                    type="text"
-                    name="role"
-                    value={formData.role}
-                    className="form-input gray-input"
-                    disabled
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Branch</label>
-                  <input
-                    type="text"
-                    name="branch"
-                    value={formData.branch}
-                    className="form-input gray-input"
-                    disabled
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">New Password</label>
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                    placeholder="Leave blank to keep current"
-                    className="form-input purple-input"
-                  />
-                </div>
-
-                <button className="btn-save-changes" onClick={handleSaveChanges}>
-                  Save Changes
-                </button>
-              </div>
-            )}
-
-            {!showUpdateForm && (
-              <div className="update-form-placeholder">
-                <button
-                  className="btn-show-update-form"
-                  onClick={() => setShowUpdateForm(true)}
-                >
-                  Update Profile
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </main>
+
+      {/* ==================== MODAL FOR UPDATE FORM ==================== */}
+      {showUpdateForm && (
+        <div className="modal-overlay" onClick={() => setShowUpdateForm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Update Profile</h3>
+              <button className="modal-close-btn" onClick={() => setShowUpdateForm(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className="form-input purple-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  className="form-input gray-input"
+                  disabled
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="form-input purple-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Role</label>
+                <input
+                  type="text"
+                  name="role"
+                  value={formData.role}
+                  className="form-input gray-input"
+                  disabled
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Branch</label>
+                <input
+                  type="text"
+                  name="branch"
+                  value={formData.branch}
+                  className="form-input gray-input"
+                  disabled
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleInputChange}
+                  placeholder="Leave blank to keep current"
+                  className="form-input purple-input"
+                />
+              </div>
+
+              <button className="btn-save-changes" onClick={handleSaveChanges}>
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

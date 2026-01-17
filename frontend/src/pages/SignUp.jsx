@@ -211,7 +211,7 @@ const Signup = () => {
               <a href="#" className="forgot-link">Forgot password?</a>
             </div>
 
-           <button type="submit" className="signup-submit-button" disabled={loading}>
+           <button type="submit" className="signup-submit-button" disabled={loading} onClick={()=>navigate('/payementconfirmation')}>
               <span>{loading ? 'SIGNING UP...' : 'SIGNUP'}</span>
               <span className="button-arrow">→</span>
           </button>

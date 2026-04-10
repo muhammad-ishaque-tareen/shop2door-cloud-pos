@@ -156,7 +156,7 @@ const handleProfileLogout = () => {
               {isDarkMode ? '☀️' : '🌙'}
               <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            <button className="menu-item"  onClick={()=>navigate('/settingss')}>
+            <button className="menu-item"  onClick={()=>navigate('/settings')}>
               <Settings size={18} />
               <span>Settings</span>
             </button>

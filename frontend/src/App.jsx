@@ -17,6 +17,11 @@ import Settingss from "./POSTerminal/Settingss";
 import SystemAdminDashboard from "./SystemTerminal/SystemAdminDashboard";
 import ShopRequests from "./SystemTerminal/ShopRequests";
 import ManageShops from "./SystemTerminal/ManageShops";
+import Packages from "./SystemTerminal/Packages";
+import Subscriptions from "./SystemTerminal/Subscriptions"
+
+
+import ShopAdminDashboard from "./ShopAdminTerminal/ShopAdminDashboard";
 
 const App = () => {
   return (
@@ -39,6 +44,10 @@ const App = () => {
       <Route path="/systemadmindashboard" element={<SystemAdminDashboard/>} />
       <Route path="/shoprequests" element={<ShopRequests/>} />
       <Route path="/manageshops" element={<ManageShops/>} />
+      <Route path="/packages" element={<Packages/>} />
+      <Route path="/subscriptions" element={<Subscriptions/>} />
+
+      <Route path="/shopadmindashboard" element={<ShopAdminDashboard/>} />
     </Routes>
   );
 };

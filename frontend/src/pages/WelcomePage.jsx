@@ -25,9 +25,9 @@ const WelcomePage = () => {
               Shop2Door POS is a simple and reliable point-of-sale system that helps shops manage sales, products, inventory, and customers quickly and easily.
             </p>
             
-            <p className="hero-description">
+            {/* <p className="hero-description">
               Shop2Door POS is a simple and reliable point-of-sale system that helps shops manage sales, products, inventory, and customers quickly and easily.
-            </p>
+            </p> */}
 
             <button 
               className="buy-shop2door-btn"

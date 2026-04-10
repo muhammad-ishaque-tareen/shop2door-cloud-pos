@@ -25,13 +25,39 @@ export const salesAPI = {
       headers: getAuthHeaders(),
       body: JSON.stringify(saleData)
     });
-    
     if (!response.ok) {
       const error = await response.json();
-      console.error('Backend error:', error);
       throw new Error(error.error || 'Failed to create sale');
     }
-    
+    return response.json();
+  },
+
+  getMySales: async () => {
+    const response = await fetch(`${API_BASE_URL}/sales/my`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch sales');
+    return response.json();
+  },
+
+  getByReceipt: async (receiptNo) => {
+    const response = await fetch(`${API_BASE_URL}/sales/receipt/${receiptNo}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Sale not found');
+    return response.json();
+  },
+
+  processReturn: async (returnData) => {
+    const response = await fetch(`${API_BASE_URL}/sales/return`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(returnData)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to process return');
+    }
     return response.json();
   }
 };

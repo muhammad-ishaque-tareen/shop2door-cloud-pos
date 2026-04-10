@@ -204,7 +204,7 @@ const MyProfile = () => {
             <BarChart3 size={18} />
             <span>My Sales</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/settingss')}>
+          <button className="nav-item" onClick={() => navigate('/settings')}>
             <Settings size={18} />
             <span>Settings</span>
           </button>

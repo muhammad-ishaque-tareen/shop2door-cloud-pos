@@ -13,8 +13,6 @@ app.use(cors({
 }));
 app.use(express.json());
 const uploadsPath = path.join(__dirname, '..', 'uploads');
-console.log('🗂️  Uploads directory:', uploadsPath);
-console.log('📂 Serving static files from:', uploadsPath);
 
 app.use('/uploads', express.static(uploadsPath));
 app.get('/test-upload', (req, res) => {
@@ -31,6 +29,9 @@ app.get('/test-upload', (req, res) => {
       files: files 
     });
   });
+});
+app.use('/api/sales/my', (req, res, next) => {
+  next();
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

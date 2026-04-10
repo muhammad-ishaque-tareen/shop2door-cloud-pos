@@ -13,7 +13,10 @@ module.exports = async (req, res, next) => {
 
     if (userResult.rows.length === 0)
       return res.status(403).json({ message: "Shop not found" });
-    req.shopDB = getShopPool(userResult.rows[0].db_name);
+
+    const db_name = userResult.rows[0].db_name;
+
+    req.shopDB = getShopPool(db_name);
     next();
   } catch (err) {
     res.status(500).json({ error: err.message });

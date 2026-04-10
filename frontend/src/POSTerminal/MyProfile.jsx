@@ -176,7 +176,6 @@ const MyProfile = () => {
 
   return (
     <div className="profile-container">
-      {/* ==================== SIDEBAR ==================== */}
       <aside className="profile-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
@@ -218,17 +217,12 @@ const MyProfile = () => {
           </button>
         </nav>
       </aside>
-
-      {/* ==================== MAIN CONTENT ==================== */}
       <main className="profile-main">
-        {/* ==================== HEADER ==================== */}
         <header className="main-header">
           <div className="breadcrumb">POS &gt; My Profile</div>
           
           <div className="header-actions">
             <button className="btn-shift-active">Shift Active</button>
-
-            {/* Menu Dropdown */}
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
               <button
                 className="btn-menu"
@@ -291,7 +285,6 @@ const MyProfile = () => {
             <div className="icon-circle moon">🌙</div>
             <div className="icon-circle calculator">🧮</div>
 
-            {/* Profile Dropdown */}
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
               <button
                 className="profile-circle-btn"
@@ -346,17 +339,12 @@ const MyProfile = () => {
             </div>
           </div>
         </header>
-
-        {/* ==================== PROFILE CONTENT ==================== */}
         <div className="profile-content">
           <div className="profile-header-section">
             <h2 className="profile-title">My Profile</h2>
             <p className="profile-subtitle">View and update your information</p>
           </div>
-
-          {/* New Layout - Similar to Screenshot */}
           <div className="profile-layout-new">
-            {/* Left Column - Profile Card */}
             <div className="profile-card-new">
               <div className="profile-avatar-large">
                 {renderProfileImage('avatar')}
@@ -375,8 +363,6 @@ const MyProfile = () => {
                 Change your picture
               </button>
             </div>
-
-            {/* Right Column - Profile Details */}
             <div className="profile-info-card">
               <h3 className="info-card-title">Profile Information</h3>
 
@@ -436,8 +422,6 @@ const MyProfile = () => {
           </div>
         </div>
       </main>
-
-      {/* ==================== MODAL FOR UPDATE FORM ==================== */}
       {showUpdateForm && (
         <div className="modal-overlay" onClick={() => setShowUpdateForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>

@@ -9,8 +9,6 @@ exports.createSale = async (req, res) => {
     await req.shopDB.query('BEGIN');
 
     const receiptNo = 'RCP-' + Date.now();
-
-    // FIX: Pull real name from DB using req.user.id, don't rely on token name
     const masterPool = require('../db/master.pool');
     const userResult = await masterPool.query(
       'SELECT name FROM users WHERE id = $1',
@@ -65,10 +63,8 @@ exports.createSale = async (req, res) => {
 
 exports.getMySales = async (req, res) => {
   try {
-    // FIX: Query by cashier_id (reliable) with fallback to cashier_name
+    
     const cashierId = req.user.id;
-
-    // Try cashier_id column first, fall back to name if column doesn't exist yet
     let result;
     try {
       result = await req.shopDB.query(
@@ -76,7 +72,6 @@ exports.getMySales = async (req, res) => {
         [cashierId]
       );
     } catch (e) {
-      // cashier_id column doesn't exist yet — fall back to name
       console.warn('cashier_id column not found, falling back to cashier_name');
       const masterPool = require('../db/master.pool');
       const userResult = await masterPool.query(
@@ -92,7 +87,6 @@ exports.getMySales = async (req, res) => {
 
     const sales = result.rows;
 
-    // Aggregate metrics
     const totalSales = sales.reduce((sum, s) => sum + parseFloat(s.total), 0);
     const cashSales = sales
       .filter(s => s.payment_method === 'Cash')
@@ -102,8 +96,6 @@ exports.getMySales = async (req, res) => {
       .reduce((sum, s) => sum + parseFloat(s.total), 0);
     const discountsGiven = sales.reduce((sum, s) => sum + parseFloat(s.discount), 0);
     const transactions = sales.length;
-
-    // Get refunds for this cashier
     let refundResult;
     try {
       refundResult = await req.shopDB.query(
@@ -113,7 +105,6 @@ exports.getMySales = async (req, res) => {
         [cashierId]
       );
     } catch (e) {
-      // cashier_id doesn't exist yet
       const masterPool = require('../db/master.pool');
       const userResult = await masterPool.query(
         'SELECT name FROM users WHERE id = $1',

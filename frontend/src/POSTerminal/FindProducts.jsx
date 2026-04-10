@@ -107,7 +107,7 @@ const handleProfileLogout = () => {
 };
   return (
     <div className="find-products-container">
-      {/* Sidebar */}
+     
       <aside className="pos-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
@@ -149,16 +149,12 @@ const handleProfileLogout = () => {
           </button>
         </nav>
       </aside>
-
-      {/* Main Content */}
       <main className="find-products-main">
-        {/* Header */}
         <header className="main-header">
   <div className="breadcrumb">POS &gt; Dashboard</div>
   <div className="header-actions">
     <button className="btn-shift-active">Shift Active</button>
     
-    {/* Menu Dropdown */}
     <div className="menu-dropdown-container" ref={menuDropdownRef}>
       <button 
         className="btn-menu" 
@@ -208,8 +204,6 @@ const handleProfileLogout = () => {
 
     <div className="icon-circle moon">🌙</div>
     <div className="icon-circle calculator">🧮</div>
-    
-    {/* Profile Dropdown */}
     <div className="profile-dropdown-container" ref={profileDropdownRef}>
      <button 
   className="profile-circle-btn" 
@@ -289,9 +283,7 @@ const handleProfileLogout = () => {
   </div>
 </header>
 
-        {/* Content */}
         <div className="find-products-content">
-          {/* Search and Filter Section */}
           <div className="search-filter-section">
             <div className="search-header">
               <h2 className="page-title">Product Inventory</h2>

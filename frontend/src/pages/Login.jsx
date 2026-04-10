@@ -79,7 +79,6 @@ const Login = () => {
   };
   return (
     <div className="login-container">
-      {/* Left Side - Purple Section */}
       <div className="login-left-section">
         <div className="login-left-content">
           <h1 className="login-logo">Shop2Door LOGO</h1>

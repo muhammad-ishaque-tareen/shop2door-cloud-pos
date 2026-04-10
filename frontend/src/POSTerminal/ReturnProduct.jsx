@@ -338,7 +338,7 @@ const ReturnProduct = () => {
                   <div className="refund-reason-wrapper">
                     <label className="reason-label">Return Reason *</label>
                     <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="reason-select">
-                      <option value="Changed Mind">Changed Mind</option>
+                      <option value="Need Alternative">Need Alternative</option>
                       <option value="Defective Product">Defective Product</option>
                       <option value="Wrong Item">Wrong Item</option>
                       <option value="Not as Described">Not as Described</option>

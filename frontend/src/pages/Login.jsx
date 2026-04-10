@@ -175,7 +175,6 @@ const Login = () => {
 
             <button type="submit" className="login-button" disabled={loading}>
                 <span>{loading ? 'LOGGING IN...' : 'LOGIN'}</span>
-                <span className="login-button-arrow">→</span>
             </button>
           </form>
   

@@ -254,7 +254,7 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  background: linear-gradient(135deg, #9c27b0 0%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -270,7 +270,7 @@
 }
 
 .login-button:hover {
-  background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
+  /* background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%); */
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
 }

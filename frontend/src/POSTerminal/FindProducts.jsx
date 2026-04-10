@@ -79,10 +79,10 @@ const loadProducts = async () => {
   }
 };
 
-const toggleDarkMode = () => {
-  setIsDarkMode(!isDarkMode);
-  // Add your dark mode logic here
-};
+// const toggleDarkMode = () => {
+//   setIsDarkMode(!isDarkMode);
+  
+// };
   const handleProductClick = (product) => {
     setSelectedProduct(product);
   };

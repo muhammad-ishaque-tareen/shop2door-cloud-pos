@@ -66,7 +66,7 @@ const handleProfileLogout = () => {
 
   return (
     <div className="shift-report-container">
-      {/* Sidebar */}
+     
       <aside className="shift-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
@@ -108,16 +108,13 @@ const handleProfileLogout = () => {
           </button>
         </nav>
       </aside>
-
-      {/* Main Content */}
       <main className="shift-main">
-        {/* Header */}
+
         <header className="main-header">
   <div className="breadcrumb">POS &gt; Shift Report</div>
   <div className="header-actions">
     <button className="btn-shift-active">Shift Active</button>
     
-    {/* Menu Dropdown */}
     <div className="menu-dropdown-container" ref={menuDropdownRef}>
       <button 
         className="btn-menu" 
@@ -167,8 +164,7 @@ const handleProfileLogout = () => {
 
     <div className="icon-circle moon">🌙</div>
     <div className="icon-circle calculator">🧮</div>
-    
-    {/* Profile Dropdown */}
+  
     <div className="profile-dropdown-container" ref={profileDropdownRef}>
     <button 
           className="profile-circle-btn" 
@@ -250,20 +246,21 @@ const handleProfileLogout = () => {
   </div>
 </header>
 
-        {/* Content */}
+        
+
         <div className="shift-content">
           <div className="content-header">
             <p className="subtitle">Comprehensive shift performance report</p>
             <button className="btn-end-shift">End Shift</button>
           </div>
 
-          {/* Shift Info Bar */}
+       
           <div className="shift-info-bar">
             <span className="shift-info-text">Start Time: 9:00 AM</span>
             <span className="shift-info-text">Duration: {shiftDuration}</span>
           </div>
 
-          {/* Sales Metrics */}
+         
           <div className="metrics-section">
             <div className="section-header">
               <span className="section-icon">💰</span>

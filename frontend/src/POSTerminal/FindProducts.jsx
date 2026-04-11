@@ -296,7 +296,6 @@ const handleProfileLogout = () => {
               </button>
             </div>
 
-            {/* Search Bar */}
             <div className="search-wrapper-large">
               <Search className="search-icon-large" size={24} />
               <input
@@ -316,7 +315,6 @@ const handleProfileLogout = () => {
               )}
             </div>
 
-            {/* Category Filters */}
             {showFilters && (
               <div className="filters-panel">
                 <div className="filter-group">
@@ -336,7 +334,6 @@ const handleProfileLogout = () => {
               </div>
             )}
 
-            {/* Results Count */}
             <div className="results-info">
               <p className="results-count">
                 Showing <strong>{filteredProducts.length}</strong> of <strong>{products.length}</strong> products
@@ -352,9 +349,6 @@ const handleProfileLogout = () => {
             </div>
           </div>
 
-
-
-          {/* Products List */}
           <div className="products-list-container">
             {loading ? (
               <div className="no-results">
@@ -418,8 +412,6 @@ const handleProfileLogout = () => {
           </div>
         </div>
       </main>
-
-      {/* Product Detail Modal */}
       {selectedProduct && (
         <div className="modal-overlay" onClick={closeProductModal}>
           <div className="modal product-detail-modal" onClick={(e) => e.stopPropagation()}>

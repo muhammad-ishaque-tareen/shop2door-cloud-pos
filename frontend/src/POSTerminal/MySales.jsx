@@ -165,7 +165,6 @@ const MySales = () => {
         <div className="my-sales-content">
           <p className="subtitle">My sales performance report</p>
 
-          {/* Metrics */}
           <div className="metrics-section">
             <div className="section-header">
               <span className="section-icon">💰</span>
@@ -190,7 +189,6 @@ const MySales = () => {
             )}
           </div>
 
-          {/* Sales History Table */}
           <div className="metrics-section" style={{ marginTop: '1.5rem' }}>
             <div className="section-header">
               <span className="section-icon">🧾</span>

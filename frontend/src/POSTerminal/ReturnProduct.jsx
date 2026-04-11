@@ -221,7 +221,6 @@ const ReturnProduct = () => {
         </header>
 
         <div className="return-content">
-          {/* Search */}
           <div className="search-section">
             <div className="search-wrapper-return">
               <Search className="search-icon-return" size={20} />
@@ -239,7 +238,7 @@ const ReturnProduct = () => {
             </button>
           </div>
 
-          {/* Order ID */}
+        
           {currentSale && (
             <div className="order-id-section">
               <label className="order-id-label">Order ID / Receipt Number</label>
@@ -247,14 +246,13 @@ const ReturnProduct = () => {
             </div>
           )}
 
-          {/* No sale yet */}
+          
           {!currentSale && !loadingSale && (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
               <p>Search for a receipt number to load order items.</p>
             </div>
           )}
 
-          {/* Items Table */}
           {currentSale && items.length > 0 && (
             <>
               <div className="items-section">
@@ -317,7 +315,6 @@ const ReturnProduct = () => {
                 </div>
               </div>
 
-              {/* Refund Calculation */}
               <div className="refund-section">
                 <div className="refund-header">
                   <div className="refund-title-wrapper">

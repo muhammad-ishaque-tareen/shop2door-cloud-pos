@@ -27,7 +27,7 @@ const POSTerminal = () => {
   const [discountType, setDiscountType] = useState('percent');
   const [discountValue, setDiscountValue] = useState(0);
   const [discountReason, setDiscountReason] = useState('');
-  const [customTaxRate, setCustomTaxRate] = useState(8.5);
+  const [customTaxRate, setCustomTaxRate] = useState(5.8);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
@@ -162,7 +162,7 @@ const POSTerminal = () => {
   };
 
   const resetTax = () => {
-    setCustomTaxRate(8.5);
+    setCustomTaxRate(5.8);
     setShowTaxModal(false);
   };
 

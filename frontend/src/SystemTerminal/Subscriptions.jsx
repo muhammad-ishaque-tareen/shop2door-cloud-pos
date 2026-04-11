@@ -24,7 +24,7 @@ const Subscriptions = () => {
       id: 1,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs.79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -33,7 +33,7 @@ const Subscriptions = () => {
       id: 2,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -42,7 +42,7 @@ const Subscriptions = () => {
       id: 3,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -51,7 +51,7 @@ const Subscriptions = () => {
       id: 4,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -60,7 +60,7 @@ const Subscriptions = () => {
       id: 5,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -69,7 +69,7 @@ const Subscriptions = () => {
       id: 6,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -78,7 +78,7 @@ const Subscriptions = () => {
       id: 7,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -87,7 +87,7 @@ const Subscriptions = () => {
       id: 8,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'
@@ -96,7 +96,7 @@ const Subscriptions = () => {
       id: 9,
       shop: 'Fresh Mart',
       package: 'Professional',
-      amount: '$79/mo',
+      amount: 'Rs. 79/mo',
       startDate: 'Dec 10, 2024',
       nextBilling: 'Jan 10, 2025',
       status: 'Active'

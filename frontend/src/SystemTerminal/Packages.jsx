@@ -22,8 +22,8 @@ const Packages = () => {
   const [packages, setPackages] = useState([
     {
       id: 1,
-      name: 'STANDARD',
-      description: 'For growing businesses',
+      name: 'STARTER',
+      description: 'STARTER or growing businesses',
       price: 60,
       features: [
         'Advanced Inventory',
@@ -34,7 +34,7 @@ const Packages = () => {
     },
     {
       id: 2,
-      name: 'STANDARD',
+      name: 'PROFESSIONAL',
       description: 'For growing businesses',
       price: 80,
       features: [
@@ -46,7 +46,7 @@ const Packages = () => {
     },
     {
       id: 3,
-      name: 'STANDARD',
+      name: 'PREMIUM',
       description: 'For growing businesses',
       price: 100,
       features: [
@@ -102,7 +102,6 @@ const Packages = () => {
 
   const handleEditPackage = (id) => {
     console.log('Edit package:', id);
-    // Add your edit logic here
   };
 
   const renderProfileImage = (size = 'default') => {

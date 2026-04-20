@@ -6,8 +6,8 @@ module.exports = async (req, res, next) => {
     const userResult = await masterPool.query(
       `SELECT s.db_name 
        FROM users u
-       JOIN shops s ON u.shop_id = s.id
-       WHERE u.id = $1`,
+       JOIN shops s ON u.shop_id = s.shop_id
+      WHERE u.user_id = $1`,
       [req.user.id]
     );
 

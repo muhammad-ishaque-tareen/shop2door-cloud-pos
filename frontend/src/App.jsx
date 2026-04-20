@@ -22,6 +22,7 @@ import Subscriptions from "./SystemTerminal/Subscriptions"
 
 
 import ShopAdminDashboard from "./ShopAdminTerminal/ShopAdminDashboard";
+import ShopProfile from "./ShopAdminTerminal/ShopProfile";
 
 const App = () => {
   return (
@@ -48,6 +49,7 @@ const App = () => {
       <Route path="/subscriptions" element={<Subscriptions/>} />
 
       <Route path="/shopadmindashboard" element={<ShopAdminDashboard/>} />
+      <Route path="/shopprofile" element={<ShopProfile />} />
     </Routes>
   );
 };

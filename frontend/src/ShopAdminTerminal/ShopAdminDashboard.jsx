@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
+import {
   LayoutDashboard,
   Home,
   Store,
@@ -11,7 +11,8 @@ import {
   LogOut,
   User,
   Bell,
-  Moon
+  Moon,
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/ShopAdminDashboard.css';
@@ -20,23 +21,24 @@ const ShopAdminDashboard = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [stores, setStores] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [usageData, setUsageData] = useState(null);
+  const [loadingStores, setLoadingStores] = useState(true);
+  const [loadingUsage, setLoadingUsage] = useState(true);
 
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // Fetch stores from database
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = localStorage.getItem('token');
+
+  // Fetch stores
   useEffect(() => {
     const fetchStores = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/stores', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         if (response.ok) {
           const data = await response.json();
           setStores(data);
@@ -44,29 +46,43 @@ const ShopAdminDashboard = () => {
       } catch (error) {
         console.error('Error fetching stores:', error);
       } finally {
-        setLoading(false);
+        setLoadingStores(false);
       }
     };
-
     fetchStores();
   }, []);
 
+  // Fetch usage data from DB
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/shop/usage', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUsageData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching usage:', error);
+      } finally {
+        setLoadingUsage(false);
+      }
+    };
+    fetchUsage();
+  }, []);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuDropdownRef.current && !menuDropdownRef.current.contains(event.target)) {
+      if (menuDropdownRef.current && !menuDropdownRef.current.contains(event.target))
         setShowMenuDropdown(false);
-      }
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target))
         setShowProfileDropdown(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleMyProfile = () => {
-    navigate("/myprofile");
-  };
 
   const handleLogOut = () => {
     localStorage.removeItem('user');
@@ -74,50 +90,70 @@ const ShopAdminDashboard = () => {
     navigate("/");
   };
 
-  const renderProfileImage = (size = 'default') => {
-    const imageProps = {
-      src: `http://localhost:5000${user.image_url}`,
-      alt: "Profile",
-      style: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        borderRadius: '50%'
-      }
-    };
+  // Shop logo from DB via login response
+  const shopLogoUrl = user.shop_logo
+    ? `http://localhost:5000${user.shop_logo}`
+    : null;
 
-    const initialsClass = size === 'dropdown' ? 'avatar-initials' : 'profile-initials';
-    const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
-
-    return user.image_url ? <img {...imageProps} /> : <span className={initialsClass}>{initials}</span>;
+  const renderShopLogo = () => {
+    if (shopLogoUrl) {
+      return (
+        <img
+          src={shopLogoUrl}
+          alt={user.shop_name || 'Shop'}
+          className="shop-sidebar-logo-img"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+      );
+    }
+    return <span className="shop-brand-title">{user.shop_name || 'Shop'}</span>;
   };
 
-  // Hard-coded usage data
-  const usageData = {
-    store: { current: 3, total: 5 },
-    user: { current: 7, total: 10 },
-    product: { current: 950, total: 1000 }
+  const renderProfileImage = (size = 'default') => {
+    const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
+    if (user.image_url) {
+      return (
+        <img
+          src={`http://localhost:5000${user.image_url}`}
+          alt="Profile"
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'cover', borderRadius: '50%'
+          }}
+        />
+      );
+    }
+    const cls = size === 'dropdown' ? 'avatar-initials' : 'profile-initials';
+    return <span className={cls}>{initials}</span>;
   };
 
   return (
     <div className="shop-admin-container">
+      {/* SIDEBAR */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">
-          <h1 className="shop-brand-title">Fresh Mart 🛒</h1>
+          {renderShopLogo()}
         </div>
-        
+
         <nav className="shop-sidebar-nav">
-          <div className="nav-section-title">SHOP MANAGEMENT</div>
           <button className="shop-nav-item active">
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </button>
+
+          {/* NEW: Shop Profile */}
+          <button className="shop-nav-item" onClick={() => navigate('/shopprofile')}>
+            <Settings size={18} />
+            <span>Shop Profile</span>
+          </button>
+
           <button className="shop-nav-item" onClick={() => navigate('/shopsetting')}>
             <Home size={18} />
             <span>Shop Setting</span>
           </button>
 
-          <div className="nav-section-title">STORE MANAGEMENT</div>
+          <div className="nav-divider" />
+
           <button className="shop-nav-item" onClick={() => navigate('/mystores')}>
             <Store size={18} />
             <span>My Stores</span>
@@ -127,17 +163,19 @@ const ShopAdminDashboard = () => {
             <span>Add Store</span>
           </button>
 
-          <div className="nav-section-title">USER MANAGEMENT</div>
+          <div className="nav-divider" />
+
           <button className="shop-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} />
-            <span>My User</span>
+            <span>My Users</span>
           </button>
           <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} />
             <span>Add User</span>
           </button>
 
-          <div className="nav-section-title">PRODUCTS & INVENTORY</div>
+          <div className="nav-divider" />
+
           <button className="shop-nav-item" onClick={() => navigate('/products')}>
             <ShoppingCart size={18} />
             <span>Products</span>
@@ -147,46 +185,43 @@ const ShopAdminDashboard = () => {
             <span>Suppliers</span>
           </button>
 
-          <div className="nav-section-title">SETTINGS</div>
+          <div className="nav-divider" />
+
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} />
             <span>Subscription</span>
           </button>
-          <button className="shop-nav-item" onClick={handleLogOut}>
+          <button className="shop-nav-item logout-item" onClick={handleLogOut}>
             <LogOut size={18} />
             <span>Logout</span>
           </button>
         </nav>
       </aside>
 
+      {/* MAIN */}
       <main className="shop-admin-main">
         <header className="shop-main-header">
           <div className="shop-breadcrumb">Admin &gt; Dashboard</div>
           <div className="shop-header-actions">
+
+            {/* Stores dropdown */}
             <div className="shop-menu-dropdown-container" ref={menuDropdownRef}>
-              <button 
-                className="shop-btn-menu" 
+              <button
+                className="shop-btn-menu"
                 onClick={() => setShowMenuDropdown(!showMenuDropdown)}
               >
                 All Stores <span className="shop-dropdown-arrow">▼</span>
               </button>
-
               {showMenuDropdown && (
                 <div className="shop-menu-dropdown">
                   <div className="shop-menu-section">
                     <h4 className="shop-menu-section-title">My Stores</h4>
-                    {loading ? (
+                    {loadingStores ? (
                       <div className="shop-menu-item">Loading...</div>
                     ) : stores.length > 0 ? (
                       stores.map((store) => (
-                        <button 
-                          key={store.id} 
-                          className="shop-menu-item"
-                          onClick={() => {
-                            setShowMenuDropdown(false);
-                            // Navigate to specific store
-                          }}
-                        >
+                        <button key={store.id} className="shop-menu-item"
+                          onClick={() => setShowMenuDropdown(false)}>
                           <Store size={18} />
                           <span>{store.name}</span>
                         </button>
@@ -195,38 +230,32 @@ const ShopAdminDashboard = () => {
                       <div className="shop-menu-item">No stores found</div>
                     )}
                   </div>
-
-                  <div className="shop-menu-divider"></div>
-
+                  <div className="shop-menu-divider" />
                   <div className="shop-menu-section">
-                    <button className="shop-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mystores'); }}>
-                      <Store size={18} />
-                      <span>View All Stores</span>
+                    <button className="shop-menu-item"
+                      onClick={() => { setShowMenuDropdown(false); navigate('/mystores'); }}>
+                      <Store size={18} /><span>View All Stores</span>
                     </button>
-                    <button className="shop-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/addstore'); }}>
-                      <Plus size={18} />
-                      <span>Add New Store</span>
+                    <button className="shop-menu-item"
+                      onClick={() => { setShowMenuDropdown(false); navigate('/addstore'); }}>
+                      <Plus size={18} /><span>Add New Store</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="shop-icon-circle moon">
-              <Moon size={16} />
-            </div>
-            <div className="shop-icon-circle bell">
-              <Bell size={16} />
-            </div>
-            
+            <div className="shop-icon-circle moon"><Moon size={16} /></div>
+            <div className="shop-icon-circle bell"><Bell size={16} /></div>
+
+            {/* Profile dropdown */}
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>
-              <button 
-                className="shop-profile-circle-btn" 
+              <button
+                className="shop-profile-circle-btn"
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               >
                 {renderProfileImage()}
               </button>
-
               {showProfileDropdown && (
                 <div className="shop-profile-dropdown">
                   <div className="shop-profile-dropdown-header">
@@ -238,9 +267,7 @@ const ShopAdminDashboard = () => {
                       <p className="shop-profile-role">{user.role || 'Shop Admin'}</p>
                     </div>
                   </div>
-
-                  <div className="shop-profile-divider"></div>
-
+                  <div className="shop-profile-divider" />
                   <div className="shop-profile-details">
                     <div className="shop-profile-detail-item">
                       <span className="shop-detail-icon">📧</span>
@@ -251,17 +278,15 @@ const ShopAdminDashboard = () => {
                       <span className="shop-detail-text">{user.phone || 'N/A'}</span>
                     </div>
                   </div>
-
-                  <div className="shop-profile-divider"></div>
-
+                  <div className="shop-profile-divider" />
                   <div className="shop-profile-actions">
-                    <button className="shop-profile-action-btn" onClick={handleMyProfile}>
-                      <User size={18} />
-                      <span>My Profile</span>
+                    <button className="shop-profile-action-btn"
+                      onClick={() => { setShowProfileDropdown(false); navigate('/myprofile'); }}>
+                      <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="shop-profile-action-btn shop-logout-btn" onClick={handleLogOut}>
-                      <LogOut size={18} />
-                      <span>Logout</span>
+                    <button className="shop-profile-action-btn shop-logout-btn"
+                      onClick={handleLogOut}>
+                      <LogOut size={18} /><span>Logout</span>
                     </button>
                   </div>
                 </div>
@@ -270,30 +295,38 @@ const ShopAdminDashboard = () => {
           </div>
         </header>
 
+        {/* DASHBOARD CONTENT */}
         <div className="shop-dashboard-content">
           <div className="shop-welcome-section">
-            <h1 className="shop-welcome-title">Good Morning, {user.name || 'Altaf'}!</h1>
+            <h1 className="shop-welcome-title">
+              Good Morning, {user.name?.split(' ')[0] || 'Admin'}!
+            </h1>
           </div>
 
+          {/* MY STORE */}
           <div className="my-store-section">
             <h2 className="section-title">MY STORE</h2>
             <div className="stores-grid">
-              {loading ? (
+              {loadingStores ? (
                 <div className="store-card-loading">Loading stores...</div>
               ) : stores.length > 0 ? (
                 stores.map((store, index) => (
                   <div key={store.id} className="store-card">
                     <div className="store-card-header">
-                      <h3 className="store-card-title">STORE {index + 1}</h3>
-                      <span className="store-growth">+12%</span>
+                      <h3 className="store-card-title">
+                        {store.name || `STORE ${index + 1}`}
+                      </h3>
+                      <span className="store-growth">Active</span>
                     </div>
-                    <p className="store-location">{store.location || store.city || 'Location'}</p>
+                    <p className="store-location">
+                      {store.address || store.city || 'No address'}
+                    </p>
                   </div>
                 ))
               ) : (
                 <div className="store-card">
                   <div className="store-card-header">
-                    <h3 className="store-card-title">No Stores</h3>
+                    <h3 className="store-card-title">No Stores Yet</h3>
                   </div>
                   <p className="store-location">Add your first store</p>
                 </div>
@@ -301,42 +334,59 @@ const ShopAdminDashboard = () => {
             </div>
           </div>
 
+          {/* MY USAGE */}
           <div className="my-usage-section">
             <h2 className="section-title">MY USAGE</h2>
-            <div className="usage-grid">
-              <div className="usage-card">
-                <h3 className="usage-label">Store</h3>
-                <div className="usage-bar-container">
-                  <div 
-                    className="usage-bar purple" 
-                    style={{ width: `${(usageData.store.current / usageData.store.total) * 100}%` }}
-                  ></div>
+            {loadingUsage ? (
+              <div className="usage-loading">Loading usage data...</div>
+            ) : usageData ? (
+              <div className="usage-grid">
+                <div className="usage-card">
+                  <h3 className="usage-label">Store</h3>
+                  <div className="usage-bar-container">
+                    <div
+                      className="usage-bar purple"
+                      style={{
+                        width: `${Math.min((usageData.stores_used / usageData.max_stores) * 100, 100)}%`
+                      }}
+                    />
+                  </div>
+                  <p className="usage-count">
+                    {usageData.stores_used}/{usageData.max_stores}
+                  </p>
                 </div>
-                <p className="usage-count">{usageData.store.current}/{usageData.store.total}</p>
-              </div>
-
-              <div className="usage-card">
-                <h3 className="usage-label">User</h3>
-                <div className="usage-bar-container">
-                  <div 
-                    className="usage-bar teal" 
-                    style={{ width: `${(usageData.user.current / usageData.user.total) * 100}%` }}
-                  ></div>
+                <div className="usage-card">
+                  <h3 className="usage-label">User</h3>
+                  <div className="usage-bar-container">
+                    <div
+                      className="usage-bar teal"
+                      style={{
+                        width: `${Math.min((usageData.users_used / usageData.max_users_per_store) * 100, 100)}%`
+                      }}
+                    />
+                  </div>
+                  <p className="usage-count">
+                    {usageData.users_used}/{usageData.max_users_per_store}
+                  </p>
                 </div>
-                <p className="usage-count">{usageData.user.current}/{usageData.user.total}</p>
-              </div>
-
-              <div className="usage-card">
-                <h3 className="usage-label">Product</h3>
-                <div className="usage-bar-container">
-                  <div 
-                    className="usage-bar red" 
-                    style={{ width: `${(usageData.product.current / usageData.product.total) * 100}%` }}
-                  ></div>
+                <div className="usage-card">
+                  <h3 className="usage-label">Product</h3>
+                  <div className="usage-bar-container">
+                    <div
+                      className="usage-bar red"
+                      style={{
+                        width: `${Math.min((usageData.products_used / usageData.max_products) * 100, 100)}%`
+                      }}
+                    />
+                  </div>
+                  <p className="usage-count">
+                    {usageData.products_used}/{usageData.max_products}
+                  </p>
                 </div>
-                <p className="usage-count">{usageData.product.current}/{usageData.product.total}</p>
               </div>
-            </div>
+            ) : (
+              <div className="usage-loading">No usage data available</div>
+            )}
           </div>
         </div>
       </main>

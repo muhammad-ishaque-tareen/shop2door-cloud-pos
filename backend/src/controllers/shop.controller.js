@@ -47,3 +47,43 @@ exports.getShopUsage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+exports.getShopSubscription = async (req, res) => {
+  const shopId = req.user.shop_id;
+  try {
+    // Get current subscription + package info
+    const subResult = await masterPool.query(
+      `SELECT s.start_date, s.end_date, s.status,
+              p.name as package_name, p.price,
+              p.max_stores, p.max_users_per_store, p.max_products
+       FROM subscriptions s
+       JOIN packages p ON s.package_id = p.package_id
+       WHERE s.shop_id = $1 AND s.status = 'active'
+       ORDER BY s.created_at DESC
+       LIMIT 1`,
+      [shopId]
+    );
+ 
+    // Get billing history from payments table
+    const billingResult = await masterPool.query(
+      `SELECT pay.payment_date, pay.amount, pay.payment_method,
+              p.name as package_name
+       FROM payments pay
+       JOIN packages p ON pay.package_id = p.package_id
+       WHERE pay.shop_id = $1
+       ORDER BY pay.payment_date DESC
+       LIMIT 10`,
+      [shopId]
+    );
+ 
+    const subscription = subResult.rows[0] || null;
+    const billing_history = billingResult.rows || [];
+ 
+    res.json({
+      ...subscription,
+      billing_history
+    });
+  } catch (error) {
+    console.error('Error fetching subscription:', error);
+    res.status(500).json({ message: 'Server error', detail: error.message });
+  }
+};

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Home, Store, Plus, Users,
   ShoppingCart, Package as PackageIcon, Diamond,
   LogOut, Settings, ArrowLeft, Building2,
-  Phone, Mail, Clock, MapPin, Tag
+  Phone, Mail, Clock, MapPin, Tag,
+  User, Bell, Moon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/ShopProfile.css';
@@ -12,11 +13,19 @@ const ShopProfile = () => {
   const [shopData, setShopData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stores, setStores] = useState([]);
+  const [loadingStores, setLoadingStores] = useState(true);
+  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+  const menuDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
 
+  // Fetch shop profile
   useEffect(() => {
     const fetchShopProfile = async () => {
       try {
@@ -37,6 +46,38 @@ const ShopProfile = () => {
       }
     };
     fetchShopProfile();
+  }, []);
+
+  // Fetch stores for dropdown
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/stores', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStores(data);
+        }
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+      } finally {
+        setLoadingStores(false);
+      }
+    };
+    fetchStores();
+  }, []);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuDropdownRef.current && !menuDropdownRef.current.contains(event.target))
+        setShowMenuDropdown(false);
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target))
+        setShowProfileDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogOut = () => {
@@ -63,9 +104,27 @@ const ShopProfile = () => {
     return <span className="sp-brand-title">{user.shop_name || 'Shop'}</span>;
   };
 
+  const renderProfileImage = (size = 'default') => {
+    const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
+    if (user.image_url) {
+      return (
+        <img
+          src={`http://localhost:5000${user.image_url}`}
+          alt="Profile"
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'cover', borderRadius: '50%'
+          }}
+        />
+      );
+    }
+    const cls = size === 'dropdown' ? 'avatar-initials' : 'profile-initials';
+    return <span className={cls}>{initials}</span>;
+  };
+
   return (
     <div className="sp-container">
-      {/* SIDEBAR — same as dashboard */}
+      {/* SIDEBAR */}
       <aside className="sp-sidebar">
         <div className="sp-brand-header">
           {renderShopLogo()}
@@ -77,8 +136,9 @@ const ShopProfile = () => {
           <button className="sp-nav-item active">
             <Settings size={18} /><span>Shop Profile</span>
           </button>
-          <button className="sp-nav-item" onClick={() => navigate('/shopsetting')}>
-            <Home size={18} /><span>Shop Setting</span>
+          <button className="sp-nav-item" onClick={() => navigate('/adminprofile')}>
+            <User size={18} />
+            <span>My Profile</span>
           </button>
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/mystores')}>
@@ -120,8 +180,102 @@ const ShopProfile = () => {
             </button>
             Admin &gt; Shop Profile
           </div>
+
+          {/* ── Header actions (same as Dashboard) ── */}
+          <div className="sp-header-actions">
+
+            {/* All Stores dropdown */}
+            <div className="shop-menu-dropdown-container" ref={menuDropdownRef}>
+              <button
+                className="shop-btn-menu"
+                onClick={() => setShowMenuDropdown(!showMenuDropdown)}
+              >
+                All Stores <span className="shop-dropdown-arrow">▼</span>
+              </button>
+              {showMenuDropdown && (
+                <div className="shop-menu-dropdown">
+                  <div className="shop-menu-section">
+                    <h4 className="shop-menu-section-title">My Stores</h4>
+                    {loadingStores ? (
+                      <div className="shop-menu-item">Loading...</div>
+                    ) : stores.length > 0 ? (
+                      stores.map((store) => (
+                        <button key={store.id} className="shop-menu-item"
+                          onClick={() => setShowMenuDropdown(false)}>
+                          <Store size={18} />
+                          <span>{store.name}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="shop-menu-item">No stores found</div>
+                    )}
+                  </div>
+                  <div className="shop-menu-divider" />
+                  <div className="shop-menu-section">
+                    <button className="shop-menu-item"
+                      onClick={() => { setShowMenuDropdown(false); navigate('/mystores'); }}>
+                      <Store size={18} /><span>View All Stores</span>
+                    </button>
+                    <button className="shop-menu-item"
+                      onClick={() => { setShowMenuDropdown(false); navigate('/addstore'); }}>
+                      <Plus size={18} /><span>Add New Store</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="shop-icon-circle moon"><Moon size={16} /></div>
+            <div className="shop-icon-circle bell"><Bell size={16} /></div>
+
+            {/* Profile dropdown */}
+            <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>
+              <button
+                className="shop-profile-circle-btn"
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              >
+                {renderProfileImage()}
+              </button>
+              {showProfileDropdown && (
+                <div className="shop-profile-dropdown">
+                  <div className="shop-profile-dropdown-header">
+                    <div className="shop-profile-dropdown-avatar">
+                      {renderProfileImage('dropdown')}
+                    </div>
+                    <div className="shop-profile-dropdown-info">
+                      <h4 className="shop-profile-name">{user.name || 'Admin'}</h4>
+                      <p className="shop-profile-role">{user.role || 'Shop Admin'}</p>
+                    </div>
+                  </div>
+                  <div className="shop-profile-divider" />
+                  <div className="shop-profile-details">
+                    <div className="shop-profile-detail-item">
+                      <span className="shop-detail-icon">📧</span>
+                      <span className="shop-detail-text">{user.email || 'N/A'}</span>
+                    </div>
+                    <div className="shop-profile-detail-item">
+                      <span className="shop-detail-icon">📱</span>
+                      <span className="shop-detail-text">{user.phone || 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="shop-profile-divider" />
+                  <div className="shop-profile-actions">
+                    <button className="shop-profile-action-btn"
+                      onClick={() => { setShowProfileDropdown(false); navigate('/adminprofile'); }}>
+                      <User size={18} /><span>My Profile</span>
+                    </button>
+                    <button className="shop-profile-action-btn shop-logout-btn"
+                      onClick={handleLogOut}>
+                      <LogOut size={18} /><span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
+        {/* CONTENT */}
         <div className="sp-content">
           {loading ? (
             <div className="sp-loading">
@@ -170,9 +324,7 @@ const ShopProfile = () => {
                   </div>
                   <div className="sp-detail-body">
                     <p className="sp-detail-label">Address</p>
-                    <p className="sp-detail-value">
-                      {shopData.address || 'Not provided'}
-                    </p>
+                    <p className="sp-detail-value">{shopData.address || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -182,9 +334,7 @@ const ShopProfile = () => {
                   </div>
                   <div className="sp-detail-body">
                     <p className="sp-detail-label">Phone</p>
-                    <p className="sp-detail-value">
-                      {shopData.phone || 'Not provided'}
-                    </p>
+                    <p className="sp-detail-value">{shopData.phone || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -194,9 +344,7 @@ const ShopProfile = () => {
                   </div>
                   <div className="sp-detail-body">
                     <p className="sp-detail-label">Admin Email</p>
-                    <p className="sp-detail-value">
-                      {shopData.admin_email || 'Not provided'}
-                    </p>
+                    <p className="sp-detail-value">{shopData.admin_email || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -206,9 +354,7 @@ const ShopProfile = () => {
                   </div>
                   <div className="sp-detail-body">
                     <p className="sp-detail-label">Opening Hours</p>
-                    <p className="sp-detail-value">
-                      {shopData.opening_hours || 'Not provided'}
-                    </p>
+                    <p className="sp-detail-value">{shopData.opening_hours || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -218,9 +364,7 @@ const ShopProfile = () => {
                   </div>
                   <div className="sp-detail-body">
                     <p className="sp-detail-label">Subscription Plan</p>
-                    <p className="sp-detail-value">
-                      {shopData.package_name || 'No active plan'}
-                    </p>
+                    <p className="sp-detail-value">{shopData.package_name || 'No active plan'}</p>
                   </div>
                 </div>
               </div>

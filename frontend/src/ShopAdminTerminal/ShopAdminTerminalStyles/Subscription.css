@@ -1,0 +1,707 @@
+/* ============================================
+   Subscription.css
+   Reuses all shared classes from ShopAdminDashboard.css
+   Only subscription-specific styles are added here
+   ============================================ */
+
+/* Main Container */
+.shop-admin-container {
+  display: flex;
+  height: 100vh;
+  background: #f5f5f5;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Sidebar */
+.shop-admin-sidebar {
+  width: 15rem;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.shop-brand-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.shop-brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #9333ea;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.shop-sidebar-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.shop-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.shop-nav-item:hover {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
+
+.shop-nav-item.active {
+  background: #f3e8ff;
+  color: #9333ea;
+  font-weight: 600;
+}
+
+.shop-nav-item span {
+  flex: 1;
+}
+
+.nav-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 0.5rem 0;
+}
+
+/* Main */
+.shop-admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.shop-main-header {
+  background: #ffffff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.shop-breadcrumb {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sub-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.sub-back-btn:hover {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.shop-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.shop-btn-menu {
+  padding: 0.5rem 1.25rem;
+  background: #9333ea;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s;
+}
+
+.shop-btn-menu:hover {
+  background: #7e22ce;
+}
+
+.shop-dropdown-arrow {
+  font-size: 0.75rem;
+}
+
+.shop-icon-circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.shop-icon-circle:hover { transform: scale(1.05); }
+.shop-icon-circle.moon { background: #9333ea; color: white; }
+.shop-icon-circle.bell { background: #9333ea; color: white; }
+
+.shop-profile-circle-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: #9333ea;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  overflow: hidden;
+}
+
+.shop-profile-circle-btn:hover { transform: scale(1.08); }
+
+.profile-initials {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Dashboard Content wrapper */
+.shop-dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.shop-dashboard-content::-webkit-scrollbar { width: 8px; }
+.shop-dashboard-content::-webkit-scrollbar-track { background: transparent; }
+.shop-dashboard-content::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.3);
+  border-radius: 4px;
+}
+.shop-dashboard-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.5);
+}
+
+/* Welcome / page title */
+.shop-welcome-section {
+  margin-bottom: 1.5rem;
+}
+
+.shop-welcome-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.sub-page-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Loading & Error */
+.sub-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+  color: #6b7280;
+}
+
+.sub-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid #e5e7eb;
+  border-top-color: #9333ea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.sub-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Renewal Banner */
+.sub-renewal-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.25);
+}
+
+.sub-renewal-banner strong {
+  font-weight: 700;
+}
+
+/* Main grid: plan card + billing */
+.sub-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Shared card base */
+.sub-plan-card,
+.sub-billing-card {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid #e5e7eb;
+}
+
+.sub-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Plan name row */
+.sub-plan-name-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.sub-plan-icon {
+  width: 3rem;
+  height: 3rem;
+  background: #f3e8ff;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9333ea;
+  flex-shrink: 0;
+}
+
+.sub-plan-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.sub-plan-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #9333ea;
+  margin: 0;
+}
+
+/* Usage bars */
+.sub-usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.75rem;
+}
+
+.sub-usage-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sub-usage-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4b5563;
+  width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.sub-usage-bar-wrap {
+  flex: 1;
+}
+
+.sub-usage-bar-track {
+  width: 100%;
+  height: 0.625rem;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.sub-usage-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+.sub-usage-bar-fill.purple {
+  background: linear-gradient(90deg, #9333ea 0%, #c084fc 100%);
+}
+
+.sub-usage-bar-fill.teal {
+  background: linear-gradient(90deg, #14b8a6 0%, #5eead4 100%);
+}
+
+.sub-usage-bar-fill.red {
+  background: linear-gradient(90deg, #dc2626 0%, #fca5a5 100%);
+}
+
+.sub-usage-count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  width: 5.5rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Upgrade button */
+.sub-upgrade-btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+  font-family: inherit;
+}
+
+.sub-upgrade-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.4);
+}
+
+/* Billing history */
+.sub-billing-card {
+  border-color: #9333ea33;
+}
+
+.sub-billing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sub-billing-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.sub-billing-row:last-child {
+  border-bottom: none;
+}
+
+.sub-billing-date {
+  color: #6b7280;
+  font-weight: 500;
+  width: 6.5rem;
+  flex-shrink: 0;
+}
+
+.sub-billing-desc {
+  flex: 1;
+  color: #374151;
+  font-weight: 500;
+}
+
+.sub-billing-amount {
+  color: #1f2937;
+  font-weight: 700;
+  width: 4rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sub-billing-status {
+  padding: 0.2rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sub-billing-status.paid {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.sub-billing-status.pending {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+
+.sub-billing-status.failed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.sub-billing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+  gap: 0.75rem;
+}
+
+.sub-billing-empty p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Dropdown menus — identical to dashboard */
+.shop-menu-dropdown-container,
+.shop-profile-dropdown-container {
+  position: relative;
+}
+
+.shop-menu-dropdown,
+.shop-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-width: 220px;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+  border: 1px solid #f3f4f6;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.shop-menu-section { padding: 0.75rem; }
+
+.shop-menu-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 0.75rem;
+}
+
+.shop-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.shop-menu-item:hover {
+  background-color: #f9fafb;
+  color: #9333ea;
+}
+
+.shop-menu-divider {
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 0.5rem 0;
+}
+
+/* Profile Dropdown */
+.shop-profile-dropdown { min-width: 280px; }
+
+.shop-profile-dropdown-header {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.shop-profile-dropdown-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #9333ea;
+}
+
+.shop-profile-dropdown-info { flex: 1; min-width: 0; }
+
+.shop-profile-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-profile-role {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-weight: 500;
+}
+
+.shop-profile-details {
+  padding: 1rem;
+  background-color: #f9fafb;
+}
+
+.shop-profile-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+.shop-detail-icon { font-size: 1.125rem; flex-shrink: 0; }
+
+.shop-detail-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-profile-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+.shop-profile-actions { padding: 0.5rem; }
+
+.shop-profile-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.shop-profile-action-btn:hover {
+  background-color: #f9fafb;
+  color: #9333ea;
+}
+
+.shop-profile-action-btn.shop-logout-btn { color: #ef4444; }
+.shop-profile-action-btn.shop-logout-btn:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sub-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-admin-sidebar { width: 4rem; }
+  .shop-brand-title { display: none; }
+  .shop-nav-item span { display: none; }
+  .shop-nav-item { justify-content: center; padding: 0.75rem; }
+  .shop-dashboard-content { padding: 1rem; }
+}

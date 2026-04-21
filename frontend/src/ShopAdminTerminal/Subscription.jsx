@@ -12,18 +12,24 @@ import {
   User,
   Bell,
   Moon,
-  Settings
+  Settings,
+  ArrowLeft,
+  ShoppingCart as CartIcon,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/ShopAdminDashboard.css';
+import './ShopAdminTerminalStyles/Subscription.css';
 
-const ShopAdminDashboard = () => {
+const Subscription = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [stores, setStores] = useState([]);
+  const [subscriptionData, setSubscriptionData] = useState(null);
   const [usageData, setUsageData] = useState(null);
-  const [loadingStores, setLoadingStores] = useState(true);
-  const [loadingUsage, setLoadingUsage] = useState(true);
+  const [billingHistory, setBillingHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
@@ -32,44 +38,36 @@ const ShopAdminDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
 
-  // Fetch stores
+  // Fetch subscription + usage data
   useEffect(() => {
-    const fetchStores = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stores', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setStores(data);
-        }
-      } catch (error) {
-        console.error('Error fetching stores:', error);
-      } finally {
-        setLoadingStores(false);
-      }
-    };
-    fetchStores();
-  }, []);
+        const [subRes, usageRes] = await Promise.all([
+          fetch('http://localhost:5000/api/shop/subscription', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch('http://localhost:5000/api/shop/usage', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+        ]);
 
-  // Fetch usage data from DB
-  useEffect(() => {
-    const fetchUsage = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/shop/usage', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUsageData(data);
+        if (subRes.ok) {
+          const subData = await subRes.json();
+          setSubscriptionData(subData);
+          setBillingHistory(subData.billing_history || []);
         }
-      } catch (error) {
-        console.error('Error fetching usage:', error);
+        if (usageRes.ok) {
+          const uData = await usageRes.json();
+          setUsageData(uData);
+        }
+      } catch (err) {
+        console.error('Error fetching subscription data:', err);
+        setError('Failed to load subscription data.');
       } finally {
-        setLoadingUsage(false);
+        setLoading(false);
       }
     };
-    fetchUsage();
+    fetchData();
   }, []);
 
   // Close dropdowns on outside click
@@ -87,10 +85,9 @@ const ShopAdminDashboard = () => {
   const handleLogOut = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    navigate("/");
+    navigate('/');
   };
 
-  // Shop logo from DB via login response
   const shopLogoUrl = user.shop_logo
     ? `http://localhost:5000${user.shop_logo}`
     : null;
@@ -116,10 +113,7 @@ const ShopAdminDashboard = () => {
         <img
           src={`http://localhost:5000${user.image_url}`}
           alt="Profile"
-          style={{
-            width: '100%', height: '100%',
-            objectFit: 'cover', borderRadius: '50%'
-          }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />
       );
     }
@@ -127,21 +121,32 @@ const ShopAdminDashboard = () => {
     return <span className={cls}>{initials}</span>;
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+  };
+
+  const getBarPercent = (used, max) => {
+    if (!max) return 0;
+    return Math.min((used / max) * 100, 100);
+  };
+
   return (
     <div className="shop-admin-container">
-      {/* SIDEBAR */}
+      {/* SIDEBAR — identical to ShopAdminDashboard */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">
           {renderShopLogo()}
         </div>
 
         <nav className="shop-sidebar-nav">
-          <button className="shop-nav-item active">
+          <button className="shop-nav-item" onClick={() => navigate('/shopadmindashboard')}>
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </button>
 
-          {/* NEW: Shop Profile */}
           <button className="shop-nav-item" onClick={() => navigate('/shopprofile')}>
             <Settings size={18} />
             <span>Shop Profile</span>
@@ -187,7 +192,7 @@ const ShopAdminDashboard = () => {
 
           <div className="nav-divider" />
 
-          <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
+          <button className="shop-nav-item active">
             <Diamond size={18} />
             <span>Subscription</span>
           </button>
@@ -201,7 +206,12 @@ const ShopAdminDashboard = () => {
       {/* MAIN */}
       <main className="shop-admin-main">
         <header className="shop-main-header">
-          <div className="shop-breadcrumb">Admin &gt; Dashboard</div>
+          <div className="shop-breadcrumb">
+            <button className="sub-back-btn" onClick={() => navigate('/shopadmindashboard')}>
+              <ArrowLeft size={16} />
+            </button>
+            Admin &gt; Subscription
+          </div>
           <div className="shop-header-actions">
 
             {/* Stores dropdown */}
@@ -215,23 +225,7 @@ const ShopAdminDashboard = () => {
               {showMenuDropdown && (
                 <div className="shop-menu-dropdown">
                   <div className="shop-menu-section">
-                    <h4 className="shop-menu-section-title">My Stores</h4>
-                    {loadingStores ? (
-                      <div className="shop-menu-item">Loading...</div>
-                    ) : stores.length > 0 ? (
-                      stores.map((store) => (
-                        <button key={store.id} className="shop-menu-item"
-                          onClick={() => setShowMenuDropdown(false)}>
-                          <Store size={18} />
-                          <span>{store.name}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="shop-menu-item">No stores found</div>
-                    )}
-                  </div>
-                  <div className="shop-menu-divider" />
-                  <div className="shop-menu-section">
+                    <h4 className="shop-menu-section-title">Quick Links</h4>
                     <button className="shop-menu-item"
                       onClick={() => { setShowMenuDropdown(false); navigate('/mystores'); }}>
                       <Store size={18} /><span>View All Stores</span>
@@ -295,103 +289,151 @@ const ShopAdminDashboard = () => {
           </div>
         </header>
 
-        {/* DASHBOARD CONTENT */}
+        {/* SUBSCRIPTION CONTENT */}
         <div className="shop-dashboard-content">
           <div className="shop-welcome-section">
-            <h1 className="shop-welcome-title">
-              Good Morning, {user.name?.split(' ')[0] || 'Admin'}!
-            </h1>
+            <h1 className="shop-welcome-title">Subscription</h1>
+            <p className="sub-page-subtitle">Manage your subscription plan</p>
           </div>
 
-          {/* MY STORE */}
-          <div className="my-store-section">
-            <h2 className="section-title">MY STORE</h2>
-            <div className="stores-grid">
-              {loadingStores ? (
-                <div className="store-card-loading">Loading stores...</div>
-              ) : stores.length > 0 ? (
-                stores.map((store, index) => (
-                  <div key={store.id} className="store-card">
-                    <div className="store-card-header">
-                      <h3 className="store-card-title">
-                        {store.name || `STORE ${index + 1}`}
-                      </h3>
-                      <span className="store-growth">Active</span>
-                    </div>
-                    <p className="store-location">
-                      {store.address || store.city || 'No address'}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="store-card">
-                  <div className="store-card-header">
-                    <h3 className="store-card-title">No Stores Yet</h3>
-                  </div>
-                  <p className="store-location">Add your first store</p>
+          {loading ? (
+            <div className="sub-loading">
+              <div className="sub-spinner" />
+              <p>Loading subscription data...</p>
+            </div>
+          ) : error ? (
+            <div className="sub-error">
+              <AlertCircle size={20} />
+              <span>{error}</span>
+            </div>
+          ) : (
+            <>
+              {/* RENEWAL BANNER */}
+              {subscriptionData?.end_date && (
+                <div className="sub-renewal-banner">
+                  <CheckCircle size={18} />
+                  <span>
+                    Your subscription renews on{' '}
+                    <strong>{formatDate(subscriptionData.end_date)}</strong>
+                  </span>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* MY USAGE */}
-          <div className="my-usage-section">
-            <h2 className="section-title">MY USAGE</h2>
-            {loadingUsage ? (
-              <div className="usage-loading">Loading usage data...</div>
-            ) : usageData ? (
-              <div className="usage-grid">
-                <div className="usage-card">
-                  <h3 className="usage-label">Store</h3>
-                  <div className="usage-bar-container">
-                    <div
-                      className="usage-bar purple"
-                      style={{
-                        width: `${Math.min((usageData.stores_used / usageData.max_stores) * 100, 100)}%`
-                      }}
-                    />
+              {/* MAIN GRID: Current Plan + Billing History */}
+              <div className="sub-main-grid">
+
+                {/* CURRENT PLAN CARD */}
+                <div className="sub-plan-card">
+                  <h2 className="sub-card-title">Current Plan</h2>
+
+                  <div className="sub-plan-name-row">
+                    <div className="sub-plan-icon">
+                      <CartIcon size={24} />
+                    </div>
+                    <div>
+                      <h3 className="sub-plan-name">
+                        {subscriptionData?.package_name || usageData?.package_name || 'Professional'}
+                      </h3>
+                      {subscriptionData?.price && (
+                        <p className="sub-plan-price">
+                          ${subscriptionData.price}/month
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <p className="usage-count">
-                    {usageData.stores_used}/{usageData.max_stores}
-                  </p>
+
+                  {/* Usage Bars */}
+                  {usageData && (
+                    <div className="sub-usage-list">
+                      <div className="sub-usage-row">
+                        <span className="sub-usage-label">Stores</span>
+                        <div className="sub-usage-bar-wrap">
+                          <div className="sub-usage-bar-track">
+                            <div
+                              className="sub-usage-bar-fill purple"
+                              style={{ width: `${getBarPercent(usageData.stores_used, usageData.max_stores)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="sub-usage-count">
+                          {usageData.stores_used} / {usageData.max_stores}
+                        </span>
+                      </div>
+
+                      <div className="sub-usage-row">
+                        <span className="sub-usage-label">Users</span>
+                        <div className="sub-usage-bar-wrap">
+                          <div className="sub-usage-bar-track">
+                            <div
+                              className="sub-usage-bar-fill teal"
+                              style={{ width: `${getBarPercent(usageData.users_used, usageData.max_users_per_store)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="sub-usage-count">
+                          {usageData.users_used} / {usageData.max_users_per_store}
+                        </span>
+                      </div>
+
+                      <div className="sub-usage-row">
+                        <span className="sub-usage-label">Products</span>
+                        <div className="sub-usage-bar-wrap">
+                          <div className="sub-usage-bar-track">
+                            <div
+                              className="sub-usage-bar-fill red"
+                              style={{ width: `${getBarPercent(usageData.products_used, usageData.max_products)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="sub-usage-count">
+                          {usageData.products_used} / {usageData.max_products}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button className="sub-upgrade-btn">
+                    <TrendingUp size={16} />
+                    Upgrade Plan
+                  </button>
                 </div>
-                <div className="usage-card">
-                  <h3 className="usage-label">User</h3>
-                  <div className="usage-bar-container">
-                    <div
-                      className="usage-bar teal"
-                      style={{
-                        width: `${Math.min((usageData.users_used / usageData.max_users_per_store) * 100, 100)}%`
-                      }}
-                    />
-                  </div>
-                  <p className="usage-count">
-                    {usageData.users_used}/{usageData.max_users_per_store}
-                  </p>
+
+                {/* BILLING HISTORY CARD */}
+                <div className="sub-billing-card">
+                  <h2 className="sub-card-title">Billing History</h2>
+
+                  {billingHistory.length > 0 ? (
+                    <div className="sub-billing-list">
+                      {billingHistory.map((item, index) => (
+                        <div key={index} className="sub-billing-row">
+                          <span className="sub-billing-date">
+                            {formatDate(item.payment_date || item.created_at)}
+                          </span>
+                          <span className="sub-billing-desc">
+                            {item.package_name || subscriptionData?.package_name} Plan
+                          </span>
+                          <span className="sub-billing-amount">
+                            ${parseFloat(item.amount).toFixed(2)}
+                          </span>
+                          <span className="sub-billing-status paid">Paid</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="sub-billing-empty">
+                      <Diamond size={32} />
+                      <p>No billing history yet</p>
+                    </div>
+                  )}
                 </div>
-                <div className="usage-card">
-                  <h3 className="usage-label">Product</h3>
-                  <div className="usage-bar-container">
-                    <div
-                      className="usage-bar red"
-                      style={{
-                        width: `${Math.min((usageData.products_used / usageData.max_products) * 100, 100)}%`
-                      }}
-                    />
-                  </div>
-                  <p className="usage-count">
-                    {usageData.products_used}/{usageData.max_products}
-                  </p>
-                </div>
+
               </div>
-            ) : (
-              <div className="usage-loading">No usage data available</div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </main>
     </div>
   );
 };
 
-export default ShopAdminDashboard;
+export default Subscription;

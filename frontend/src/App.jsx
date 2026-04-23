@@ -20,6 +20,7 @@ import ManageShops from "./SystemTerminal/ManageShops";
 import Packages from "./SystemTerminal/Packages";
 import Subscriptions from "./SystemTerminal/Subscriptions"
 import SystemAdminProfile from "./SystemTerminal/SystemAdminProfile";
+import SystemSettings from "./SystemTerminal/Systemsettings";
 
 
 import ShopAdminDashboard from "./ShopAdminTerminal/ShopAdminDashboard";
@@ -52,6 +53,8 @@ const App = () => {
       <Route path="/packages" element={<Packages/>} />
       <Route path="/subscriptions" element={<Subscriptions/>} />
       <Route path="/systemadminprofile" element={<SystemAdminProfile />} />
+      <Route path="/systemsettings" element={<SystemSettings />} />
+
 
 
       <Route path="/shopadmindashboard" element={<ShopAdminDashboard/>} />

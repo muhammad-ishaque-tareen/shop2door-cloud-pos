@@ -153,7 +153,7 @@ const ShopRequests = () => {
 
           <div className="sr-nav-divider" />
 
-          <button className="sr-nav-item" onClick={() => navigate('/settings')}>
+          <button className="sr-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
           </button>
           <button className="sr-nav-item" onClick={() => navigate('/systemadminprofile')}>
@@ -244,7 +244,7 @@ const ShopRequests = () => {
                     <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
+                    <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
                     </button>
                     <button className="sr-profile-action-btn sr-logout-btn" onClick={handleLogOut}>

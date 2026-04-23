@@ -178,7 +178,7 @@ const Subscriptions = () => {
 
           <div className="sys-nav-divider" />
 
-          <button className="sys-nav-item" onClick={() => navigate('/settings')}>
+          <button className="sys-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
           </button>
           <button className="sys-nav-item" onClick={() => navigate('/systemadminprofile')}>
@@ -227,7 +227,7 @@ const Subscriptions = () => {
                     <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/packages'); }}>
                       <Package size={18} /><span>Packages</span>
                     </button>
-                    <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/settings'); }}>
+                    <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
                     </button>
                   </div>

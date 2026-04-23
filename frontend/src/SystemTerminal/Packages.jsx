@@ -205,7 +205,7 @@ const Packages = () => {
             <DollarSign size={18} /><span>Subscriptions</span>
           </button>
           <div className="pk-nav-divider" />
-          <button className="pk-nav-item" onClick={() => navigate('/settings')}>
+          <button className="pk-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
           </button>
           <button className="pk-nav-item" onClick={() => navigate('/systemadminprofile')}>
@@ -285,7 +285,7 @@ const Packages = () => {
                     <button className="pk-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="pk-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
+                    <button className="pk-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
                     </button>
                     <button className="pk-profile-action-btn pk-logout-btn" onClick={handleLogOut}>

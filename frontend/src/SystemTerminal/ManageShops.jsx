@@ -149,7 +149,7 @@ const ManageShops = () => {
 
           <div className="ms-nav-divider" />
 
-          <button className="ms-nav-item" onClick={() => navigate('/settings')}>
+          <button className="ms-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
           </button>
           <button className="ms-nav-item" onClick={() => navigate('/systemadminprofile')}>
@@ -240,7 +240,7 @@ const ManageShops = () => {
                     <button className="ms-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="ms-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
+                    <button className="ms-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
                     </button>
                     <button className="ms-profile-action-btn ms-logout-btn" onClick={handleLogOut}>

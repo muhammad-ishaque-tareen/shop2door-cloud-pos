@@ -226,7 +226,7 @@ const SystemAdminProfile = () => {
 
           <div className="sys-nav-divider" />
 
-          <button className="sys-nav-item" onClick={() => navigate('/settings')}>
+          <button className="sys-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
           </button>
           <button className="sys-nav-item active">
@@ -280,7 +280,7 @@ const SystemAdminProfile = () => {
                     <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/subscriptions'); }}>
                       <DollarSign size={18} /><span>Subscriptions</span>
                     </button>
-                    <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/settings'); }}>
+                    <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
                     </button>
                   </div>

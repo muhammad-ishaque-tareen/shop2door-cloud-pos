@@ -242,18 +242,18 @@ const Myprofile = () => {
           <button className="mp-nav-item" onClick={() => navigate('/mystores')}>
             <Store size={18} /><span>My Stores</span>
           </button>
-          <button className="mp-nav-item" onClick={() => navigate('/mystores')}>
+          {/* <button className="mp-nav-item" onClick={() => navigate('/mystores')}>
             <Plus size={18} /><span>Add Store</span>
-          </button>
+          </button> */}
 
           <div className="mp-nav-divider" />
 
           <button className="mp-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} /><span>My Users</span>
           </button>
-          <button className="mp-nav-item" onClick={() => navigate('/adduser')}>
+          {/* <button className="mp-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} /><span>Add User</span>
-          </button>
+          </button> */}
 
           <div className="mp-nav-divider" />
 

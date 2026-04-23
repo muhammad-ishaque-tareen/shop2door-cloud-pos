@@ -17,28 +17,24 @@ app.use(cors({
 app.use(express.json());
 
 const uploadsPath = path.join(__dirname, '..', 'uploads');
+
+
 app.use('/uploads', express.static(uploadsPath));
 
-app.get('/test-upload', (req, res) => {
-  const fs = require('fs');
-  const testPath = path.join(__dirname, '..', 'uploads', 'products');
-  fs.readdir(testPath, (err, files) => {
-    if (err) return res.json({ error: err.message, path: testPath });
-    res.json({ message: 'Uploads directory found!', path: testPath, files });
-  });
-});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/shop', shopRoutes); 
-app.use('/api/stores',  require('./routes/store.routes'));
 
+
+app.use('/api/stores',  require('./routes/store.routes'));
 app.use('/api/system', require('./routes/system.routes'));
 app.use('/api/shop-requests', require('./routes/shoprequest.routes'));
 app.use('/api/manage-shops', require('./routes/manageshops.routes'));
 app.use('/api/packages', require('./routes/packages.routes'));
 app.use('/api/subscriptions', require('./routes/subscriptions.routes'));
+app.use('/api/shopusers', require('./routes/shopusers.routes'));
 
 module.exports = app;

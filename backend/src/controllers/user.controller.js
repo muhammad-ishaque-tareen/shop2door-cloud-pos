@@ -4,6 +4,8 @@ const fs = require("fs");
 const multer = require("multer");
 const masterPool = require("../db/master.pool");
 const getShopPool = require("../db/shop.pool");
+
+// Multer setup 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../../uploads/users");
@@ -29,9 +31,45 @@ const upload = multer({
 
 exports.uploadProfileImage = upload.single("image");
 
-// ── UPDATE PROFILE ─────────────────────────────────────────────────────────────
-// shop_admin / system_admin  ->  masterPool
-// store_manager / cashier    ->  shopDB  (db_name from JWT)
+//GET MY PROFILE 
+
+//
+// GET /api/users/me
+exports.getMyProfile = async (req, res) => {
+  const userId  = req.user.id;
+  const db_name = req.user.db_name || null;
+  const role    = req.user.role    || null;
+
+  try {
+    const isShopUser =
+      !!db_name &&
+      (role === "store_manager" ||
+        role === "cashier" ||
+        !["shop_admin", "system_admin"].includes(role));
+
+    const pool = isShopUser ? getShopPool(db_name) : masterPool;
+
+    const result = await pool.query(
+      `SELECT user_id, name, email, phone, role, image_url, created_at
+       FROM users
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "User not found" });
+
+    res.json({ user: result.rows[0] });
+
+  } catch (error) {
+    console.error("[USER] getMyProfile error:", error.message);
+    res.status(500).json({ message: "Server error", detail: error.message });
+  }
+};
+
+// UPDATE PROFILE 
+
+// PUT /api/users/update-profile
 exports.updateProfile = async (req, res) => {
   const { name, phone, password } = req.body;
   const userId  = req.user.id;

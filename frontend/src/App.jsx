@@ -28,6 +28,7 @@ import ShopProfile from "./ShopAdminTerminal/ShopProfile";
 import Subscription from "./ShopAdminTerminal/Subscription";
 import Myprofile from "./ShopAdminTerminal/Myprofile";
 import MyStores from "./ShopAdminTerminal/Mystores";
+import MyUsers from "./ShopAdminTerminal/Myusers";
 
 const App = () => {
   return (
@@ -62,6 +63,7 @@ const App = () => {
       <Route path="/subscription" element={<Subscription />} />
       <Route path="/adminprofile" element={<Myprofile />} />
       <Route path="/mystores" element={<MyStores />} />
+      <Route path="/myuser" element={<MyUsers />} />
 
     </Routes>
   );

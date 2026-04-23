@@ -9,6 +9,7 @@ const {
   deletePackage,
 } = require("../controllers/packages.controller");
 
+router.get("/",    getPackages);  
 router.get("/",       auth, getPackages);
 router.get("/:id",    auth, getPackageById);
 router.post("/",      auth, createPackage);

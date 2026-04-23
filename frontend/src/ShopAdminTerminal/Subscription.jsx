@@ -158,10 +158,10 @@ const Subscription = () => {
             <Store size={18} />
             <span>My Stores</span>
           </button>
-          <button className="shop-nav-item" onClick={() => navigate('/addstore')}>
+          {/* <button className="shop-nav-item" onClick={() => navigate('/addstore')}>
             <Plus size={18} />
             <span>Add Store</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
 
@@ -169,10 +169,10 @@ const Subscription = () => {
             <Users size={18} />
             <span>My Users</span>
           </button>
-          <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
+          {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} />
             <span>Add User</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
 

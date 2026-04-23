@@ -479,3 +479,15 @@ body {
   padding: 60px 0;
   font-weight: 500;
 }
+
+
+.feature-heading {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  padding-bottom: 4px;
+}
+
+.feature-indented {
+  padding-left: 1.25rem;
+}

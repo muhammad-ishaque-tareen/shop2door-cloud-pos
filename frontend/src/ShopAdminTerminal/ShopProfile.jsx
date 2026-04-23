@@ -140,16 +140,16 @@ const ShopProfile = () => {
           <button className="sp-nav-item" onClick={() => navigate('/mystores')}>
             <Store size={18} /><span>My Stores</span>
           </button>
-          <button className="sp-nav-item" onClick={() => navigate('/addstore')}>
+          {/* <button className="sp-nav-item" onClick={() => navigate('/addstore')}>
             <Plus size={18} /><span>Add Store</span>
-          </button>
+          </button> */}
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} /><span>My Users</span>
           </button>
-          <button className="sp-nav-item" onClick={() => navigate('/adduser')}>
+          {/* <button className="sp-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} /><span>Add User</span>
-          </button>
+          </button> */}
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/products')}>
             <ShoppingCart size={18} /><span>Products</span>

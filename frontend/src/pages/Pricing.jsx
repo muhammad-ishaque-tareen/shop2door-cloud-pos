@@ -1,54 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import '../styles/Pricing.css';
 
+const BASE = 'http://localhost:5000';
+
 const Pricing = () => {
-    const navigate = useNavigate();
-  const plans = [
-    {
-      id: 1,
-      isPopular: false,
-      name: 'STARTER',
-      description: 'For growing businesses',
-      price: '6k',
-      features: [
-        'Advanced Inventory',
-        'Customer Management',
-        'Analytics & Reports',
-        'Up to 3 Stores',
-        'Up to 5 Users'
-      ]
-    },
-    {
-      id: 2,
-      isPopular: true,
-      name: 'PROFESSIONAL',
-      description: 'For growing businesses',
-      price: '10k',
-      features: [
-        'Advanced Inventory',
-        'Customer Management',
-        'Analytics & Reports',
-        'Up to 8 Stores',
-        'Up to 10 Users'
-        
-      ]
-    },
-    {
-      id: 3,
-      isPopular: false,
-      name: 'ENTERPRISE',
-      description: 'For growing businesses',
-      price: '18k',
-      features: [
-        'Advanced Inventory',
-        'Customer Management',
-        'Analytics & Reports',
-        'Up to  12 Stores',
-        'Up to 16 Users'
-      ]
-    }
+  const navigate = useNavigate();
+  const [plans, setPlans]     = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res  = await fetch(`${BASE}/api/packages`);
+        const data = await res.json();
+        // Most used (highest shop_count) first, then descending
+        const sorted = [...data].sort(
+          (a, b) => parseInt(b.shop_count, 10) - parseInt(a.shop_count, 10)
+        );
+        setPlans(sorted);
+      } catch (err) {
+        console.error('Failed to load packages:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
+
+  // Build feature bullet list from DB fields
+  const buildFeatures = (pkg) => [
+    'Advanced Inventory',
+    'Customer Management',
+    'Analytics & Reports',
+    `Up to ${pkg.max_stores} Store${pkg.max_stores !== 1 ? 's' : ''}`,
+    `Up to ${pkg.max_users_per_store} User${pkg.max_users_per_store !== 1 ? 's' : ''} per Store`,
+    `${Number(pkg.max_products).toLocaleString()} Products`,
+    `${pkg.max_storage_mb} MB Storage`,
   ];
+
+  // Format price: show as "Xk" if >= 1000, else plain number
+  const formatPrice = (price) => {
+    const n = Number(price);
+    if (n >= 1000) return `${Math.round(n / 1000)}k`;
+    return n.toLocaleString();
+  };
 
   return (
     <div className="pricing-page">
@@ -65,46 +61,57 @@ const Pricing = () => {
           </p>
         </div>
 
-        <div className="pricing-cards">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`pricing-card ${plan.isPopular ? 'popular' : ''}`}
-            >
-              {plan.isPopular && (
-                <div className="popular-badge">MOST POPULAR</div>
-              )}
-              
-              <div className="card-header">
-                <h3 className="plan-name">{plan.name}</h3>
-                <p className="plan-description">{plan.description}</p>
-              </div>
+        {loading ? (
+          <div className="pricing-loading">Loading plans…</div>
+        ) : (
+          <div className="pricing-cards">
+            {plans.map((plan, index) => {
+              // Most used package (index 0 after sort) gets the popular badge
+              const isPopular = index === 0;
+              return (
+                <div
+                  key={plan.package_id}
+                  className={`pricing-card ${isPopular ? 'popular' : ''}`}
+                >
+                  {isPopular && (
+                    <div className="popular-badge">MOST POPULAR</div>
+                  )}
 
-              <div className="card-price">
-                <span className="currency">Rs.</span>
-                <span className="amount">{plan.price}</span>
-                <span className="period">/mo</span>
-              </div>
+                  <div className="card-header">
+                    <h3 className="plan-name">{plan.name.toUpperCase()}</h3>
+                    <p className="plan-description">For growing businesses</p>
+                  </div>
 
-              <div className="card-divider"></div>
+                  <div className="card-price">
+                    <span className="currency">Rs.</span>
+                    <span className="amount">{formatPrice(plan.price)}</span>
+                    <span className="period">/mo</span>
+                  </div>
 
-              <ul className="features-list">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="feature-item">
-                    <svg className="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
+                  <div className="card-divider"></div>
 
-              <button className="get-started-btn"
-              onClick={() => navigate("/signup")}
-              >Get Started</button>
-            </div>
-          ))}
-        </div>
+                  <ul className="features-list">
+                    {buildFeatures(plan).map((feature, i) => (
+                      <li key={i} className="feature-item">
+                        <svg className="check-icon" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    className="get-started-btn"
+                    onClick={() => navigate("/signup")}
+                  >
+                    Get Started
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <p className="pricing-footer">All plans include 7-day free trial</p>
       </div>

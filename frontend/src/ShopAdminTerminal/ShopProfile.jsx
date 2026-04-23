@@ -136,10 +136,6 @@ const ShopProfile = () => {
           <button className="sp-nav-item active">
             <Settings size={18} /><span>Shop Profile</span>
           </button>
-          <button className="sp-nav-item" onClick={() => navigate('/adminprofile')}>
-            <User size={18} />
-            <span>My Profile</span>
-          </button>
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/mystores')}>
             <Store size={18} /><span>My Stores</span>
@@ -164,6 +160,11 @@ const ShopProfile = () => {
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>
+          </button>
+          <div className="sp-nav-divider" />
+          <button className="sp-nav-item" onClick={() => navigate('/adminprofile')}>
+            <User size={18} />
+            <span>My Profile</span>
           </button>
           <button className="sp-nav-item sp-logout-item" onClick={handleLogOut}>
             <LogOut size={18} /><span>Logout</span>

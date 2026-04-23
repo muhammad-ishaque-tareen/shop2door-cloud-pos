@@ -352,6 +352,8 @@ const POSTerminal = () => {
             <FileText size={18} />
             <span>Shift Report</span>
           </button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}>
             <Search size={18} />
             <span>Find Products</span>
@@ -360,6 +362,8 @@ const POSTerminal = () => {
             <Package size={18} />
             <span>Return Product</span>
           </button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/mysales')}>
             <BarChart3 size={18} />
             <span>My Sales</span>
@@ -368,8 +372,11 @@ const POSTerminal = () => {
             <Settings size={18} />
             <span>Settings</span>
           </button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={handleMyProfile}>
             <User size={18} />
+            
             <span>My Profile</span>
           </button>
           <button className="nav-item" onClick={handleLogOut}>

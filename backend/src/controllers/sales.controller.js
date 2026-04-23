@@ -60,7 +60,7 @@ exports.createSale = async (req, res) => {
   }
 };
 
-// ── GET MY SALES (for the logged-in cashier / manager) ────────────────────────
+//GET MY SALES (for the logged-in cashier / manager)
 exports.getMySales = async (req, res) => {
   const userId = req.user.id;
 

@@ -39,18 +39,11 @@ const upload = multer({
   },
 });
 
-// ── Category routes ───────────────────────────────────────────────────────────
-// GET    /api/products/categories   → list all categories
-// POST   /api/products/categories   → create a category
+//Category routes 
 router.get("/categories",  auth, shop, getCategories);
 router.post("/categories", auth, shop, createCategory);
 
-// ── Product routes ────────────────────────────────────────────────────────────
-// GET    /api/products              → all products (with category name)
-// POST   /api/products              → create product (with optional image)
-// GET    /api/products/:id          → single product
-// PUT    /api/products/:id          → update product (with optional image)
-// DELETE /api/products/:id          → delete product
+//Product routes
 router.get("/",     auth, shop, getProducts);
 router.post("/",    auth, shop, upload.single("image"), createProduct);
 router.get("/:id",  auth, shop, getProductById);

@@ -236,9 +236,6 @@ const Myprofile = () => {
           <button className="mp-nav-item" onClick={() => navigate('/shopprofile')}>
             <Settings size={18} /><span>Shop Profile</span>
           </button>
-          <button className="mp-nav-item active">
-            <User size={18} /><span>My Profile</span>
-          </button>
 
           <div className="mp-nav-divider" />
 
@@ -271,6 +268,12 @@ const Myprofile = () => {
 
           <button className="mp-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>
+          </button>
+          
+          <div className="mp-nav-divider" />
+
+          <button className="mp-nav-item active">
+            <User size={18} /><span>My Profile</span>
           </button>
           <button className="mp-nav-item mp-logout-nav" onClick={handleLogOut}>
             <LogOut size={18} /><span>Logout</span>

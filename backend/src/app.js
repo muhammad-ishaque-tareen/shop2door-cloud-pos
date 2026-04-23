@@ -32,7 +32,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/shop', shopRoutes); // NEW
+app.use('/api/shop', shopRoutes); 
 app.use('/api/stores',  require('./routes/store.routes'));
+
+app.use('/api/system', require('./routes/system.routes'));
+app.use('/api/shop-requests', require('./routes/shoprequest.routes'));
+app.use('/api/manage-shops', require('./routes/manageshops.routes'));
+app.use('/api/packages', require('./routes/packages.routes'));
+app.use('/api/subscriptions', require('./routes/subscriptions.routes'));
 
 module.exports = app;

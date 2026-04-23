@@ -1,11 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// store.controller.js  — aligned to ShopDB schema:
-//   stores(store_id, name, address, phone, is_active, created_at)
-//   users(user_id, name, email, role, store_id, ...)
-// ─────────────────────────────────────────────────────────────────────────────
 const masterPool = require('../db/master.pool');
 
-// ── GET ALL STORES ────────────────────────────────────────────────────────────
+//  GET ALL STORES 
 exports.getStores = async (req, res) => {
   try {
     const result = await req.shopDB.query(
@@ -26,7 +21,7 @@ exports.getStores = async (req, res) => {
   }
 };
 
-// ── GET STORE BY ID ───────────────────────────────────────────────────────────
+//GET STORE BY ID 
 exports.getStoreById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -42,7 +37,7 @@ exports.getStoreById = async (req, res) => {
   }
 };
 
-// ── CREATE STORE ──────────────────────────────────────────────────────────────
+//  CREATE STORE 
 exports.createStore = async (req, res) => {
   const { name, address, phone, is_active } = req.body;
 
@@ -72,7 +67,7 @@ exports.createStore = async (req, res) => {
   }
 };
 
-// ── UPDATE STORE ──────────────────────────────────────────────────────────────
+// UPDATE STORE
 exports.updateStore = async (req, res) => {
   const { id } = req.params;
   const { name, address, phone, is_active } = req.body;

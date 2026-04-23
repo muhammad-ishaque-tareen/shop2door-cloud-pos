@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
+import {
   LayoutDashboard,
   FileText,
   Store,
@@ -9,263 +9,242 @@ import {
   LogOut,
   User,
   Bell,
-  Calculator,
+  Moon,
   Search,
   Eye,
   Edit,
-  MoreVertical
+  RefreshCw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/ManageShops.css';
 
 const ManageShops = () => {
-  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
+  const [showMenuDropdown, setShowMenuDropdown]       = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [shops, setShops] = useState([]);
-  const [filteredShops, setFilteredShops] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Active');
-  const [packageFilter, setPackageFilter] = useState('All Packages');
+  const [shops, setShops]                             = useState([]);
+  const [filteredShops, setFilteredShops]             = useState([]);
+  const [loading, setLoading]                         = useState(true);
+  const [searchQuery, setSearchQuery]                 = useState('');
+  const [statusFilter, setStatusFilter]               = useState('All');
+  const [packageFilter, setPackageFilter]             = useState('All');
 
-  const menuDropdownRef = useRef(null);
+  const menuDropdownRef    = useRef(null);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  const user  = JSON.parse(localStorage.getItem('user')  || '{}');
+  const token = localStorage.getItem('token');
+
+  // ── Close dropdowns on outside click ─────────────────────────────────────
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuDropdownRef.current && !menuDropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
         setShowMenuDropdown(false);
-      }
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target))
         setShowProfileDropdown(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    fetchShops();
-  }, []);
+  useEffect(() => { fetchShops(); }, []);
 
-  useEffect(() => {
-    filterShops();
-  }, [shops, searchQuery, statusFilter, packageFilter]);
+  useEffect(() => { filterShops(); }, [shops, searchQuery, statusFilter, packageFilter]);
 
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/shops');
-      const data = await response.json();
-      setShops(data);
-      setFilteredShops(data);
-    } catch (error) {
-      console.error('Error fetching shops:', error);
+      const res = await fetch('http://localhost:5000/api/manage-shops', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setShops(data);
+      }
+    } catch (err) {
+      console.error('Error fetching shops:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // ── Filter ────────────────────────────────────────────────────────────────
   const filterShops = () => {
     let filtered = [...shops];
 
-    // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(shop =>
-        shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        shop.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(s =>
+        s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.package?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.address?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Status filter
-    if (statusFilter !== 'Active') {
-      filtered = filtered.filter(shop => shop.status === statusFilter);
+    if (statusFilter !== 'All') {
+      filtered = filtered.filter(s => s.status === statusFilter);
     }
 
-    // Package filter
-    if (packageFilter !== 'All Packages') {
-      filtered = filtered.filter(shop => shop.package === packageFilter);
+    if (packageFilter !== 'All') {
+      filtered = filtered.filter(s =>
+        s.package?.toLowerCase() === packageFilter.toLowerCase()
+      );
     }
 
     setFilteredShops(filtered);
   };
 
-  const handleView = (shopId) => {
-    navigate(`/shop/${shopId}`);
-  };
-
-  const handleEdit = (shopId) => {
-    navigate(`/shop/edit/${shopId}`);
-  };
-
-  const handleMyProfile = () => {
-    navigate("/myprofile");
-  };
-
   const handleLogOut = () => {
     localStorage.removeItem('user');
-    navigate("/");
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
+  // ── Profile image ─────────────────────────────────────────────────────────
   const renderProfileImage = (size = 'default') => {
-    const imageProps = {
-      src: `http://localhost:5000${user.image_url}`,
-      alt: "Profile",
-      style: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        borderRadius: '50%'
-      }
-    };
-
-    const initialsClass = size === 'dropdown' ? 'avatar-initials' : 'profile-initials';
-    const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
-
-    return user.image_url ? <img {...imageProps} /> : <span className={initialsClass}>{initials}</span>;
+    const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
+    if (user.image_url) {
+      return (
+        <img
+          src={`http://localhost:5000${user.image_url}`}
+          alt="Profile"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+        />
+      );
+    }
+    const cls = size === 'dropdown' ? 'ms-avatar-initials' : 'ms-profile-initials';
+    return <span className={cls}>{initials}</span>;
   };
 
   return (
-    <div className="admin-container">
-      <aside className="admin-sidebar">
-        <div className="brand-header">
-          <h1 className="brand-title">SHOP2DOOR</h1>
+    <div className="ms-admin-container">
+      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      <aside className="ms-admin-sidebar">
+        <div className="ms-brand-header">
+          <span className="ms-brand-title">SHOP2DOOR</span>
         </div>
-        
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => navigate('/systemadmindashboard')}>
-            <LayoutDashboard size={18} />
-            <span>Dashboard</span>
+
+        <nav className="ms-sidebar-nav">
+          <button className="ms-nav-item" onClick={() => navigate('/systemadmindashboard')}>
+            <LayoutDashboard size={18} /><span>Dashboard</span>
           </button>
-          <div className="nav-section-title">SHOP MANAGEMENT</div>
-          <button className="nav-item" onClick={() => navigate('/shoprequests')}>
-            <FileText size={18} />
-            <span>Shop Requests</span>
+
+          <div className="ms-nav-divider" />
+
+          <button className="ms-nav-item" onClick={() => navigate('/shoprequests')}>
+            <FileText size={18} /><span>Shop Requests</span>
           </button>
-          <button className="nav-item active">
-            <Store size={18} />
-            <span>Manage Shops</span>
+          <button className="ms-nav-item active">
+            <Store size={18} /><span>Manage Shops</span>
           </button>
-          <div className="nav-section-title">PACKAGES & BILLING</div>
-          <button className="nav-item" onClick={() => navigate('/packages')}>
-            <Package size={18} />
-            <span>Packages</span>
+
+          <div className="ms-nav-divider" />
+
+          <button className="ms-nav-item" onClick={() => navigate('/packages')}>
+            <Package size={18} /><span>Manage Packages</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/subscriptions')}>
-            <DollarSign size={18} />
-            <span>Subscriptions</span>
+          <button className="ms-nav-item" onClick={() => navigate('/subscriptions')}>
+            <DollarSign size={18} /><span>Subscriptions</span>
           </button>
-          <div className="nav-section-title">SYSTEM</div>
-          <button className="nav-item" onClick={() => navigate('/settings')}>
-            <Settings size={18} />
-            <span>Settings</span>
+
+          <div className="ms-nav-divider" />
+
+          <button className="ms-nav-item" onClick={() => navigate('/settings')}>
+            <Settings size={18} /><span>Settings</span>
           </button>
-          <button className="nav-item" onClick={handleLogOut}>
-            <LogOut size={18} />
-            <span>Logout</span>
+          <button className="ms-nav-item" onClick={() => navigate('/systemadminprofile')}>
+            <User size={18} /><span>My Profile</span>
+          </button>
+          <button className="ms-nav-item ms-logout-item" onClick={handleLogOut}>
+            <LogOut size={18} /><span>Logout</span>
           </button>
         </nav>
       </aside>
 
-      <main className="admin-main">
-        <header className="main-header">
-          <div className="breadcrumb">Admin &gt; Manage Shops</div>
-          <div className="header-actions">
-            <div className="menu-dropdown-container" ref={menuDropdownRef}>
-              <button 
-                className="btn-menu" 
-                onClick={() => setShowMenuDropdown(!showMenuDropdown)}
-              >
-                Menu <span className="dropdown-arrow">▼</span>
+      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      <main className="ms-admin-main">
+        {/* Header */}
+        <header className="ms-main-header">
+          <div className="ms-breadcrumb">Admin &gt; Manage Shops</div>
+
+          <div className="ms-header-actions">
+            {/* Menu dropdown */}
+            <div className="ms-menu-dropdown-container" ref={menuDropdownRef}>
+              <button className="ms-btn-menu" onClick={() => setShowMenuDropdown(!showMenuDropdown)}>
+                Menu <span className="ms-dropdown-arrow">▼</span>
               </button>
 
               {showMenuDropdown && (
-                <div className="menu-dropdown">
-                  <div className="menu-section">
-                    <h4 className="menu-section-title">Quick Actions</h4>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemadmindashboard'); }}>
-                      <LayoutDashboard size={18} />
-                      <span>Dashboard</span>
+                <div className="ms-menu-dropdown">
+                  <div className="ms-menu-section">
+                    <h4 className="ms-menu-section-title">Quick Actions</h4>
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemadmindashboard'); }}>
+                      <LayoutDashboard size={18} /><span>Dashboard</span>
                     </button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shoprequests'); }}>
-                      <FileText size={18} />
-                      <span>Shop Requests</span>
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shoprequests'); }}>
+                      <FileText size={18} /><span>Shop Requests</span>
                     </button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/manageshops'); }}>
-                      <Store size={18} />
-                      <span>Manage Shops</span>
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/manageshops'); }}>
+                      <Store size={18} /><span>Manage Shops</span>
                     </button>
                   </div>
-
-                  <div className="menu-divider"></div>
-
-                  <div className="menu-section">
-                    <h4 className="menu-section-title">Settings</h4>
-                    <button className="menu-item" onClick={() => navigate('/settings')}>
-                      <Settings size={18} />
-                      <span>Settings</span>
+                  <div className="ms-menu-divider" />
+                  <div className="ms-menu-section">
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/packages'); }}>
+                      <Package size={18} /><span>Packages</span>
+                    </button>
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/subscriptions'); }}>
+                      <DollarSign size={18} /><span>Subscriptions</span>
+                    </button>
+                    <button className="ms-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/settings'); }}>
+                      <Settings size={18} /><span>Settings</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="icon-circle calculator">
-              <Calculator size={16} />
-            </div>
-            <div className="icon-circle bell">
-              <Bell size={16} />
-            </div>
-            
-            <div className="profile-dropdown-container" ref={profileDropdownRef}>
-              <button 
-                className="profile-circle-btn" 
-                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              >
+            <div className="ms-icon-circle moon"><Moon size={16} /></div>
+            <div className="ms-icon-circle bell"><Bell size={16} /></div>
+
+            {/* Profile dropdown */}
+            <div className="ms-profile-dropdown-container" ref={profileDropdownRef}>
+              <button className="ms-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                 {renderProfileImage()}
               </button>
 
               {showProfileDropdown && (
-                <div className="profile-dropdown">
-                  <div className="profile-dropdown-header">
-                    <div className="profile-dropdown-avatar">
+                <div className="ms-profile-dropdown">
+                  <div className="ms-profile-dropdown-header">
+                    <div className="ms-profile-dropdown-avatar">
                       {renderProfileImage('dropdown')}
                     </div>
-                    <div className="profile-dropdown-info">
-                      <h4 className="profile-name">{user.name || 'Admin'}</h4>
-                      <p className="profile-role">{user.role || 'System Admin'}</p>
+                    <div className="ms-profile-dropdown-info">
+                      <h4 className="ms-profile-name">{user.name || 'Admin'}</h4>
+                      <p className="ms-profile-role">{user.role || 'System Admin'}</p>
                     </div>
                   </div>
-
-                  <div className="profile-divider"></div>
-
-                  <div className="profile-details">
-                    <div className="profile-detail-item">
-                      <span className="detail-icon">📧</span>
-                      <span className="detail-text">{user.email || 'N/A'}</span>
+                  <div className="ms-profile-divider" />
+                  <div className="ms-profile-details">
+                    <div className="ms-profile-detail-item">
+                      <span className="ms-detail-icon">📧</span>
+                      <span className="ms-detail-text">{user.email || 'N/A'}</span>
                     </div>
-                    <div className="profile-detail-item">
-                      <span className="detail-icon">📱</span>
-                      <span className="detail-text">{user.phone || 'N/A'}</span>
+                    <div className="ms-profile-detail-item">
+                      <span className="ms-detail-icon">📱</span>
+                      <span className="ms-detail-text">{user.phone || 'N/A'}</span>
                     </div>
                   </div>
-
-                  <div className="profile-divider"></div>
-
-                  <div className="profile-actions">
-                    <button className="profile-action-btn" onClick={handleMyProfile}>
-                      <User size={18} />
-                      <span>My Profile</span>
+                  <div className="ms-profile-divider" />
+                  <div className="ms-profile-actions">
+                    <button className="ms-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
+                      <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settings')}>
-                      <Settings size={18} />
-                      <span>Settings</span>
+                    <button className="ms-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
+                      <Settings size={18} /><span>Settings</span>
                     </button>
-                    <button className="profile-action-btn logout-btn" onClick={handleLogOut}>
-                      <LogOut size={18} />
-                      <span>Logout</span>
+                    <button className="ms-profile-action-btn ms-logout-btn" onClick={handleLogOut}>
+                      <LogOut size={18} /><span>Logout</span>
                     </button>
                   </div>
                 </div>
@@ -274,101 +253,121 @@ const ManageShops = () => {
           </div>
         </header>
 
-        <div className="page-content">
-          <div className="search-filter-bar">
-            <div className="search-input-wrapper">
-              <Search className="search-icon" size={18} />
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Search shops..."
+        {/* ── PAGE CONTENT ─────────────────────────────────────────────── */}
+        <div className="ms-page-content">
+
+          {/* Page header + filters */}
+          <div className="ms-page-header">
+            <div>
+              <h1 className="ms-page-title">Manage Shops</h1>
+              <p className="ms-page-subtitle">View and manage all registered shops</p>
+            </div>
+            <span className="ms-shop-count">{filteredShops.length} shop{filteredShops.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          {/* Search + filters */}
+          <div className="ms-search-filter-bar">
+            <div className="ms-search-input-wrapper">
+              <Search className="ms-search-icon" size={18} />
+              <input
+                type="text"
+                className="ms-search-input"
+                placeholder="Search by name, package, address..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <select 
-              className="filter-select"
+            <select
+              className="ms-filter-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>All Status</option>
+              <option value="All">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
-            <select 
-              className="filter-select"
+            <select
+              className="ms-filter-select"
               value={packageFilter}
               onChange={(e) => setPackageFilter(e.target.value)}
             >
-              <option>All Packages</option>
-              <option>Starter</option>
-              <option>Professional</option>
-              <option>Enterprise</option>
+              <option value="All">All Packages</option>
+              <option value="Starter">Starter</option>
+              <option value="Professional">Professional</option>
+              <option value="Enterprise">Enterprise</option>
             </select>
           </div>
 
-          <div className="page-header">
-            <h1 className="page-title">Manage Shops</h1>
-            <p className="page-subtitle">View and manage all registered shops</p>
-          </div>
-
+          {/* Content */}
           {loading ? (
-            <div className="loading-state">
-              <p>Loading shops...</p>
+            <div className="ms-loading-state">
+              <RefreshCw size={20} className="ms-spin" />
+              <span>Loading shops...</span>
             </div>
           ) : filteredShops.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <Store size={32} color="#9ca3af" />
-              </div>
-              <h3 className="empty-state-title">No shops found</h3>
-              <p className="empty-state-text">Try adjusting your search or filters</p>
+            <div className="ms-empty-state">
+              <div className="ms-empty-icon"><Store size={32} /></div>
+              <h3 className="ms-empty-title">No shops found</h3>
+              <p className="ms-empty-text">Try adjusting your search or filters</p>
             </div>
           ) : (
-            <div className="shops-grid">
+            <div className="ms-shops-grid">
               {filteredShops.map((shop) => (
-                <div key={shop.id} className="shop-card">
-                  <div className="shop-card-header">
-                    <div className="shop-icon">
-                      <Store size={24} color="#6b7280" />
+                <div key={shop.shop_id} className="ms-shop-card">
+                  <div className="ms-shop-card-header">
+                    {/* Logo or icon */}
+                    <div className="ms-shop-logo-wrap">
+                      {shop.logo_url ? (
+                        <img
+                          src={`http://localhost:5000${shop.logo_url}`}
+                          alt={shop.name}
+                          className="ms-shop-logo-img"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <Store size={24} color="#9333ea" />
+                      )}
                     </div>
-                    <div className="shop-info">
-                      <h3 className="shop-name">{shop.name}</h3>
-                      <p className="shop-meta">
-                        {shop.category || 'Retail Store'} • {shop.package || 'Professional'}
+
+                    <div className="ms-shop-info">
+                      <h3 className="ms-shop-name">{shop.name}</h3>
+                      <p className="ms-shop-meta">
+                        {shop.address || 'No address'} &bull; {shop.package || '—'}
                       </p>
                     </div>
-                    <span className={`status-badge ${shop.status === 'Active' ? '' : 'inactive'}`}>
-                      {shop.status || 'Active'}
+
+                    <span className={`ms-status-badge ${shop.status === 'active' ? 'active' : 'inactive'}`}>
+                      {shop.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </div>
 
-                  <div className="shop-stats">
-                    <div className="stat-item">
-                      <div className="stat-value">{shop.stores || 3}</div>
-                      <div className="stat-label">STORES</div>
+                  {/* Stats row */}
+                  <div className="ms-shop-stats">
+                    <div className="ms-stat-item">
+                      <div className="ms-stat-value">{shop.stores_used ?? 0}</div>
+                      <div className="ms-stat-label">Stores</div>
                     </div>
-                    <div className="stat-item">
-                      <div className="stat-value">{shop.users || 12}</div>
-                      <div className="stat-label">USERS</div>
+                    <div className="ms-stat-item">
+                      <div className="ms-stat-value">{shop.users_used ?? 0}</div>
+                      <div className="ms-stat-label">Users</div>
                     </div>
-                    <div className="stat-item">
-                      <div className="stat-value">{shop.products ? `${(shop.products / 1000).toFixed(1)}K` : '12.5K'}</div>
-                      <div className="stat-label">Products</div>
+                    <div className="ms-stat-item">
+                      <div className="ms-stat-value">{shop.products_used ?? 0}</div>
+                      <div className="ms-stat-label">Products</div>
+                    </div>
+                    <div className="ms-stat-item">
+                      <div className="ms-stat-value ms-code">{shop.code}</div>
+                      <div className="ms-stat-label">Code</div>
                     </div>
                   </div>
 
-                  <div className="shop-actions">
-                    <button className="action-btn-secondary" onClick={() => handleView(shop.id)}>
-                      <Eye size={16} />
-                      <span>View</span>
+                  {/* Actions */}
+                  <div className="ms-shop-actions">
+                    <button className="ms-action-btn" onClick={() => navigate(`/shop/${shop.shop_id}`)}>
+                      <Eye size={15} /><span>View</span>
                     </button>
-                    <button className="action-btn-secondary" onClick={() => handleEdit(shop.id)}>
-                      <Edit size={16} />
-                      <span>Edit</span>
-                    </button>
-                    <button className="action-btn-icon">
-                      <MoreVertical size={16} />
+                    <button className="ms-action-btn" onClick={() => navigate(`/shop/edit/${shop.shop_id}`)}>
+                      <Edit size={15} /><span>Edit</span>
                     </button>
                   </div>
                 </div>

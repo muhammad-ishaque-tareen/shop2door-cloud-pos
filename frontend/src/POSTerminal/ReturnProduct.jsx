@@ -142,10 +142,16 @@ const ReturnProduct = () => {
         <nav className="sidebar-nav">
           <button className="nav-item" onClick={() => navigate('/posterminal')}><User size={18} /><span>POS Terminal</span></button>
           <button className="nav-item" onClick={() => navigate('/shiftreport')}><FileText size={18} /><span>Shift Report</span></button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}><Search size={18} /><span>Find Products</span></button>
           <button className="nav-item active"><Package size={18} /><span>Return Product</span></button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/mysales')}><BarChart3 size={18} /><span>My Sales</span></button>
           <button className="nav-item" onClick={() => navigate('/settings')}><Settings size={18} /><span>Settings</span></button>
+
+          <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/myprofile')}><User size={18} /><span>My Profile</span></button>
           <button className="nav-item" onClick={handleLogOut}><LogOut size={18} /><span>Logout</span></button>
         </nav>

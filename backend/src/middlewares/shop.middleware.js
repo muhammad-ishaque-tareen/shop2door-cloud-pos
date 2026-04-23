@@ -1,20 +1,11 @@
-const masterPool = require("../db/master.pool");
 const getShopPool = require("../db/shop.pool");
-
 module.exports = async (req, res, next) => {
   try {
-    const userResult = await masterPool.query(
-      `SELECT s.db_name 
-       FROM users u
-       JOIN shops s ON u.shop_id = s.shop_id
-      WHERE u.user_id = $1`,
-      [req.user.id]
-    );
+    const db_name = req.user?.db_name;
 
-    if (userResult.rows.length === 0)
-      return res.status(403).json({ message: "Shop not found" });
-
-    const db_name = userResult.rows[0].db_name;
+    if (!db_name) {
+      return res.status(403).json({ message: "No shop database associated with this account." });
+    }
 
     req.shopDB = getShopPool(db_name);
     next();

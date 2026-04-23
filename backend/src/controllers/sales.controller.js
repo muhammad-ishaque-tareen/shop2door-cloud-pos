@@ -1,182 +1,253 @@
+
 exports.createSale = async (req, res) => {
   const { items, subtotal, tax, discount, total, payment_method } = req.body;
 
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
+  if (!items || !items.length)
+    return res.status(400).json({ error: 'No items provided' });
 
+  const userId   = req.user.id;
+  const storeId  = req.user.store_id || null;   // cashier/manager carry store_id in JWT
+
+  try {
     await req.shopDB.query('BEGIN');
 
+    // Generate unique receipt number
     const receiptNo = 'RCP-' + Date.now();
-    const masterPool = require('../db/master.pool');
-    const userResult = await masterPool.query(
-      'SELECT name FROM users WHERE id = $1',
-      [req.user.id]
-    );
-    const cashierName = userResult.rows[0]?.name || req.user.name || 'Unknown';
-    const cashierId = req.user.id;
 
-    console.log('Creating sale:', { receiptNo, cashierName, cashierId, items: items.length });
-
+    // Insert the sale header
     const saleResult = await req.shopDB.query(
-      `INSERT INTO sales (receipt_no, cashier_name, cashier_id, items, subtotal, tax, discount, total, payment_method)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO sales
+         (receipt_no, store_id, user_id, subtotal, tax, discount, total, payment_method)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [receiptNo, cashierName, cashierId, JSON.stringify(items), subtotal, tax, discount, total, payment_method]
+      [receiptNo, storeId, userId, subtotal, tax, discount, total, payment_method]
     );
 
-    for (const item of items) {
-      console.log(`Updating product ${item.product_id}: -${item.quantity} stock, +${item.quantity} purchases`);
+    const sale = saleResult.rows[0];
 
-      const updateResult = await req.shopDB.query(
-        `UPDATE products 
-         SET stock = stock - $1,
-             purchase_count = purchase_count + $1
-         WHERE id = $2 AND stock >= $1
-         RETURNING id, name, stock, purchase_count`,
+    // Insert each sale item + decrement stock
+    for (const item of items) {
+      const lineTotal = parseFloat(item.price) * parseFloat(item.quantity);
+
+      await req.shopDB.query(
+        `INSERT INTO sale_items (sale_id, product_id, quantity, price, total)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [sale.sale_id, item.product_id, item.quantity, item.price, lineTotal]
+      );
+
+      // Deduct stock — fail the whole transaction if stock is insufficient
+      const stockUpdate = await req.shopDB.query(
+        `UPDATE products
+         SET stock = stock - $1
+         WHERE product_id = $2 AND stock >= $1
+         RETURNING product_id, name, stock`,
         [item.quantity, item.product_id]
       );
 
-      if (updateResult.rows.length === 0) {
+      if (stockUpdate.rows.length === 0) {
         throw new Error(`Insufficient stock for product ID ${item.product_id}`);
       }
-
-      const product = updateResult.rows[0];
-      console.log(`✓ Updated ${product.name}: Stock=${product.stock}, Purchases=${product.purchase_count}`);
     }
 
     await req.shopDB.query('COMMIT');
-    console.log('✓ Sale completed successfully:', receiptNo);
 
-    res.json({
-      success: true,
-      receipt_no: receiptNo,
-      sale: saleResult.rows[0]
-    });
+    res.json({ success: true, receipt_no: receiptNo, sale });
+
   } catch (error) {
     await req.shopDB.query('ROLLBACK');
-    console.error('❌ Error creating sale:', error.message);
+    console.error('[SALE] ❌ Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
+// ── GET MY SALES (for the logged-in cashier / manager) ────────────────────────
 exports.getMySales = async (req, res) => {
+  const userId = req.user.id;
+
   try {
-    
-    const cashierId = req.user.id;
-    let result;
-    try {
-      result = await req.shopDB.query(
-        `SELECT * FROM sales WHERE cashier_id = $1 ORDER BY sale_date DESC`,
-        [cashierId]
+    // All sales made by this user, with their line items joined
+    const salesResult = await req.shopDB.query(
+      `SELECT
+         s.sale_id,
+         s.receipt_no,
+         s.store_id,
+         s.user_id,
+         s.subtotal,
+         s.tax,
+         s.discount,
+         s.total,
+         s.payment_method,
+         s.created_at,
+         u.name AS cashier_name
+       FROM sales s
+       JOIN users u ON s.user_id = u.user_id
+       WHERE s.user_id = $1
+       ORDER BY s.created_at DESC`,
+      [userId]
+    );
+
+    const sales = salesResult.rows;
+
+    // Attach sale_items to each sale
+    for (const sale of sales) {
+      const itemsResult = await req.shopDB.query(
+        `SELECT
+           si.sale_item_id,
+           si.product_id,
+           si.quantity,
+           si.price,
+           si.total,
+           p.name AS product_name,
+           p.barcode
+         FROM sale_items si
+         JOIN products p ON si.product_id = p.product_id
+         WHERE si.sale_id = $1`,
+        [sale.sale_id]
       );
-    } catch (e) {
-      console.warn('cashier_id column not found, falling back to cashier_name');
-      const masterPool = require('../db/master.pool');
-      const userResult = await masterPool.query(
-        'SELECT name FROM users WHERE id = $1',
-        [cashierId]
-      );
-      const cashierName = userResult.rows[0]?.name;
-      result = await req.shopDB.query(
-        `SELECT * FROM sales WHERE cashier_name = $1 ORDER BY sale_date DESC`,
-        [cashierName]
-      );
+      sale.items = itemsResult.rows;
     }
 
-    const sales = result.rows;
+    // Aggregate metrics
+    const totalSales      = sales.reduce((sum, s) => sum + parseFloat(s.total),    0);
+    const cashSales       = sales.filter(s => s.payment_method === 'cash')
+                                 .reduce((sum, s) => sum + parseFloat(s.total), 0);
+    const cardSales       = sales.filter(s => s.payment_method === 'card')
+                                 .reduce((sum, s) => sum + parseFloat(s.total), 0);
+    const mobileSales     = sales.filter(s => s.payment_method === 'mobile')
+                                 .reduce((sum, s) => sum + parseFloat(s.total), 0);
+    const discountsGiven  = sales.reduce((sum, s) => sum + parseFloat(s.discount), 0);
+    const transactions    = sales.length;
 
-    const totalSales = sales.reduce((sum, s) => sum + parseFloat(s.total), 0);
-    const cashSales = sales
-      .filter(s => s.payment_method === 'Cash')
-      .reduce((sum, s) => sum + parseFloat(s.total), 0);
-    const cardSales = sales
-      .filter(s => s.payment_method === 'Card')
-      .reduce((sum, s) => sum + parseFloat(s.total), 0);
-    const discountsGiven = sales.reduce((sum, s) => sum + parseFloat(s.discount), 0);
-    const transactions = sales.length;
-    let refundResult;
-    try {
-      refundResult = await req.shopDB.query(
-        `SELECT r.* FROM returns r
-         JOIN sales s ON r.sale_id = s.id
-         WHERE s.cashier_id = $1`,
-        [cashierId]
-      );
-    } catch (e) {
-      const masterPool = require('../db/master.pool');
-      const userResult = await masterPool.query(
-        'SELECT name FROM users WHERE id = $1',
-        [cashierId]
-      );
-      const cashierName = userResult.rows[0]?.name;
-      refundResult = await req.shopDB.query(
-        `SELECT r.* FROM returns r
-         JOIN sales s ON r.sale_id = s.id
-         WHERE s.cashier_name = $1`,
-        [cashierName]
-      );
-    }
+    // Refunds processed by this user
+    const refundResult = await req.shopDB.query(
+      `SELECT
+         ri.quantity,
+         ri.unit_price,
+         ri.subtotal
+       FROM returns r
+       JOIN return_items ri ON r.return_id = ri.return_id
+       WHERE r.user_id = $1`,
+      [userId]
+    );
 
-    const refunds = refundResult.rows.reduce((sum, r) => {
-      const items = Array.isArray(r.items) ? r.items :
-        (typeof r.items === 'string' ? JSON.parse(r.items) : []);
-      return sum + items.reduce((s, i) =>
-        s + (parseFloat(i.price || 0) * parseInt(i.quantity || 0)), 0);
-    }, 0);
+    const refunds = refundResult.rows.reduce(
+      (sum, r) => sum + parseFloat(r.subtotal), 0
+    );
 
     res.json({
-      metrics: { totalSales, cashSales, cardSales, discountsGiven, transactions, refunds },
+      metrics: { totalSales, cashSales, cardSales, mobileSales, discountsGiven, transactions, refunds },
       sales
     });
+
   } catch (error) {
-    console.error('getMySales error:', error);
+    console.error('[SALE] getMySales error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
+// ── GET SALE BY RECEIPT NUMBER ────────────────────────────────────────────────
 exports.getSaleByReceipt = async (req, res) => {
   const { receipt_no } = req.params;
+
   try {
-    const result = await req.shopDB.query(
-      `SELECT * FROM sales WHERE receipt_no = $1`,
+    const saleResult = await req.shopDB.query(
+      `SELECT
+         s.*,
+         u.name AS cashier_name,
+         st.name AS store_name
+       FROM sales s
+       JOIN users u ON s.user_id = u.user_id
+       LEFT JOIN stores st ON s.store_id = st.store_id
+       WHERE s.receipt_no = $1`,
       [receipt_no]
     );
-    if (result.rows.length === 0)
+
+    if (saleResult.rows.length === 0)
       return res.status(404).json({ error: 'Sale not found' });
 
-    res.json(result.rows[0]);
+    const sale = saleResult.rows[0];
+
+    // Attach line items
+    const itemsResult = await req.shopDB.query(
+      `SELECT
+         si.sale_item_id,
+         si.product_id,
+         si.quantity,
+         si.price,
+         si.total,
+         p.name    AS product_name,
+         p.barcode,
+         p.unit
+       FROM sale_items si
+       JOIN products p ON si.product_id = p.product_id
+       WHERE si.sale_id = $1`,
+      [sale.sale_id]
+    );
+
+    sale.items = itemsResult.rows;
+    res.json(sale);
+
   } catch (error) {
+    console.error('[SALE] getSaleByReceipt error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
+// ── PROCESS RETURN ────────────────────────────────────────────────────────────
 exports.processReturn = async (req, res) => {
   const { sale_id, items, reason } = req.body;
+  const userId = req.user.id;
+
+  if (!sale_id || !items || !items.length)
+    return res.status(400).json({ error: 'sale_id and items are required' });
 
   try {
     await req.shopDB.query('BEGIN');
 
+    // Verify the sale exists
+    const saleCheck = await req.shopDB.query(
+      `SELECT sale_id FROM sales WHERE sale_id = $1`, [sale_id]
+    );
+    if (saleCheck.rows.length === 0) {
+      await req.shopDB.query('ROLLBACK');
+      return res.status(404).json({ error: 'Original sale not found' });
+    }
+
+    // Insert return header
     const returnResult = await req.shopDB.query(
-      `INSERT INTO returns (sale_id, items, reason)
+      `INSERT INTO returns (sale_id, user_id, reason)
        VALUES ($1, $2, $3)
        RETURNING *`,
-      [sale_id, JSON.stringify(items), reason]
+      [sale_id, userId, reason || null]
     );
 
+    const ret = returnResult.rows[0];
+
+    // Insert return_items + restore stock
     for (const item of items) {
+      const subtotal = parseFloat(item.unit_price) * parseFloat(item.quantity);
+
       await req.shopDB.query(
-        `UPDATE products SET stock = stock + $1 WHERE id = $2`,
+        `INSERT INTO return_items (return_id, product_id, quantity, unit_price, subtotal)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [ret.return_id, item.product_id, item.quantity, item.unit_price, subtotal]
+      );
+
+      // Restore stock
+      await req.shopDB.query(
+        `UPDATE products
+         SET stock = stock + $1
+         WHERE product_id = $2`,
         [item.quantity, item.product_id]
       );
     }
 
     await req.shopDB.query('COMMIT');
+    res.json({ success: true, return: ret });
 
-    res.json({ success: true, return: returnResult.rows[0] });
   } catch (error) {
     await req.shopDB.query('ROLLBACK');
+    console.error('[RETURN] ❌ Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

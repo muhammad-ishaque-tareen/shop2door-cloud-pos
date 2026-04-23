@@ -294,3 +294,24 @@
     transition: none;
   }
 }
+
+
+
+
+.login-label-hint {
+  font-weight: 400;
+  font-size: 11px;
+  color: #999;
+  margin-left: 2px;
+}
+ 
+/* Monospace feel for the code input */
+.login-input--code {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+ 
+.login-input--code::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+}

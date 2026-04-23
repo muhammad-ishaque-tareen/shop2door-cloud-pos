@@ -102,7 +102,7 @@ const POSTerminal = () => {
       }
       
       setProducts(normalizedProducts);
-      const uniqueCategories = ['All', ...new Set(normalizedProducts.map(p => p.category))];
+      const uniqueCategories = ['All', ...new Set(normalizedProducts.map(p => p.category_name).filter(Boolean))];
       setCategories(uniqueCategories);
     } catch (error) {
       console.error('Error loading products:', error);
@@ -113,10 +113,10 @@ const POSTerminal = () => {
   };
 
   const addToCart = (product) => {
-    const existingItem = cart.find(item => item.id === product.id);
+    const existingItem = cart.find(item => item.product_id === product.product_id);
     if (existingItem) {
       setCart(cart.map(item =>
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        item.product_id === product.product_id ? { ...item, quantity: item.quantity + 1 } : item
       ));
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
@@ -135,12 +135,12 @@ const POSTerminal = () => {
   };
 
   const removeFromCart = (productId) => {
-    const existingItem = cart.find(item => item.id === productId);
+    const existingItem = cart.find(item => item.product_id === productId);
     if (existingItem.quantity === 1) {
-      setCart(cart.filter(item => item.id !== productId));
+      setCart(cart.filter(item => item.product_id !== productId));
     } else {
       setCart(cart.map(item =>
-        item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+        item.product_id === productId ? { ...item, quantity: item.quantity - 1 } : item
       ));
     }
   };
@@ -174,7 +174,7 @@ const POSTerminal = () => {
   const total = subtotal + tax - discount;
 
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || product.category_name === selectedCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -203,7 +203,7 @@ const POSTerminal = () => {
     try {
       const saleData = {
         items: cart.map(item => ({
-          product_id: item.id,
+          product_id: item.product_id,
           name: item.name,
           quantity: item.quantity,
           price: item.price
@@ -212,7 +212,7 @@ const POSTerminal = () => {
         tax: tax,
         discount: discount,
         total: total,
-        payment_method: paymentMethod
+        payment_method: paymentMethod.toLowerCase()
       };
 
       const result = await salesAPI.create(saleData);
@@ -227,7 +227,7 @@ const POSTerminal = () => {
 
       setProducts(prevProducts => 
         prevProducts.map(product => {
-          const cartItem = cart.find(item => item.id === product.id);
+          const cartItem = cart.find(item => item.product_id === product.product_id);
           if (cartItem) {
             return { ...product, stock: product.stock - cartItem.quantity };
           }
@@ -527,7 +527,7 @@ const POSTerminal = () => {
               <div className="products-grid">
                 {filteredProducts.map(product => (
                   <div
-                    key={product.id}
+                    key={product.product_id}
                     onClick={() => addToCart(product)}
                     className="product-card"
                   >
@@ -562,14 +562,14 @@ const POSTerminal = () => {
                 <div className="cart-items-container">
                   <div className="cart-items">
                     {cart.map(item => (
-                      <div key={item.id} className="cart-item">
+                      <div key={item.product_id} className="cart-item">
                         {renderCartItemImage(item)}
                         <div className="item-details">
                           <h4 className="item-name">{item.name}</h4>
                           <p className="item-price">Rs.{(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                         <div className="item-controls">
-                          <button onClick={() => removeFromCart(item.id)} className="qty-btn">-</button>
+                          <button onClick={() => removeFromCart(item.product_id)} className="qty-btn">-</button>
                           <span className="qty-display">{item.quantity}</span>
                           <button onClick={() => addToCart(item)} className="qty-btn">+</button>
                         </div>
@@ -705,7 +705,7 @@ const POSTerminal = () => {
                 <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
                 <div className="receipt-items">
                   {receiptData.items.map(item => (
-                    <div key={item.id} className="receipt-item">
+                    <div key={item.product_id} className="receipt-item">
                       <span>{item.name} x{item.quantity}</span>
                       <span>Rs.{(item.price * item.quantity).toFixed(2)}</span>
                     </div>

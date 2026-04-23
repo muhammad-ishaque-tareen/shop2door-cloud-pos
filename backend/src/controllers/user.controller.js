@@ -1,34 +1,93 @@
 const bcrypt = require("bcrypt");
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 const masterPool = require("../db/master.pool");
+const getShopPool = require("../db/shop.pool");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "../../uploads/users");
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const ext  = path.extname(file.originalname).toLowerCase();
+    const base = path.basename(file.originalname, ext).replace(/\s+/g, "_");
+    cb(null, `${base}_${Date.now()}${ext}`);
+  },
+});
 
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp/;
+    if (allowed.test(path.extname(file.originalname).toLowerCase())) cb(null, true);
+    else cb(new Error("Only JPEG, PNG and WebP images are allowed"));
+  },
+});
+
+exports.uploadProfileImage = upload.single("image");
+
+// ── UPDATE PROFILE ─────────────────────────────────────────────────────────────
+// shop_admin / system_admin  ->  masterPool
+// store_manager / cashier    ->  shopDB  (db_name from JWT)
 exports.updateProfile = async (req, res) => {
-  const { name, email, phone, password } = req.body;
-  const userId = req.user.id;
+  const { name, phone, password } = req.body;
+  const userId  = req.user.id;
+  const db_name = req.user.db_name || null;
+  const role    = req.user.role    || null;
+
+  const image_url = req.file
+    ? `/uploads/users/${req.file.filename}`
+    : undefined;
 
   try {
-    let query = `UPDATE users SET name = $1, email = $2, phone = $3`;
-    let params = [name, email, phone];
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      query += `, password = $${params.length + 1}`;
-      params.push(hashedPassword);
+    const isShopUser =
+      !!db_name &&
+      (role === "store_manager" ||
+        role === "cashier" ||
+        !["shop_admin", "system_admin"].includes(role));
+
+    const pool = isShopUser ? getShopPool(db_name) : masterPool;
+
+    const setClauses = [];
+    const params     = [];
+
+    if (name  !== undefined && name  !== null) { params.push(name);  setClauses.push(`name  = $${params.length}`); }
+    if (phone !== undefined && phone !== null) { params.push(phone); setClauses.push(`phone = $${params.length}`); }
+
+    if (password && password.trim() !== "") {
+      const hashed = await bcrypt.hash(password, 10);
+      params.push(hashed);
+      setClauses.push(`password = $${params.length}`);
     }
 
-    query += ` WHERE id = $${params.length + 1} RETURNING id, name, email, phone, role, shop_id`;
+    if (image_url !== undefined) {
+      params.push(image_url);
+      setClauses.push(`image_url = $${params.length}`);
+    }
+
+    if (setClauses.length === 0)
+      return res.status(400).json({ message: "No fields to update" });
+
     params.push(userId);
+    const query = `
+      UPDATE users
+      SET ${setClauses.join(", ")}
+      WHERE user_id = $${params.length}
+      RETURNING user_id, name, email, phone, role, image_url
+    `;
 
-    const result = await masterPool.query(query, params);
+    const result = await pool.query(query, params);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "User not found" });
 
-    res.json({
-      message: 'Profile updated successfully',
-      user: result.rows[0]
-    });
+    res.json({ message: "Profile updated successfully", user: result.rows[0] });
+
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("[USER] updateProfile error:", error.message);
+    res.status(500).json({ message: "Server error", detail: error.message });
   }
 };

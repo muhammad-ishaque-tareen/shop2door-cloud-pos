@@ -336,7 +336,7 @@ const Subscription = () => {
                       </h3>
                       {subscriptionData?.price && (
                         <p className="sub-plan-price">
-                          ${subscriptionData.price}/month
+                          Rs: {subscriptionData.price}/month
                         </p>
                       )}
                     </div>

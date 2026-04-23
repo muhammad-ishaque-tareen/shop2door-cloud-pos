@@ -210,11 +210,11 @@ const MySales = () => {
                   </thead>
                   <tbody>
                     {sales.map(sale => (
-                      <React.Fragment key={sale.id}>
+                      <React.Fragment key={sale.sale_id}>
                         <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                           <td style={{ padding: '0.75rem 1rem', fontWeight: 500, color: '#6d28d9' }}>{sale.receipt_no}</td>
-                          <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{formatDate(sale.sale_date)}</td>
-                          <td style={{ padding: '0.75rem 1rem' }}>{Array.isArray(sale.items) ? sale.items.length : JSON.parse(sale.items).length}</td>
+                          <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{formatDate(sale.created_at)}</td>
+                          <td style={{ padding: '0.75rem 1rem' }}>{Array.isArray(sale.items) ? sale.items.length : 0}</td>
                           <td style={{ padding: '0.75rem 1rem' }}>Rs.{parseFloat(sale.subtotal).toFixed(2)}</td>
                           <td style={{ padding: '0.75rem 1rem' }}>Rs.{parseFloat(sale.tax).toFixed(2)}</td>
                           <td style={{ padding: '0.75rem 1rem', color: '#dc2626' }}>Rs.{parseFloat(sale.discount).toFixed(2)}</td>
@@ -222,20 +222,20 @@ const MySales = () => {
                           <td style={{ padding: '0.75rem 1rem' }}>
                             <span style={{
                               padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 500,
-                              background: sale.payment_method === 'Cash' ? '#dcfce7' : sale.payment_method === 'Card' ? '#dbeafe' : '#fef3c7',
-                              color: sale.payment_method === 'Cash' ? '#16a34a' : sale.payment_method === 'Card' ? '#2563eb' : '#d97706'
+                              background: sale.payment_method === 'cash' ? '#dcfce7' : sale.payment_method === 'card' ? '#dbeafe' : '#fef3c7',
+                              color: sale.payment_method === 'cash' ? '#16a34a' : sale.payment_method === 'card' ? '#2563eb' : '#d97706'
                             }}>{sale.payment_method}</span>
                           </td>
                           <td style={{ padding: '0.75rem 1rem' }}>
                             <button
-                              onClick={() => setExpandedSale(expandedSale === sale.id ? null : sale.id)}
+                              onClick={() => setExpandedSale(expandedSale === sale.sale_id ? null : sale.sale_id)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6d28d9' }}
                             >
-                              {expandedSale === sale.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                              {expandedSale === sale.sale_id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </button>
                           </td>
                         </tr>
-                        {expandedSale === sale.id && (
+                        {expandedSale === sale.sale_id && (
                           <tr>
                             <td colSpan={9} style={{ padding: '0 1rem 0.75rem 1rem', background: '#faf5ff' }}>
                               <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
@@ -248,12 +248,12 @@ const MySales = () => {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {(Array.isArray(sale.items) ? sale.items : JSON.parse(sale.items)).map((item, idx) => (
+                                  {(Array.isArray(sale.items) ? sale.items : []).map((item, idx) => (
                                     <tr key={idx}>
-                                      <td style={{ padding: '0.4rem 0.5rem' }}>{item.name}</td>
+                                      <td style={{ padding: '0.4rem 0.5rem' }}>{item.product_name}</td>
                                       <td style={{ padding: '0.4rem 0.5rem' }}>{item.quantity}</td>
                                       <td style={{ padding: '0.4rem 0.5rem' }}>Rs.{parseFloat(item.price).toFixed(2)}</td>
-                                      <td style={{ padding: '0.4rem 0.5rem' }}>Rs.{(item.quantity * item.price).toFixed(2)}</td>
+                                      <td style={{ padding: '0.4rem 0.5rem' }}>Rs.{parseFloat(item.total).toFixed(2)}</td>
                                     </tr>
                                   ))}
                                 </tbody>

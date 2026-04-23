@@ -47,15 +47,15 @@ const ReturnProduct = () => {
       const sale = await salesAPI.getByReceipt(query);
       setCurrentSale(sale);
 
-      const saleItems = Array.isArray(sale.items) ? sale.items : JSON.parse(sale.items);
+      const saleItems = Array.isArray(sale.items) ? sale.items : [];
       setItems(saleItems.map((item, idx) => ({
         id: idx,
         product_id: item.product_id,
-        name: item.name,
-        qtySold: item.quantity,
+        name: item.product_name,
+        qtySold: parseFloat(item.quantity),
         unitPrice: parseFloat(item.price),
-        lineTotal: parseFloat(item.price) * item.quantity,
-        returnQty: item.quantity
+        lineTotal: parseFloat(item.total),
+        returnQty: parseFloat(item.quantity)
       })));
     } catch (error) {
       alert(error.message || 'Sale not found.');
@@ -102,12 +102,11 @@ const ReturnProduct = () => {
     try {
       setProcessingReturn(true);
       await salesAPI.processReturn({
-        sale_id: currentSale.id,
+        sale_id: currentSale.sale_id,
         items: selectedItemsData.map(i => ({
           product_id: i.product_id,
-          name: i.name,
           quantity: i.returnQty,
-          price: i.unitPrice
+          unit_price: i.unitPrice
         })),
         reason: returnReason
       });

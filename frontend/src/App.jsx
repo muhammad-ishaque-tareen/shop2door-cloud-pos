@@ -29,6 +29,8 @@ import Subscription from "./ShopAdminTerminal/Subscription";
 import Myprofile from "./ShopAdminTerminal/Myprofile";
 import MyStores from "./ShopAdminTerminal/Mystores";
 import MyUsers from "./ShopAdminTerminal/Myusers";
+import Products from "./ShopAdminTerminal/Products";
+import Categories from "./ShopAdminTerminal/Categories";
 
 const App = () => {
   return (
@@ -64,6 +66,8 @@ const App = () => {
       <Route path="/adminprofile" element={<Myprofile />} />
       <Route path="/mystores" element={<MyStores />} />
       <Route path="/myuser" element={<MyUsers />} />
+      <Route path="/products" element={<Products />} />
+      <Route path="/categories" element={<Categories />} />
 
     </Routes>
   );

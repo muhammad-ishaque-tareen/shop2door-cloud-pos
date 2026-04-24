@@ -12,7 +12,7 @@ import {
   User,
   Bell,
   Moon,
-  Settings,
+  Settings, Tags,
   ArrowLeft,
   ShoppingCart as CartIcon,
   CheckCircle,
@@ -180,6 +180,11 @@ const Subscription = () => {
             <ShoppingCart size={18} />
             <span>Products</span>
           </button>
+
+           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
+            <Tags size={18} /><span>Categories</span>
+          </button>
+          
           <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
             <PackageIcon size={18} />
             <span>Suppliers</span>

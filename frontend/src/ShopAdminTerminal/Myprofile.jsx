@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
-  Package as PackageIcon, Diamond, LogOut, User, Bell,
+  Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,
   Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -88,7 +88,6 @@ const Myprofile = () => {
     navigate('/');
   };
 
-  // ── Image helpers ──────────────────────────────────────────────────────────
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (currentUser.image_url) return `http://localhost:5000${currentUser.image_url}`;
@@ -126,7 +125,7 @@ const Myprofile = () => {
     return <span className="mp-brand-title">{currentUser.shop_name || 'Shop'}</span>;
   };
 
-  // ── Picture selection ──────────────────────────────────────────────────────
+
   const handlePictureFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -169,7 +168,7 @@ const Myprofile = () => {
     }
   };
 
-  // ── Save profile changes (name, phone, password, optional image) ───────────
+ 
   const handleSaveChanges = async () => {
     if (!formData.fullName.trim()) { setSaveError('Full name is required.'); return; }
     setSaving(true); setSaveError(''); setSaveSuccess('');
@@ -225,7 +224,7 @@ const Myprofile = () => {
   return (
     <div className="mp-container">
 
-      {/* ── SIDEBAR ── */}
+      {/* SIDEBAR  */}
       <aside className="mp-sidebar">
         <div className="mp-brand-header">{renderShopLogo()}</div>
 
@@ -251,15 +250,15 @@ const Myprofile = () => {
           <button className="mp-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} /><span>My Users</span>
           </button>
-          {/* <button className="mp-nav-item" onClick={() => navigate('/adduser')}>
-            <Plus size={18} /><span>Add User</span>
-          </button> */}
-
           <div className="mp-nav-divider" />
 
           <button className="mp-nav-item" onClick={() => navigate('/products')}>
             <ShoppingCart size={18} /><span>Products</span>
           </button>
+           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
+            <Tags size={18} /><span>Categories</span>
+          </button>
+
           <button className="mp-nav-item" onClick={() => navigate('/suppliers')}>
             <PackageIcon size={18} /><span>Suppliers</span>
           </button>
@@ -281,7 +280,7 @@ const Myprofile = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ── */}
+      {/*  MAIN  */}
       <main className="mp-main">
         <header className="mp-header">
           <div className="mp-breadcrumb">Admin &gt; My Profile</div>
@@ -365,7 +364,7 @@ const Myprofile = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ── */}
+        {/* PAGE CONTENT */}
         <div className="mp-content">
           <div className="mp-page-title-row">
             <h2 className="mp-page-title">My Profile</h2>
@@ -386,7 +385,7 @@ const Myprofile = () => {
 
           <div className="mp-layout">
 
-            {/* ── Left card: avatar + actions ── */}
+            {/* Left card: avatar + actions */}
             <div className="mp-avatar-card">
 
               {/* Hidden file input */}
@@ -432,7 +431,7 @@ const Myprofile = () => {
               )}
             </div>
 
-            {/* ── Right card: info grid ── */}
+            {/*  Right card: info grid */}
             <div className="mp-info-card">
               <h3 className="mp-info-title">Profile Information</h3>
 
@@ -467,7 +466,7 @@ const Myprofile = () => {
         </div>
       </main>
 
-      {/* ── EDIT MODAL ── */}
+      {/* EDIT MODAL */}
       {showUpdateForm && (
         <div className="mp-modal-overlay" onClick={closeModal}>
           <div className="mp-modal-content" onClick={(e) => e.stopPropagation()}>

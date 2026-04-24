@@ -36,5 +36,8 @@ app.use('/api/manage-shops', require('./routes/manageshops.routes'));
 app.use('/api/packages', require('./routes/packages.routes'));
 app.use('/api/subscriptions', require('./routes/subscriptions.routes'));
 app.use('/api/shopusers', require('./routes/shopusers.routes'));
+app.use('/api/shopproducts', require('./routes/shopproducts.routes'));
+app.use('/api/categories', require('./routes/categories.routes'));
+
 
 module.exports = app;

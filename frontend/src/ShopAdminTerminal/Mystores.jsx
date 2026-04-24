@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
-  Package as PackageIcon, Diamond, LogOut, User, Bell,
+  Package as PackageIcon, Diamond, LogOut, User, Bell, Tags, 
   Moon, Settings, Star, Users2, DollarSign, ShoppingBag,
   X, AlertCircle, MapPin, Phone, Calendar, Edit3, Eye,
   Save, CheckCircle
@@ -104,7 +104,7 @@ const MyStores = () => {
     return <span className={size === 'dropdown' ? 'avatar-initials' : 'profile-initials'}>{initials}</span>;
   };
 
-  // ── Add Store ──
+  // Add Store 
   const handleAddStoreChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewStore(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
@@ -140,11 +140,11 @@ const MyStores = () => {
     setNewStore({ name: '', address: '', phone: '', is_active: true });
   };
 
-  // ── View Store ──
+  //  View Store
   const openViewModal = (store) => { setViewStore(store); setShowViewModal(true); };
   const closeViewModal = () => { setShowViewModal(false); setViewStore(null); };
 
-  // ── Edit Store ──
+  //  Edit Store 
   const openEditModal = (store) => {
     setEditStore({ ...store });
     setEditError(''); setEditSuccess('');
@@ -210,7 +210,13 @@ const MyStores = () => {
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/products')}>
             <ShoppingCart size={18} /><span>Products</span>
+            
           </button>
+
+           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
+            <Tags size={18} /><span>Categories</span>
+          </button>
+          
           <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
             <PackageIcon size={18} /><span>Suppliers</span>
           </button>
@@ -397,7 +403,7 @@ const MyStores = () => {
         </div>
       </main>
 
-      {/* ── VIEW STORE MODAL ── */}
+      {/*  VIEW STORE MODAL */}
       {showViewModal && viewStore && (
         <div className="ms-modal-overlay" onClick={closeViewModal}>
           <div className="ms-modal ms-modal-wide" onClick={(e) => e.stopPropagation()}>
@@ -479,7 +485,7 @@ const MyStores = () => {
         </div>
       )}
 
-      {/* ── EDIT STORE MODAL ── */}
+      {/*  EDIT STORE MODAL */}
       {showEditModal && editStore && (
         <div className="ms-modal-overlay" onClick={closeEditModal}>
           <div className="ms-modal" onClick={(e) => e.stopPropagation()}>
@@ -531,7 +537,7 @@ const MyStores = () => {
         </div>
       )}
 
-      {/* ── ADD STORE MODAL ── */}
+      {/* ADD STORE MODAL */}
       {showAddModal && (
         <div className="ms-modal-overlay" onClick={closeAddModal}>
           <div className="ms-modal" onClick={(e) => e.stopPropagation()}>

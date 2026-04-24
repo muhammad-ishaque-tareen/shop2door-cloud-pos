@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
-  Package as PackageIcon, Diamond, LogOut, User, Bell,
+  Package as PackageIcon, Diamond, LogOut, User, Bell,Tags,
   Moon, Settings, X, AlertCircle, Phone, Mail,
   Edit3, Save, CheckCircle, Trash2, Shield, UserCheck,
   Search, ChevronDown, UserCircle
@@ -274,7 +274,7 @@ const MyUsers = () => {
     }
   };
 
-  // ── Delete User ───────────────────────────────────────────────────
+  //  Delete User 
   const openDeleteConfirm  = (u) => { setDeleteTarget(u); setDeleteError(''); setShowDeleteConfirm(true); };
   const closeDeleteConfirm = () => { setShowDeleteConfirm(false); setDeleteTarget(null); setDeleteError(''); };
 
@@ -295,7 +295,7 @@ const MyUsers = () => {
     }
   };
 
-  // ── Filtered list ─────────────────────────────────────────────────
+  //  Filtered list 
   const filteredUsers = users.filter(u => {
     const matchSearch = !searchTerm ||
       u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -314,7 +314,7 @@ const MyUsers = () => {
   return (
     <div className="shop-admin-container">
 
-      {/* ── SIDEBAR ── */}
+      {/*  SIDEBAR */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">{renderShopLogo()}</div>
         <nav className="shop-sidebar-nav">
@@ -349,6 +349,11 @@ const MyUsers = () => {
           <button className="shop-nav-item" onClick={() => navigate('/products')}>
             <ShoppingCart size={18} /><span>Products</span>
           </button>
+
+           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
+            <Tags size={18} /><span>Categories</span>
+          </button>
+          
           <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
             <PackageIcon size={18} /><span>Suppliers</span>
           </button>
@@ -370,10 +375,10 @@ const MyUsers = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ── */}
+      {/* MAIN */}
       <main className="shop-admin-main">
 
-        {/* ── HEADER ── */}
+        {/* HEADER  */}
         <header className="shop-main-header">
           <div className="shop-breadcrumb">Admin &gt; My Users</div>
           <div className="shop-header-actions">
@@ -456,7 +461,7 @@ const MyUsers = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ── */}
+        {/*  PAGE CONTENT  */}
         <div className="shop-dashboard-content">
 
           <div className="ms-page-header">

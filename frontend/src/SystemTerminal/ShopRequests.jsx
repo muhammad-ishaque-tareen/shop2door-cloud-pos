@@ -29,7 +29,7 @@ const ShopRequests = () => {
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -43,7 +43,7 @@ const ShopRequests = () => {
 
   useEffect(() => { fetchShopRequests(); }, []);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  //  Fetch 
   const fetchShopRequests = async () => {
     try {
       setLoading(true);
@@ -91,7 +91,7 @@ const ShopRequests = () => {
     navigate('/');
   };
 
-  // ── Profile image ─────────────────────────────────────────────────────────
+  //  Profile image 
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -122,7 +122,7 @@ const ShopRequests = () => {
 
   return (
     <div className="sr-admin-container">
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      {/*  SIDEBAR  */}
       <aside className="sr-admin-sidebar">
         <div className="sr-brand-header">
           <span className="sr-brand-title">SHOP2DOOR</span>
@@ -165,7 +165,7 @@ const ShopRequests = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      {/*  MAIN  */}
       <main className="sr-admin-main">
         {/* Header */}
         <header className="sr-main-header">
@@ -257,7 +257,7 @@ const ShopRequests = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ─────────────────────────────────────────────── */}
+        {/* PAGE CONTENT  */}
         <div className="sr-page-content">
           <div className="sr-page-header">
             <h1 className="sr-page-title">Shop Requests</h1>

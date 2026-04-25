@@ -7,7 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/Packages.css';
 
-/* ─── tiny helpers ──────────────────────────────────────────────────────── */
+/*  tiny helpers */
 const BASE = 'http://localhost:5000';
 
 const emptyForm = {
@@ -16,7 +16,6 @@ const emptyForm = {
   max_products: '', max_storage_mb: '',
 };
 
-/* ══════════════════════════════════════════════════════════════════════════ */
 const Packages = () => {
   const [packages, setPackages]             = useState([]);
   const [loading, setLoading]               = useState(true);
@@ -42,7 +41,7 @@ const Packages = () => {
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  /* ── outside click ──────────────────────────────────────────────────── */
+  /* outside click  */
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current    && !menuRef.current.contains(e.target))    setShowMenuDropdown(false);
@@ -52,7 +51,7 @@ const Packages = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  /* ── fetch packages ─────────────────────────────────────────────────── */
+  /*fetch packages  */
   useEffect(() => { fetchPackages(); }, []);
 
   const fetchPackages = async () => {
@@ -70,7 +69,7 @@ const Packages = () => {
     }
   };
 
-  /* ── ADD package ────────────────────────────────────────────────────── */
+  /*  ADD package */
   const handleAddSubmit = async () => {
     if (!addForm.name || !addForm.price) return;
     try {
@@ -92,7 +91,7 @@ const Packages = () => {
     }
   };
 
-  /* ── EDIT package (modal) ───────────────────────────────────────────── */
+  /*  EDIT package (modal) */
   const startEdit = (pkg) => {
     setEditingId(pkg.package_id);
     setEditForm({
@@ -128,7 +127,7 @@ const Packages = () => {
     }
   };
 
-  /* ── DELETE package ─────────────────────────────────────────────────── */
+  /* DELETE package */
   const handleDelete = async (packageId) => {
     if (!window.confirm('Delete this package? This cannot be undone.')) return;
     try {
@@ -146,14 +145,14 @@ const Packages = () => {
     }
   };
 
-  /* ── logout ─────────────────────────────────────────────────────────── */
+  /* logout  */
   const handleLogOut = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     navigate('/');
   };
 
-  /* ── profile image ──────────────────────────────────────────────────── */
+  /*  profile image */
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -169,7 +168,7 @@ const Packages = () => {
     return <span className={cls}>{initials}</span>;
   };
 
-  /* ── feature list from a package row ───────────────────────────────── */
+  /*  feature list from a package row */
   const featureList = (pkg) => [
     `Up to ${pkg.max_stores} store${pkg.max_stores !== 1 ? 's' : ''}`,
     `${pkg.max_users_per_store} user${pkg.max_users_per_store !== 1 ? 's' : ''} per store`,
@@ -177,11 +176,10 @@ const Packages = () => {
     `${pkg.max_storage_mb} MB storage`,
   ];
 
-  /* ════════════════════════════════════════════════════════════════════ */
   return (
     <div className="pk-admin-container">
 
-      {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
+      {/*  SIDEBAR  */}
       <aside className="pk-admin-sidebar">
         <div className="pk-brand-header">
           <span className="pk-brand-title">SHOP2DOOR</span>
@@ -217,7 +215,7 @@ const Packages = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ──────────────────────────────────────────────────────── */}
+      {/* MAIN  */}
       <main className="pk-admin-main">
 
         {/* Header */}
@@ -298,7 +296,7 @@ const Packages = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ──────────────────────────────────────────── */}
+        {/*  PAGE CONTENT */}
         <div className="pk-page-content">
 
           {/* Page header */}
@@ -374,7 +372,7 @@ const Packages = () => {
         </div>
       </main>
 
-      {/* ── ADD PACKAGE MODAL ─────────────────────────────────────────── */}
+      {/* ADD PACKAGE MODAL */}
       {showAddModal && (
         <div className="pk-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
           <div className="pk-modal">
@@ -419,7 +417,7 @@ const Packages = () => {
         </div>
       )}
 
-      {/* ── EDIT PACKAGE MODAL ────────────────────────────────────────────── */}
+      {/* EDIT PACKAGE MODAL */}
       {showEditModal && (
         <div className="pk-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) cancelEdit(); }}>
           <div className="pk-modal">

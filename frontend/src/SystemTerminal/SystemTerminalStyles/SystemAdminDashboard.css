@@ -1,10 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════
-   SystemAdminDashboard.css
-   Sidebar & header styled to match ShopAdminDashboard exactly.
-   All class names prefixed with "sys-" to avoid collisions.
-═══════════════════════════════════════════════════════════════ */
 
-/* ── Layout ──────────────────────────────────────────────────── */
+/*  Layout  */
 .sys-admin-container {
   display: flex;
   height: 100vh;
@@ -13,7 +8,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────── */
+/*  Sidebar  */
 .sys-admin-sidebar {
   width: 15rem;
   background-color: #ffffff;
@@ -92,7 +87,7 @@
 .sys-logout-item { color: #6b7280; }
 .sys-logout-item:hover { background: #fef2f2 !important; color: #ef4444 !important; }
 
-/* ── Main area ───────────────────────────────────────────────── */
+/*  Main area  */
 .sys-admin-main {
   flex: 1;
   display: flex;
@@ -100,7 +95,7 @@
   overflow: hidden;
 }
 
-/* ── Header ──────────────────────────────────────────────────── */
+/*  Header  */
 .sys-main-header {
   background: #ffffff;
   padding: 1rem 2rem;
@@ -176,7 +171,7 @@
 .sys-profile-circle-btn:hover { transform: scale(1.08); }
 .sys-profile-initials { font-size: 0.875rem; font-weight: 700; }
 
-/* ── Menu dropdown ───────────────────────────────────────────── */
+/*  Menu dropdown  */
 .sys-menu-dropdown-container,
 .sys-profile-dropdown-container { position: relative; }
 
@@ -324,7 +319,7 @@
 .sys-profile-action-btn.sys-logout-btn { color: #ef4444; }
 .sys-profile-action-btn.sys-logout-btn:hover { background-color: #fef2f2; color: #dc2626; }
 
-/* ── Dashboard content ───────────────────────────────────────── */
+/*  Dashboard content  */
 .sys-dashboard-content {
   flex: 1;
   padding: 2rem;
@@ -355,7 +350,7 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Stats ───────────────────────────────────────────────────── */
+/*  Stats  */
 .sys-stats-section { margin-bottom: 2rem; }
 
 .sys-stats-grid {
@@ -406,7 +401,7 @@
   font-weight: 500;
 }
 
-/* ── Package distribution ────────────────────────────────────── */
+/*  Package distribution  */
 .sys-package-section {
   background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
   border-radius: 1.25rem;
@@ -489,7 +484,7 @@
   font-weight: 500;
 }
 
-/* ── Loading ─────────────────────────────────────────────────── */
+/*  Loading  */
 .sys-loading-card {
   background: white;
   border-radius: 1rem;
@@ -510,7 +505,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
+/*  Responsive  */
 @media (max-width: 768px) {
   .sys-admin-sidebar {
     width: 4rem;

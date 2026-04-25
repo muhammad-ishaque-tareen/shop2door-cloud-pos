@@ -41,7 +41,7 @@ const Subscriptions = () => {
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  // ── Fetch subscriptions ───────────────────────────────────────────────────
+  //  Fetch subscriptions 
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -62,7 +62,7 @@ const Subscriptions = () => {
 
   useEffect(() => { fetchSubscriptions(); }, [fetchSubscriptions]);
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handler = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -74,7 +74,7 @@ const Subscriptions = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Toggle subscription status ────────────────────────────────────────────
+  //  Toggle subscription status 
   const handleToggleStatus = async (sub) => {
     const newStatus = sub.status === 'active' ? 'inactive' : 'active';
     setTogglingId(sub.subscription_id);
@@ -102,7 +102,7 @@ const Subscriptions = () => {
     }
   };
 
-  // ── Auth helpers ──────────────────────────────────────────────────────────
+  //  Auth helpers 
   const handleLogOut = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -124,7 +124,7 @@ const Subscriptions = () => {
     return <span className={cls}>{initials}</span>;
   };
 
-  // ── Derived data ──────────────────────────────────────────────────────────
+  //  Derived data 
   const filtered = subscriptions.filter((s) => {
     const matchSearch =
       s.shop?.toLowerCase().includes(search.toLowerCase()) ||
@@ -147,7 +147,7 @@ const Subscriptions = () => {
   return (
     <div className="sys-admin-container">
 
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      {/*  SIDEBAR */}
       <aside className="sys-admin-sidebar">
         <div className="sys-brand-header">
           <span className="sys-brand-title">SHOP2DOOR</span>
@@ -190,7 +190,7 @@ const Subscriptions = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      {/* MAIN */}
       <main className="sys-admin-main">
 
         {/* Header */}
@@ -287,7 +287,7 @@ const Subscriptions = () => {
           </div>
         </header>
 
-        {/* ── SUBSCRIPTIONS CONTENT ────────────────────────────────────── */}
+        {/*  SUBSCRIPTIONS CONTENT  */}
         <div className="sub-content">
 
           {/* Page title */}

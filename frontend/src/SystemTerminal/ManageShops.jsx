@@ -35,7 +35,7 @@ const ManageShops = () => {
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -51,7 +51,7 @@ const ManageShops = () => {
 
   useEffect(() => { filterShops(); }, [shops, searchQuery, statusFilter, packageFilter]);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  //  Fetch 
   const fetchShops = async () => {
     try {
       setLoading(true);
@@ -69,7 +69,7 @@ const ManageShops = () => {
     }
   };
 
-  // ── Filter ────────────────────────────────────────────────────────────────
+  //  Filter 
   const filterShops = () => {
     let filtered = [...shops];
 
@@ -100,7 +100,7 @@ const ManageShops = () => {
     navigate('/');
   };
 
-  // ── Profile image ─────────────────────────────────────────────────────────
+  //  Profile image 
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -118,7 +118,7 @@ const ManageShops = () => {
 
   return (
     <div className="ms-admin-container">
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      {/* SIDEBAR */}
       <aside className="ms-admin-sidebar">
         <div className="ms-brand-header">
           <span className="ms-brand-title">SHOP2DOOR</span>
@@ -161,7 +161,7 @@ const ManageShops = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      {/*  MAIN  */}
       <main className="ms-admin-main">
         {/* Header */}
         <header className="ms-main-header">
@@ -253,7 +253,7 @@ const ManageShops = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ─────────────────────────────────────────────── */}
+        {/* PAGE CONTENT */}
         <div className="ms-page-content">
 
           {/* Page header + filters */}

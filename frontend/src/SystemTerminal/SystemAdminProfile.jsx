@@ -48,7 +48,7 @@ const SystemAdminProfile = () => {
   );
   const token = localStorage.getItem('token');
 
-  // ── Close dropdowns on outside click ────────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -60,7 +60,7 @@ const SystemAdminProfile = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ── Pre-fill edit form when modal opens ────────────────────────────────────
+  //  Pre-fill edit form when modal opens 
   const openEditModal = () => {
     setEditName(user.name || '');
     setEditPhone(user.phone || '');
@@ -78,7 +78,7 @@ const SystemAdminProfile = () => {
     navigate('/');
   };
 
-  // ── Profile image renderer ────────────────────────────────────────────────
+  //  Profile image renderer 
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -94,7 +94,7 @@ const SystemAdminProfile = () => {
     return <span className={cls}>{initials}</span>;
   };
 
-  // ── Avatar in content area ────────────────────────────────────────────────
+  //  Avatar in content area 
   const renderContentAvatar = () => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -109,7 +109,7 @@ const SystemAdminProfile = () => {
     return <span className="sap-avatar-text">{initials}</span>;
   };
 
-  // ── Modal avatar preview ──────────────────────────────────────────────────
+  //  Modal avatar preview 
   const renderModalAvatar = () => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (previewUrl) {
@@ -133,7 +133,7 @@ const SystemAdminProfile = () => {
     return <span className="sap-modal-initials">{initials}</span>;
   };
 
-  // ── File selection ────────────────────────────────────────────────────────
+  //  File selection 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -141,7 +141,7 @@ const SystemAdminProfile = () => {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  // ── Save profile ──────────────────────────────────────────────────────────
+  //  Save profile 
   const handleSave = async () => {
     if (!editName.trim()) {
       setErrorMsg('Name is required.');
@@ -195,7 +195,7 @@ const SystemAdminProfile = () => {
   return (
     <div className="sap-container">
 
-      {/* ── SIDEBAR ───────────────────────────────────────────────────────── */}
+      {/*  SIDEBAR */}
       <aside className="sys-admin-sidebar">
         <div className="sys-brand-header">
           <span className="sys-brand-title">SHOP2DOOR</span>
@@ -238,7 +238,7 @@ const SystemAdminProfile = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ──────────────────────────────────────────────────────────── */}
+      {/* MAIN  */}
       <main className="sys-admin-main">
 
         {/* Header */}
@@ -338,7 +338,7 @@ const SystemAdminProfile = () => {
           </div>
         </header>
 
-        {/* ── PROFILE CONTENT ─────────────────────────────────────────────── */}
+        {/*  PROFILE CONTENT  */}
         <div className="sys-dashboard-content">
 
           <div className="sap-page-title-row">
@@ -451,7 +451,7 @@ const SystemAdminProfile = () => {
         </div>
       </main>
 
-      {/* ── EDIT MODAL ─────────────────────────────────────────────────────── */}
+      {/*  EDIT MODAL */}
       {showEditModal && (
         <div className="sap-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowEditModal(false); }}>
           <div className="sap-modal-content">

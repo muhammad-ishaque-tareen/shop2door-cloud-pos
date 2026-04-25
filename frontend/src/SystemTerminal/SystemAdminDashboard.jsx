@@ -35,7 +35,7 @@ const SystemAdminDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
 
-  // ── Fetch dashboard stats ─────────────────────────────────────────────────
+  //  Fetch dashboard stats 
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -55,7 +55,7 @@ const SystemAdminDashboard = () => {
     fetchStats();
   }, []);
 
-  // ── Fetch packages ────────────────────────────────────────────────────────
+  //  Fetch packages 
   useEffect(() => {
     const fetchPackages = async () => {
       try {
@@ -75,7 +75,7 @@ const SystemAdminDashboard = () => {
     fetchPackages();
   }, []);
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -93,7 +93,7 @@ const SystemAdminDashboard = () => {
     navigate('/');
   };
 
-  // ── Profile image renderer ────────────────────────────────────────────────
+  //  Profile image renderer 
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -109,14 +109,14 @@ const SystemAdminDashboard = () => {
     return <span className={cls}>{initials}</span>;
   };
 
-  // ── Package distribution bar colours ─────────────────────────────────────
+  //  Package distribution bar colours 
   const barColors = ['purple', 'teal', 'red', 'blue'];
 
   const totalShopsByPackage = packages.reduce((sum, p) => sum + (p.shop_count || 0), 0);
 
   return (
     <div className="sys-admin-container">
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      {/*  SIDEBAR  */}
       <aside className="sys-admin-sidebar">
         <div className="sys-brand-header">
           <span className="sys-brand-title">SHOP2DOOR</span>
@@ -167,7 +167,7 @@ const SystemAdminDashboard = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      {/*  MAIN  */}
       <main className="sys-admin-main">
         {/* Header */}
         <header className="sys-main-header">
@@ -265,7 +265,7 @@ const SystemAdminDashboard = () => {
           </div>
         </header>
 
-        {/* ── DASHBOARD CONTENT ────────────────────────────────────────── */}
+        {/* DASHBOARD CONTENT  */}
         <div className="sys-dashboard-content">
           <div className="sys-welcome-section">
             <h1 className="sys-welcome-title">

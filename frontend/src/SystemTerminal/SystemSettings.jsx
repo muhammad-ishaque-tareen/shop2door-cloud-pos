@@ -31,7 +31,7 @@ const SystemSettings = () => {
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -45,7 +45,7 @@ const SystemSettings = () => {
 
   useEffect(() => { fetchSystemInfo(); }, []);
 
-  // ── Fetch system / settings info from backend ─────────────────────────────
+  // Fetch system / settings info from backend 
   const fetchSystemInfo = async () => {
     try {
       setLoading(true);
@@ -69,7 +69,7 @@ const SystemSettings = () => {
     navigate('/');
   };
 
-  // ── Profile image ─────────────────────────────────────────────────────────
+  // Profile image 
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'SA';
     if (user.image_url) {
@@ -87,7 +87,7 @@ const SystemSettings = () => {
 
   return (
     <div className="ss-admin-container">
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+      {/* SIDEBAR  */}
       <aside className="ss-admin-sidebar">
         <div className="ss-brand-header">
           <span className="ss-brand-title">SHOP2DOOR</span>
@@ -130,7 +130,7 @@ const SystemSettings = () => {
         </nav>
       </aside>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────── */}
+      {/*  MAIN  */}
       <main className="ss-admin-main">
         {/* Header */}
         <header className="ss-main-header">
@@ -219,7 +219,7 @@ const SystemSettings = () => {
           </div>
         </header>
 
-        {/* ── PAGE CONTENT ─────────────────────────────────────────────── */}
+        {/*  PAGE CONTENT  */}
         <div className="ss-page-content">
           <div className="ss-page-header">
             <div>

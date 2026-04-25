@@ -1,9 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════
-   ShopRequests.css  —  all classes prefixed "sr-"
-   Sidebar & header match SystemAdminDashboard (flat white style)
-═══════════════════════════════════════════════════════════════ */
-
-/* ── Layout ──────────────────────────────────────────────────── */
+/*  Layout  */
 .sr-admin-container {
   display: flex;
   height: 100vh;
@@ -12,7 +7,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────── */
+/*  Sidebar  */
 .sr-admin-sidebar {
   width: 15rem;
   background-color: #ffffff;
@@ -90,7 +85,7 @@
 .sr-logout-item { color: #6b7280; }
 .sr-logout-item:hover { background: #fef2f2 !important; color: #ef4444 !important; }
 
-/* ── Main ────────────────────────────────────────────────────── */
+/*  Main  */
 .sr-admin-main {
   flex: 1;
   display: flex;
@@ -98,7 +93,7 @@
   overflow: hidden;
 }
 
-/* ── Header ──────────────────────────────────────────────────── */
+/*  Header  */
 .sr-main-header {
   background: #ffffff;
   padding: 1rem 2rem;
@@ -174,7 +169,7 @@
 .sr-profile-circle-btn:hover { transform: scale(1.08); }
 .sr-profile-initials { font-size: 0.875rem; font-weight: 700; }
 
-/* ── Menu dropdown ───────────────────────────────────────────── */
+/*  Menu dropdown  */
 .sr-menu-dropdown-container,
 .sr-profile-dropdown-container { position: relative; }
 
@@ -228,7 +223,7 @@
 
 .sr-menu-divider { height: 1px; background-color: #f3f4f6; margin: 0.5rem 0; }
 
-/* ── Profile dropdown ────────────────────────────────────────── */
+/*  Profile dropdown  */
 .sr-profile-dropdown { min-width: 280px; }
 
 .sr-profile-dropdown-header {
@@ -322,7 +317,7 @@
 .sr-profile-action-btn.sr-logout-btn { color: #ef4444; }
 .sr-profile-action-btn.sr-logout-btn:hover { background-color: #fef2f2; color: #dc2626; }
 
-/* ── Page content ────────────────────────────────────────────── */
+/*  Page content  */
 .sr-page-content {
   flex: 1;
   padding: 2rem;
@@ -350,7 +345,7 @@
   margin: 0;
 }
 
-/* ── Card ────────────────────────────────────────────────────── */
+/*  Card  */
 .sr-card {
   background: white;
   border-radius: 1rem;
@@ -381,7 +376,7 @@
   font-weight: 600;
 }
 
-/* ── Empty state ─────────────────────────────────────────────── */
+/*  Empty state  */
 .sr-empty-state {
   padding: 3rem;
   text-align: center;
@@ -389,7 +384,7 @@
   font-size: 0.875rem;
 }
 
-/* ── Table ───────────────────────────────────────────────────── */
+/*  Table  */
 .sr-table-wrapper {
   overflow-x: auto;
 }
@@ -433,7 +428,7 @@
   color: #1f2937;
 }
 
-/* ── Package badges ──────────────────────────────────────────── */
+/*  Package badges  */
 .sr-package-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -446,7 +441,7 @@
 .sr-package-badge.pro      { background: #dbeafe; color: #1e40af; }
 .sr-package-badge.enterprise { background: #d1fae5; color: #065f46; }
 
-/* ── Action buttons ──────────────────────────────────────────── */
+/*  Action buttons  */
 .sr-action-buttons {
   display: flex;
   gap: 0.5rem;
@@ -471,7 +466,7 @@
 .sr-action-btn.reject  { background-color: #fee2e2; color: #dc2626; }
 .sr-action-btn.reject:hover  { background-color: #fecaca; transform: scale(1.08); }
 
-/* ── Responsive ──────────────────────────────────────────────── */
+/*  Responsive  */
 @media (max-width: 768px) {
   .sr-admin-sidebar { width: 4rem; }
   .sr-brand-title, .sr-nav-item span { display: none; }

@@ -1,9 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════
-   ManageShops.css  —  all classes prefixed "ms-"
-   Sidebar & header match SystemAdminDashboard (flat white style)
-═══════════════════════════════════════════════════════════════ */
-
-/* ── Layout ──────────────────────────────────────────────────── */
+/*  Layout  */
 .ms-admin-container {
   display: flex;
   height: 100vh;
@@ -12,7 +7,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────── */
+/*  Sidebar  */
 .ms-admin-sidebar {
   width: 15rem;
   background-color: #ffffff;
@@ -81,7 +76,7 @@
 .ms-logout-item { color: #6b7280; }
 .ms-logout-item:hover { background: #fef2f2 !important; color: #ef4444 !important; }
 
-/* ── Main ────────────────────────────────────────────────────── */
+/*  Main  */
 .ms-admin-main {
   flex: 1;
   display: flex;
@@ -89,7 +84,7 @@
   overflow: hidden;
 }
 
-/* ── Header ──────────────────────────────────────────────────── */
+/*  Header  */
 .ms-main-header {
   background: #ffffff;
   padding: 1rem 2rem;
@@ -157,7 +152,7 @@
 .ms-profile-circle-btn:hover { transform: scale(1.08); }
 .ms-profile-initials { font-size: 0.875rem; font-weight: 700; }
 
-/* ── Menu dropdown ───────────────────────────────────────────── */
+/*  Menu dropdown  */
 .ms-menu-dropdown-container,
 .ms-profile-dropdown-container { position: relative; }
 
@@ -211,7 +206,7 @@
 
 .ms-menu-divider { height: 1px; background-color: #f3f4f6; margin: 0.5rem 0; }
 
-/* ── Profile dropdown ────────────────────────────────────────── */
+/*  Profile dropdown  */
 .ms-profile-dropdown { min-width: 280px; }
 
 .ms-profile-dropdown-header {
@@ -295,7 +290,7 @@
 .ms-profile-action-btn.ms-logout-btn { color: #ef4444; }
 .ms-profile-action-btn.ms-logout-btn:hover { background-color: #fef2f2; color: #dc2626; }
 
-/* ── Page content ────────────────────────────────────────────── */
+/*  Page content  */
 .ms-page-content {
   flex: 1;
   padding: 2rem;
@@ -308,7 +303,7 @@
 .ms-page-content::-webkit-scrollbar-thumb { background: rgba(147,51,234,0.3); border-radius: 4px; }
 .ms-page-content::-webkit-scrollbar-thumb:hover { background: rgba(147,51,234,0.5); }
 
-/* ── Page header ─────────────────────────────────────────────── */
+/*  Page header  */
 .ms-page-header {
   display: flex;
   justify-content: space-between;
@@ -335,7 +330,7 @@
   white-space: nowrap;
 }
 
-/* ── Search & filter bar ─────────────────────────────────────── */
+/*  Search & filter bar  */
 .ms-search-filter-bar {
   display: flex;
   gap: 0.875rem;
@@ -399,14 +394,14 @@
   box-shadow: 0 0 0 3px rgba(147,51,234,0.1);
 }
 
-/* ── Shops grid ──────────────────────────────────────────────── */
+/*  Shops grid  */
 .ms-shops-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
   gap: 1.25rem;
 }
 
-/* ── Shop card ───────────────────────────────────────────────── */
+/*  Shop card  */
 .ms-shop-card {
   background: white;
   border-radius: 1rem;
@@ -470,7 +465,7 @@
 .ms-status-badge.active   { background: #d1fae5; color: #065f46; }
 .ms-status-badge.inactive { background: #fee2e2; color: #dc2626; }
 
-/* ── Stats row ───────────────────────────────────────────────── */
+/*  Stats row  */
 .ms-shop-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -506,7 +501,7 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Shop actions ────────────────────────────────────────────── */
+/*  Shop actions  */
 .ms-shop-actions {
   display: flex;
   gap: 0.75rem;
@@ -536,7 +531,7 @@
   color: #9333ea;
 }
 
-/* ── Loading & empty ─────────────────────────────────────────── */
+/*  Loading & empty  */
 .ms-loading-state {
   display: flex;
   align-items: center;
@@ -570,7 +565,7 @@
 .ms-empty-title { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin: 0 0 0.5rem 0; }
 .ms-empty-text  { font-size: 0.875rem; color: #6b7280; margin: 0; }
 
-/* ── Responsive ──────────────────────────────────────────────── */
+/*  Responsive  */
 @media (max-width: 1200px) {
   .ms-shops-grid { grid-template-columns: 1fr; }
 }

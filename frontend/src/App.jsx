@@ -31,6 +31,7 @@ import MyStores from "./ShopAdminTerminal/Mystores";
 import MyUsers from "./ShopAdminTerminal/Myusers";
 import Products from "./ShopAdminTerminal/Products";
 import Categories from "./ShopAdminTerminal/Categories";
+import Inventory from "./ShopAdminTerminal/Inventory";
 
 const App = () => {
   return (
@@ -68,6 +69,7 @@ const App = () => {
       <Route path="/myuser" element={<MyUsers />} />
       <Route path="/products" element={<Products />} />
       <Route path="/categories" element={<Categories />} />
+      <Route path="/inventory" element={<Inventory />} />
 
     </Routes>
   );

@@ -1,0 +1,172 @@
+/* Clickable stat cards  */
+.inv-card-clickable {
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+.inv-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.09);
+}
+
+/*  Low Stock Alert Panel  */
+.inv-alert-panel {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #fef3c7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.inv-alert-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  background: #fffbeb;
+  border-bottom: 1px solid #fef3c7;
+}
+
+.inv-alert-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inv-alert-icon { color: #d97706; }
+
+.inv-alert-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.inv-view-all-btn {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #9333ea;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+.inv-view-all-btn:hover { color: #7e22ce; text-decoration: underline; }
+
+/*  Reorder button in alert table  */
+.inv-reorder-btn {
+  padding: 0.35rem 0.875rem;
+  background: #9333ea;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+.inv-reorder-btn:hover { background: #7e22ce; }
+
+/*  Row highlights for low / out stock  */
+.inv-row-low { background: #fffdf0 !important; }
+.inv-row-low:hover { background: #fefce8 !important; }
+.inv-row-out { background: #fff8f8 !important; }
+.inv-row-out:hover { background: #fef2f2 !important; }
+
+/* ── Stock Adjustment Modal  */
+.inv-adjust-modal { max-width: 460px !important; }
+
+.inv-adjust-product-strip {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f8fafc;
+  border-radius: 0.875rem;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #f1f5f9;
+}
+
+.inv-adjust-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+}
+.inv-adjust-thumb-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.inv-adjust-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.2rem;
+}
+.inv-adjust-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Qty stepper */
+.inv-qty-control {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.inv-qty-btn {
+  width: 42px;
+  height: 42px;
+  background: #f9fafb;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.inv-qty-btn:hover { background: #f3f4f6; }
+
+.inv-qty-input {
+  width: 90px;
+  height: 42px;
+  text-align: center;
+  border: none;
+  border-left: 1.5px solid #e5e7eb;
+  border-right: 1.5px solid #e5e7eb;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+  outline: none;
+  font-family: inherit;
+}
+.inv-qty-input::-webkit-outer-spin-button,
+.inv-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* Diff indicator */
+.inv-adjust-diff {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.inv-diff-up   { color: #16a34a; }
+.inv-diff-down { color: #dc2626; }
+.inv-diff-same { color: #9ca3af; font-weight: 500; }

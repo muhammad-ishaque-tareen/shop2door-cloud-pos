@@ -64,11 +64,11 @@ exports.getSubscriptionById = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // PATCH /api/subscriptions/:id/status
 // Toggle subscription active / inactive
 // Body: { status: 'active' | 'inactive' }
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 exports.toggleSubscriptionStatus = async (req, res) => {
   const { id }     = req.params;
   const { status } = req.body;
@@ -95,11 +95,11 @@ exports.toggleSubscriptionStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // PUT /api/subscriptions/:id
 // Update end_date or package_id for a subscription
 // Body: { end_date?, package_id? }
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 exports.updateSubscription = async (req, res) => {
   const { id }                 = req.params;
   const { end_date, package_id } = req.body;

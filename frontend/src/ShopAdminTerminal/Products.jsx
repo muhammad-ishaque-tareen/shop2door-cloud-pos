@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,Tags, 
   Moon, Settings, Plus, X, AlertCircle, CheckCircle,
-  Edit3, Eye, Save, Search, Download, Tag, Trash2,Boxes,
+  Edit3, Eye, Save, Search, Download, Tag, Trash2,Boxes,Receipt, TrendingUp,
   ChevronLeft, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -495,6 +495,10 @@ const Products = () => {
 
          
           <div className="nav-divider"/>
+          
+           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18}/><span>Subscription</span>
           </button>

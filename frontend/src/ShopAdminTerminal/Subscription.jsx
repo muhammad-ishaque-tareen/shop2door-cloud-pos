@@ -196,10 +196,12 @@ const Subscription = () => {
           
 
           <div className="nav-divider" />
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+           <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
 
           <button className="shop-nav-item active">
-            <Diamond size={18} />
-            <span>Subscription</span>
+            <Diamond size={18} /> <span>Subscription</span>
           </button>
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/adminprofile')}>

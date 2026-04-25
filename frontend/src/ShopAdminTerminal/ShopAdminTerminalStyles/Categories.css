@@ -1,9 +1,5 @@
-/* ── Categories.css ─────────────────────────────────────────────────────────
-   Extends the shared MyStores.css + Products.css design system.
-   All class names are prefixed with "cat-" to avoid collisions.
-   ──────────────────────────────────────────────────────────────────────────── */
 
-/* ── PAGE HEADER ── */
+/*  PAGE HEADER  */
 .cat-page-header {
   display: flex;
   align-items: flex-start;
@@ -26,7 +22,7 @@
 }
 .cat-btn-add:hover { background: #7e22ce; }
 
-/* ── STAT CARDS ── */
+/*  STAT CARDS  */
 .cat-stat-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -56,7 +52,7 @@
 .cat-stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 500; margin: 0 0 0.2rem; }
 .cat-stat-value { font-size: 1.5rem; font-weight: 800; color: #1f2937; margin: 0; line-height: 1; }
 
-/* ── FILTER BAR ── */
+/*  FILTER BAR  */
 .cat-filter-bar {
   background: white;
   border-radius: 0.875rem;
@@ -108,7 +104,7 @@
 .cat-toggle-btn.active { color: #9333ea; background: #f3e8ff; }
 .cat-toggle-btn + .cat-toggle-btn { border-left: 1.5px solid #e5e7eb; }
 
-/* ── GRID ── */
+/*  GRID  */
 .cat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -214,7 +210,7 @@
 .cat-card-add-label { font-size: 0.875rem; font-weight: 600; color: #9ca3af; margin: 0; transition: color 0.2s; }
 .cat-card-add:hover .cat-card-add-label { color: #9333ea; }
 
-/* ── LIST VIEW ── */
+/*  LIST VIEW  */
 .cat-list-card {
   background: white;
   border-radius: 1rem;
@@ -299,7 +295,7 @@
 }
 .cat-list-info { font-size: 0.8125rem; color: #6b7280; }
 
-/* ── EMPTY / LOADING / ERROR STATES ── */
+/*  EMPTY / LOADING / ERROR STATES  */
 .cat-loading {
   text-align: center; padding: 4rem 2rem;
   color: #9333ea; font-weight: 600;
@@ -335,7 +331,7 @@
 .cat-empty h3 { font-size: 1.125rem; font-weight: 700; color: #1f2937; margin: 0 0 0.5rem; }
 .cat-empty p  { font-size: 0.875rem; margin: 0; }
 
-/* ── EDIT MODAL INFO ── */
+/*  EDIT MODAL INFO  */
 .cat-edit-info {
   display: flex; align-items: center; gap: 0.5rem;
   margin-top: 0.75rem;
@@ -345,7 +341,7 @@
   font-size: 0.8125rem; color: #7e22ce;
 }
 
-/* ── DELETE CONFIRM MODAL ── */
+/*  DELETE CONFIRM MODAL  */
 .cat-delete-modal {
   text-align: center;
   padding: 2rem !important;

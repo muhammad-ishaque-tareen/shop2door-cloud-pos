@@ -39,26 +39,61 @@ exports.createCategory = async (req, res) => {
 
 // GET /api/products
 exports.getProducts = async (req, res) => {
+  const storeId = req.user.store_id || null;
+  const role    = req.user.role    || '';
+
   try {
-    const result = await req.shopDB.query(
-      `SELECT
-         p.product_id,
-         p.name,
-         p.barcode,
-         p.price,
-         p.stock,
-         p.quantity,
-         p.unit,
-         p.description,
-         p.image_url,
-         p.store_id,
-         p.created_at,
-         c.category_id,
-         c.name AS category_name
-       FROM products p
-       LEFT JOIN categories c ON p.category_id = c.category_id
-       ORDER BY p.created_at DESC`
-    );
+    let result;
+
+    if (storeId && role !== 'shop_admin') {
+      // Cashier / store_manager — only products stocked in their store,
+      // stock figure comes from store_inventory, not the global products.stock
+      result = await req.shopDB.query(
+        `SELECT
+           p.product_id,
+           p.name,
+           p.barcode,
+           p.price,
+           si.quantity        AS stock,
+           p.quantity,
+           p.unit,
+           p.description,
+           p.image_url,
+           p.store_id,
+           p.created_at,
+           c.category_id,
+           c.name             AS category_name
+         FROM store_inventory si
+         JOIN products    p ON p.product_id  = si.product_id
+         LEFT JOIN categories c ON c.category_id = p.category_id
+         WHERE si.store_id = $1
+           AND si.quantity  > 0
+         ORDER BY p.name ASC`,
+        [storeId]
+      );
+    } else {
+      // shop_admin — sees every product with global stock
+      result = await req.shopDB.query(
+        `SELECT
+           p.product_id,
+           p.name,
+           p.barcode,
+           p.price,
+           p.stock,
+           p.quantity,
+           p.unit,
+           p.description,
+           p.image_url,
+           p.store_id,
+           p.created_at,
+           c.category_id,
+           c.name AS category_name
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.category_id
+         ORDER BY p.created_at DESC`
+      );
+    }
+
     res.json(result.rows);
   } catch (error) {
     console.error('[PRODUCT] getProducts error:', error.message);

@@ -1,5 +1,4 @@
-
-/* ── PAGE HEADER ── */
+/*  PAGE HEADER  */
 .prod-page-header {
   display: flex;
   align-items: flex-start;
@@ -35,7 +34,7 @@
 }
 .prod-btn-add:hover { background: #7e22ce; }
 
-/* ── STAT CARDS ── */
+/*  STAT CARDS  */
 .prod-stat-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -69,7 +68,7 @@
 .prod-stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 500; margin: 0 0 0.2rem; }
 .prod-stat-value { font-size: 1.5rem; font-weight: 800; color: #1f2937; margin: 0; line-height: 1; }
 
-/* ── FILTER BAR ── */
+/*  FILTER BAR  */
 .prod-filter-bar {
   background: white;
   border-radius: 0.875rem;
@@ -115,7 +114,7 @@
 }
 .prod-select:focus { border-color: #9333ea; }
 
-/* ── CATEGORIES MGMT BTN ── */
+/*  CATEGORIES MGMT BTN  */
 .prod-btn-categories {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.55rem 1rem;
@@ -127,7 +126,7 @@
 }
 .prod-btn-categories:hover { background: #ede9fe; border-color: #9333ea; }
 
-/* ── TABLE CONTAINER ── */
+/*  TABLE CONTAINER  */
 .prod-table-card {
   background: white;
   border-radius: 1rem;
@@ -263,7 +262,7 @@
 }
 .prod-tbl-btn-delete:hover { border-color: #fca5a5; color: #dc2626; background: #fef2f2; }
 
-/* ── TABLE FOOTER / PAGINATION ── */
+/*  TABLE FOOTER / PAGINATION  */
 .prod-table-footer {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0.875rem 1.25rem;
@@ -285,7 +284,7 @@
 .prod-page-btn:hover:not(:disabled) { border-color: #9333ea; color: #9333ea; }
 .prod-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── EMPTY STATE ── */
+/*  EMPTY STATE  */
 .prod-empty {
   text-align: center;
   padding: 4rem 2rem;
@@ -302,14 +301,12 @@
 .prod-empty h3 { font-size: 1.125rem; font-weight: 700; color: #1f2937; margin: 0 0 0.5rem; }
 .prod-empty p  { font-size: 0.875rem; margin: 0; }
 
-/* ── LOADING ── */
+/*  LOADING  */
 .prod-loading {
   text-align: center; padding: 3rem 2rem;
   color: #9333ea; font-weight: 600;
 }
 
-/* ── MODAL — shared ms-modal-* from MyStores.css reused ──
-   Extra overrides for wider product modal */
 .prod-modal-lg { max-width: 640px !important; }
 
 /* Product modal form grid */
@@ -411,7 +408,7 @@
 .prod-view-detail-label { font-size: 0.7rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 0.2rem; }
 .prod-view-detail-val   { font-size: 0.875rem; font-weight: 600; color: #1f2937; margin: 0; }
 
-/* ── CATEGORIES MODAL ── */
+/*  CATEGORIES MODAL  */
 .prod-cat-list { display: flex; flex-direction: column; gap: 0.625rem; max-height: 280px; overflow-y: auto; }
 .prod-cat-item {
   display: flex; align-items: center; justify-content: space-between;
@@ -445,7 +442,7 @@
 .prod-cat-add-btn:hover { background: #7e22ce; }
 .prod-cat-add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ── Responsive ── */
+/*  Responsive  */
 @media (max-width: 1100px) {
   .prod-stat-cards { grid-template-columns: repeat(2,1fr); }
 }

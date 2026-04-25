@@ -348,7 +348,7 @@ const SystemAdminProfile = () => {
 
           <div className="sap-layout">
 
-            {/* ── Left: Avatar card ── */}
+            {/*  Left: Avatar card  */}
             <div className="sap-avatar-card">
               <div
                 className="sap-avatar-large"
@@ -413,7 +413,7 @@ const SystemAdminProfile = () => {
               )}
             </div>
 
-            {/* ── Right: Info card ── */}
+            {/*  Right: Info card  */}
             <div className="sap-info-card">
               <h2 className="sap-info-title">Account Information</h2>
 

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell, Tags, 
-  Moon, Settings, Star, Users2, DollarSign, ShoppingBag, Boxes,
+  Moon, Settings, Star, Users2, DollarSign, ShoppingBag, Boxes,TrendingUp, 
   X, AlertCircle, MapPin, Phone, Calendar, Edit3, Eye,
   Save, CheckCircle
 } from 'lucide-react';
@@ -223,6 +223,9 @@ const MyStores = () => {
           
         
           <div className="nav-divider" />
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>
           </button>

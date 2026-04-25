@@ -297,7 +297,7 @@
 .shop-profile-action-btn.shop-logout-btn { color: #ef4444; }
 .shop-profile-action-btn.shop-logout-btn:hover { background-color: #fef2f2; color: #dc2626; }
 
-/* ── MY STORES specific ── */
+/*  MY STORES specific  */
 .ms-page-header {
   display: flex;
   align-items: flex-start;
@@ -539,7 +539,7 @@
 
 .ms-btn-edit:hover { border-color: #9333ea; color: #9333ea; background: #f3e8ff; }
 
-/* ── MODALS SHARED ── */
+/*  MODALS SHARED  */
 .ms-modal-overlay {
   position: fixed;
   inset: 0;
@@ -782,7 +782,7 @@
 .ms-btn-save:hover:not(:disabled) { background: #7e22ce; }
 .ms-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ── Responsive ── */
+/*  Responsive  */
 @media (max-width: 900px) {
   .ms-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   .ms-view-grid { grid-template-columns: 1fr; }

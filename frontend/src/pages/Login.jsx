@@ -78,7 +78,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      {/* ── Left Panel ── */}
+      {/*  Left Panel  */}
       <div className="login-left-section">
         <div className="login-left-content">
           <h1 className="login-logo">Shop2Door LOGO</h1>
@@ -110,7 +110,7 @@ const Login = () => {
         <div className="login-dots-pattern"></div>
       </div>
 
-      {/* ── Right Panel ── */}
+      {/*  Right Panel  */}
       <div className="login-right-section">
         <div className="login-form-container">
           <div className="login-form-header">
@@ -172,7 +172,7 @@ const Login = () => {
               </div>
             </div>
 
-            {/* ── Shop Code (staff only) ── */}
+            {/*  Shop Code (staff only)  */}
             <div className="login-form-group">
               <label className="login-label">
                 Shop Code

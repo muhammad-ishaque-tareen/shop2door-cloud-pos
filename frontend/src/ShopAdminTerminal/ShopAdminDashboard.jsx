@@ -4,7 +4,7 @@ import {
   Home,
   Store,
   Plus,
-  Users,
+  Users,TrendingUp,
   ShoppingCart,
   Package as PackageIcon,
   Diamond,
@@ -186,6 +186,11 @@ const ShopAdminDashboard = () => {
           </button>
 
           <div className="nav-divider" />
+
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
+
 
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} />

@@ -10,6 +10,8 @@ const getAuthHeaders = () => {
 
 export const productAPI = {
   getAll: async () => {
+    // The backend scopes results by req.user.store_id from the JWT,
+    // so no query param is needed — but we keep this clean for clarity.
     const response = await fetch(`${API_BASE_URL}/products`, {
       headers: getAuthHeaders()
     });

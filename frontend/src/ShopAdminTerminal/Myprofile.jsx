@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,
-  Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save, Boxes,
+  Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save, Boxes,TrendingUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/MyProfile.css';
@@ -268,6 +268,9 @@ const Myprofile = () => {
           
 
           <div className="mp-nav-divider" />
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
 
           <button className="mp-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,Tags,
   Moon, Settings, X, AlertCircle, Phone, Mail,
-  Edit3, Save, CheckCircle, Trash2, Shield, UserCheck, Boxes,
+  Edit3, Save, CheckCircle, Trash2, Shield, UserCheck, Boxes,TrendingUp,
   Search, ChevronDown, UserCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -360,6 +360,10 @@ const MyUsers = () => {
           
 
           <div className="nav-divider" />
+          
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+           <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
 
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>

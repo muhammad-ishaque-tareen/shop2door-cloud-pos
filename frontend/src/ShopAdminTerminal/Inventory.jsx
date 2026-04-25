@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,
   Moon, Settings, X, AlertCircle, CheckCircle,
-  Search, Boxes, ChevronLeft, ChevronRight, Layers,
+  Search, Boxes, ChevronLeft, ChevronRight, Layers,TrendingUp,
   TrendingDown, MinusCircle, Edit3, Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -302,7 +302,7 @@ const Inventory = () => {
   return (
     <div className="shop-admin-container">
 
-      {/* ══════════════ SIDEBAR — exact copy from Products ══════════════ */}
+      {/* SIDEBAR — exact copy from Products */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">{renderShopLogo()}</div>
         <nav className="shop-sidebar-nav">
@@ -334,6 +334,9 @@ const Inventory = () => {
             <Boxes size={18}/><span>Inventory</span>
           </button>
           <div className="nav-divider"/>
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18}/><span>Subscription</span>
           </button>

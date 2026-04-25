@@ -21,7 +21,7 @@ const FindProducts = () => {
   const user               = JSON.parse(localStorage.getItem('user') || '{}');
   const navigate           = useNavigate();
 
-  // ── Close dropdowns on outside click ─────────────────────────────────────
+  //  Close dropdowns on outside click 
   useEffect(() => {
     const handler = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -40,7 +40,7 @@ const FindProducts = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Load products on mount ────────────────────────────────────────────────
+  //  Load products on mount 
   useEffect(() => { loadProducts(); }, []);
 
   const loadProducts = async () => {
@@ -71,7 +71,7 @@ const FindProducts = () => {
     }
   };
 
-  // ── Filter logic (safe — all fields guaranteed strings now) ──────────────
+  //  Filter logic (safe — all fields guaranteed strings now) 
   const filteredProducts = products.filter(product => {
     const matchesCategory =
       selectedCategory === 'All' || product.category === selectedCategory;
@@ -83,7 +83,7 @@ const FindProducts = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  //  Handlers 
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
   const handleLogOut = () => {
@@ -95,11 +95,11 @@ const FindProducts = () => {
   const handleMyProfile    = () => navigate('/myprofile');
   const handleProfileLogout = () => { setShowProfileDropdown(false); handleLogOut(); };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  //  Render 
   return (
     <div className="find-products-container">
 
-      {/* ── Sidebar ── */}
+      {/*  Sidebar  */}
       <aside className="pos-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
@@ -140,7 +140,7 @@ const FindProducts = () => {
         </nav>
       </aside>
 
-      {/* ── Main ── */}
+      {/*  Main  */}
       <main className="find-products-main">
         <header className="main-header">
           <div className="breadcrumb">POS &gt; Dashboard</div>
@@ -261,7 +261,7 @@ const FindProducts = () => {
           </div>
         </header>
 
-        {/* ── Content ── */}
+        {/*  Content  */}
         <div className="find-products-content">
           <div className="search-filter-section">
             <div className="search-header">
@@ -319,7 +319,7 @@ const FindProducts = () => {
             </div>
           </div>
 
-          {/* ── Product list ── */}
+          {/*  Product list  */}
           <div className="products-list-container">
             {loading ? (
               <div className="no-results">
@@ -381,7 +381,7 @@ const FindProducts = () => {
         </div>
       </main>
 
-      {/* ── Product detail modal ── */}
+      {/*  Product detail modal  */}
       {selectedProduct && (
         <div className="modal-overlay" onClick={closeProductModal}>
           <div className="modal product-detail-modal" onClick={(e) => e.stopPropagation()}>

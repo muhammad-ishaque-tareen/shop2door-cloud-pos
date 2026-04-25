@@ -1,8 +1,4 @@
-/* ============================================
-   MyProfile.css  —  Shop Admin profile page
-   ============================================ */
-
-/* ── Layout ── */
+/*  Layout  */
 .mp-container {
   display: flex;
   height: 100vh;
@@ -11,7 +7,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* ── Sidebar ── */
+/*  Sidebar  */
 .mp-sidebar {
   width: 15rem;
   background: #ffffff;
@@ -80,7 +76,7 @@
 .mp-logout-nav        { color: #ef4444 !important; margin-top: auto; }
 .mp-logout-nav:hover  { background: #fef2f2 !important; color: #dc2626 !important; }
 
-/* ── Main ── */
+/*  Main  */
 .mp-main {
   flex: 1;
   display: flex;
@@ -88,7 +84,7 @@
   overflow: hidden;
 }
 
-/* ── Header ── */
+/*  Header  */
 .mp-header {
   background: #ffffff;
   padding: 1rem 2rem;
@@ -141,7 +137,7 @@
 .mp-profile-circle-btn:hover { transform: scale(1.08); }
 .mp-profile-initials { font-size: 0.875rem; font-weight: 700; }
 
-/* ── Dropdowns ── */
+/*  Dropdowns  */
 .mp-menu-dropdown-container,
 .mp-profile-dropdown-container { position: relative; }
 
@@ -230,7 +226,7 @@
 .mp-logout-btn        { color: #ef4444 !important; }
 .mp-logout-btn:hover  { background: #fef2f2 !important; color: #dc2626 !important; }
 
-/* ── Content area ── */
+/*  Content area  */
 .mp-content {
   flex: 1; padding: 2rem; overflow-y: auto; background: #f5f5f5;
 }
@@ -243,7 +239,7 @@
 .mp-page-title     { font-size: 1.875rem; font-weight: 800; color: #1f2937; margin: 0 0 0.25rem 0; }
 .mp-page-subtitle  { font-size: 0.875rem; color: #6b7280; margin: 0; }
 
-/* ── Alert banners ── */
+/*  Alert banners  */
 .mp-alert {
   display: flex; align-items: center; gap: 0.6rem;
   padding: 0.75rem 1rem; border-radius: 0.625rem;
@@ -252,7 +248,7 @@
 .mp-alert-success { background: #dcfce7; color: #16a34a; }
 .mp-alert-error   { background: #fef2f2; color: #dc2626; }
 
-/* ── Two-column layout ── */
+/*  Two-column layout  */
 .mp-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -260,7 +256,7 @@
   align-items: start;
 }
 
-/* ── Left avatar card ── */
+/*  Left avatar card  */
 .mp-avatar-card {
   background: white;
   border-radius: 1rem;
@@ -317,7 +313,7 @@
   font-size: 0.75rem; color: #9333ea; text-align: center; margin: 0;
 }
 
-/* ── Right info card ── */
+/*  Right info card  */
 .mp-info-card {
   background: white;
   border-radius: 1rem;
@@ -350,7 +346,7 @@
 .mp-info-value { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
 
 
-/* ── MODAL ── */
+/*  MODAL  */
 .mp-modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.45);
@@ -450,7 +446,7 @@
 .mp-btn-save:hover:not(:disabled) { background: #7e22ce; }
 .mp-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ── Responsive ── */
+/*  Responsive  */
 @media (max-width: 1024px) {
   .mp-layout { grid-template-columns: 240px 1fr; }
 }

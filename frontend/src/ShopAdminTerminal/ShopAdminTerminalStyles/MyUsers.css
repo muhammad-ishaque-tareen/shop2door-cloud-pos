@@ -892,7 +892,7 @@
   .mu-form-row { grid-template-columns: 1fr; }
 }
 
-/* ─── Edit modal — read-only user info card ─── */
+/*  Edit modal — read-only user info card  */
 .mu-edit-user-card {
   display: flex;
   align-items: center;

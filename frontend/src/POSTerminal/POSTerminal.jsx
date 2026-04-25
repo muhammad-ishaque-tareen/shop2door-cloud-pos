@@ -33,16 +33,33 @@ const POSTerminal = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [storeInfo, setStoreInfo] = useState(null); // fetched store details for receipt
 
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
   const barcodeInputRef = useRef(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     loadProducts();
+    loadStoreInfo();
   }, []);
+
+  // Fetch the current user's store so receipt shows correct name / address / phone
+  const loadStoreInfo = async () => {
+    const storeId = user.store_id;
+    if (!storeId) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/stores/${storeId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setStoreInfo(await res.json());
+    } catch (err) {
+      console.error('Could not load store info:', err);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -339,8 +356,13 @@ const POSTerminal = () => {
 
       <aside className="pos-sidebar">
         <div className="brand-header">
-          <ShoppingCart className="brand-icon" size={24} />
-          <h1 className="brand-title">{user.shop_name || 'Shop2Door'}</h1>
+          <ShoppingCart className="brand-icon" size={20} />
+          <div className="brand-text">
+            <h1 className="brand-title">{user.shop_name || 'Shop2Door'}</h1>
+            {(storeInfo?.name || user.store_name) && (
+              <p className="brand-store-name">{storeInfo?.name || user.store_name}</p>
+            )}
+          </div>
         </div>
         
         <nav className="sidebar-nav">
@@ -700,10 +722,23 @@ const POSTerminal = () => {
             <div className="modal-body" style={{ background: '#fff' }}>
               <div className="receipt">
                 <div className="receipt-header">
-                  <h3 style={{ marginBottom: '5px', margin: 0 }}>{user.shop_name?.toUpperCase() || 'SHOP2DOOR'}</h3>
-                  <p>{user.shop_name || 'Shop'} Branch</p>
-                  <p>123 Main Street</p>
-                  <p>Tel: 03345467856</p>
+                  {/* Shop name — large & bold */}
+                  <h3 className="receipt-shop-name">
+                    {user.shop_name?.toUpperCase() || 'SHOP2DOOR'}
+                  </h3>
+                  {/* Store / branch name — smaller line below shop name */}
+                  {(storeInfo?.name || user.store_name) && (
+                    <p className="receipt-store-name">
+                      {storeInfo?.name || user.store_name}
+                    </p>
+                  )}
+                  {/* Dynamic address & phone from the store record */}
+                  {(storeInfo?.address || user.store_address) && (
+                    <p>{storeInfo?.address || user.store_address}</p>
+                  )}
+                  {(storeInfo?.phone || user.store_phone) && (
+                    <p>Tel: {storeInfo?.phone || user.store_phone}</p>
+                  )}
                   <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
                   <p><strong>Receipt #: {receiptData.receiptNumber}</strong></p>
                   <p>Date: {receiptData.date}</p>

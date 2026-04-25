@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,
-  Tags, Moon, Settings, Plus, X, AlertCircle, CheckCircle, Boxes,
+  Tags, Moon, Settings, Plus, X, AlertCircle, CheckCircle, Boxes,TrendingUp,
   Edit3, Save, Search, Trash2, Tag, Grid, List,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -256,6 +256,9 @@ const Categories = () => {
          
 
           <div className="nav-divider"/>
+          <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
+            <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18}/><span>Subscription</span>
           </button>

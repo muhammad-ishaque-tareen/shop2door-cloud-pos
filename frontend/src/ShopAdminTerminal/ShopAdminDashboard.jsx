@@ -10,7 +10,7 @@ import {
   Diamond,
   LogOut,
   User,
-  Bell, Tags, 
+  Bell, Tags, Boxes,
   Moon,
   Settings
 } from 'lucide-react';
@@ -163,6 +163,10 @@ const ShopAdminDashboard = () => {
             <Users size={18} />
             <span>My Users</span>
           </button>
+           <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} />
+            <span>Suppliers</span>
+          </button>
           {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} />
             <span>Add User</span>
@@ -177,10 +181,8 @@ const ShopAdminDashboard = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-
-          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} />
-            <span>Suppliers</span>
+          <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
           </button>
 
           <div className="nav-divider" />

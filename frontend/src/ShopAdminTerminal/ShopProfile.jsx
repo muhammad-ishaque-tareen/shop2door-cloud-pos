@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Home, Store, Plus, Users,
   ShoppingCart, Package as PackageIcon, Diamond,
-  LogOut, Settings, ArrowLeft, Building2,
+  LogOut, Settings, ArrowLeft, Building2,Boxes,
   Phone, Mail, Clock, MapPin, Tag,Tags,
   User, Bell, Moon
 } from 'lucide-react';
@@ -147,6 +147,9 @@ const ShopProfile = () => {
           <button className="sp-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} /><span>My Users</span>
           </button>
+           <button className="sp-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} /><span>Suppliers</span>
+          </button>
           {/* <button className="sp-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} /><span>Add User</span>
           </button> */}
@@ -158,10 +161,11 @@ const ShopProfile = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-          
-          <button className="sp-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} /><span>Suppliers</span>
+          <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
           </button>
+          
+         
           <div className="sp-nav-divider" />
           <button className="sp-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>

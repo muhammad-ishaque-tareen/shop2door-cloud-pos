@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell, Tags, 
-  Moon, Settings, Star, Users2, DollarSign, ShoppingBag,
+  Moon, Settings, Star, Users2, DollarSign, ShoppingBag, Boxes,
   X, AlertCircle, MapPin, Phone, Calendar, Edit3, Eye,
   Save, CheckCircle
 } from 'lucide-react';
@@ -197,12 +197,13 @@ const MyStores = () => {
           <button className="shop-nav-item active">
             <Store size={18} /><span>My Stores</span>
           </button>
-          {/* <button className="shop-nav-item" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} /><span>Add Store</span>
-          </button> */}
+        
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18} /><span>My Users</span>
+          </button>
+            <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} /><span>Suppliers</span>
           </button>
           {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} /><span>Add User</span>
@@ -216,10 +217,11 @@ const MyStores = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-          
-          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} /><span>Suppliers</span>
+          <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
           </button>
+          
+        
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>

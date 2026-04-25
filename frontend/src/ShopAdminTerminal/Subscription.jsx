@@ -8,7 +8,7 @@ import {
   ShoppingCart,
   Package as PackageIcon,
   Diamond,
-  LogOut,
+  LogOut, Boxes,
   User,
   Bell,
   Moon,
@@ -169,6 +169,10 @@ const Subscription = () => {
             <Users size={18} />
             <span>My Users</span>
           </button>
+          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} />
+            <span>Suppliers</span>
+          </button>
           {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
             <Plus size={18} />
             <span>Add User</span>
@@ -184,11 +188,12 @@ const Subscription = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-          
-          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} />
-            <span>Suppliers</span>
+           <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
           </button>
+          
+          
+          
 
           <div className="nav-divider" />
 

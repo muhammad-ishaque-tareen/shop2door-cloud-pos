@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,Tags, 
   Moon, Settings, Plus, X, AlertCircle, CheckCircle,
-  Edit3, Eye, Save, Search, Download, Tag, Trash2,
+  Edit3, Eye, Save, Search, Download, Tag, Trash2,Boxes,
   ChevronLeft, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -478,6 +478,9 @@ const Products = () => {
           <button className="shop-nav-item" onClick={() => navigate('/myuser')}>
             <Users size={18}/><span>My Users</span>
           </button>
+           <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18}/><span>Suppliers</span>
+          </button>
           <div className="nav-divider"/>
           <button className="shop-nav-item active">
             <ShoppingCart size={18}/><span>Products</span>
@@ -486,10 +489,11 @@ const Products = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
+         <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
+         </button>
 
-          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18}/><span>Suppliers</span>
-          </button>
+         
           <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18}/><span>Subscription</span>

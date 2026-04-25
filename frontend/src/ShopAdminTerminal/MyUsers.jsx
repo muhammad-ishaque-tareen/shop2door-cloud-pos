@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,Tags,
   Moon, Settings, X, AlertCircle, Phone, Mail,
-  Edit3, Save, CheckCircle, Trash2, Shield, UserCheck,
+  Edit3, Save, CheckCircle, Trash2, Shield, UserCheck, Boxes,
   Search, ChevronDown, UserCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -340,9 +340,9 @@ const MyUsers = () => {
           <button className="shop-nav-item active">
             <Users size={18} /><span>My Users</span>
           </button>
-          {/* <button className="shop-nav-item" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} /><span>Add User</span>
-          </button> */}
+          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} /><span>Suppliers</span>
+          </button>
 
           <div className="nav-divider" />
 
@@ -353,10 +353,11 @@ const MyUsers = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-          
-          <button className="shop-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} /><span>Suppliers</span>
+          <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+           <Boxes size={18} /><span>Inventory</span>
           </button>
+          
+          
 
           <div className="nav-divider" />
 

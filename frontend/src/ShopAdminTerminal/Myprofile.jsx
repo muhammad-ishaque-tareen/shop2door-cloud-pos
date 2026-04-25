@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,
-  Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save
+  Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save, Boxes,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/MyProfile.css';
@@ -241,6 +241,9 @@ const Myprofile = () => {
           <button className="mp-nav-item" onClick={() => navigate('/mystores')}>
             <Store size={18} /><span>My Stores</span>
           </button>
+          <button className="mp-nav-item" onClick={() => navigate('/suppliers')}>
+            <PackageIcon size={18} /><span>Suppliers</span>
+          </button>
           {/* <button className="mp-nav-item" onClick={() => navigate('/mystores')}>
             <Plus size={18} /><span>Add Store</span>
           </button> */}
@@ -258,10 +261,11 @@ const Myprofile = () => {
            <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
+           <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+            <Boxes size={18} /><span>Inventory</span>
+           </button>
 
-          <button className="mp-nav-item" onClick={() => navigate('/suppliers')}>
-            <PackageIcon size={18} /><span>Suppliers</span>
-          </button>
+          
 
           <div className="mp-nav-divider" />
 

@@ -171,7 +171,7 @@ const SalesRecords = () => {
       ['Receipt No', 'Cashier', 'Store', 'Items', 'Subtotal', 'Tax', 'Discount', 'Total', 'Payment', 'Date'],
       ...sales.map(s => [
         s.receipt_no, s.cashier_name, s.store_name || '',
-        Array.isArray(s.items) ? s.items.length : 0,
+        s.item_count ?? (Array.isArray(s.items) ? s.items.length : 0),
         s.subtotal, s.tax, s.discount, s.total, s.payment_method,
         new Date(s.sale_date).toLocaleString()
       ])
@@ -401,7 +401,12 @@ const SalesRecords = () => {
           <div className="sr-mid-grid">
             {/* Bar chart — daily last 7 days */}
             <div className="sr-chart-card">
-              <h3 className="sr-chart-card-title">Sales Overview ( {rangeChartLabel[range] || 'Today'} )</h3>
+              <h3 className="sr-chart-card-title">
+                Sales Overview — {rangeChartLabel[range] || 'Today'}
+                <span style={{ fontSize: '0.7rem', fontWeight: 400, color: '#9ca3af', marginLeft: '0.5rem' }}>
+                  {range === 'today' ? '(by hour)' : range === 'this_week' ? '(by day)' : range === 'this_month' ? '(by week)' : '(last 12 months)'}
+                </span>
+              </h3>
               <div className="sr-chart-wrap">
                 {summaryLoad ? (
                   <div className="sr-loading" style={{ width: '100%', paddingTop: '3rem' }}>
@@ -545,7 +550,7 @@ const SalesRecords = () => {
                           </td>
                           <td>
                             <span className="sr-items-badge">
-                              {Array.isArray(s.items) ? s.items.length : 0} items
+                              {s.item_count ?? (Array.isArray(s.items) ? s.items.length : 0)} items
                             </span>
                           </td>
                           <td>

@@ -229,8 +229,8 @@ const ShopAdminDashboard = () => {
                     {loadingStores ? (
                       <div className="shop-menu-item">Loading...</div>
                     ) : stores.length > 0 ? (
-                      stores.map((store) => (
-                        <button key={store.id} className="shop-menu-item"
+                      stores.map((store, index) => (
+                        <button key={store.store_id} className="shop-menu-item"
                           onClick={() => setShowMenuDropdown(false)}>
                           <Store size={18} />
                           <span>{store.name}</span>
@@ -321,7 +321,7 @@ const ShopAdminDashboard = () => {
                 <div className="store-card-loading">Loading stores...</div>
               ) : stores.length > 0 ? (
                 stores.map((store, index) => (
-                  <div key={store.id} className="store-card">
+                  <div key={store.store_id} className="store-card">
                     <div className="store-card-header">
                       <h3 className="store-card-title">
                         {store.name || `STORE ${index + 1}`}

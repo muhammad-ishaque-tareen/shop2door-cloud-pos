@@ -51,7 +51,7 @@ exports.getSalesRecords = async (req, res) => {
       idx++;
     }
     if (payment) {
-      conditions.push(`s.payment_method = $${idx}`);
+      conditions.push(`LOWER(s.payment_method) = LOWER($${idx})`);
       params.push(payment);
       idx++;
     }
@@ -80,6 +80,14 @@ exports.getSalesRecords = async (req, res) => {
 
     const itemsCol = hasItems ? 's.items,' : '';
 
+    // item_count: try sale_items join first, fall back to jsonb array length
+    const itemCountExpr = hasItems
+      ? `COALESCE(
+           (SELECT COUNT(*) FROM sale_items si WHERE si.sale_id = s.sale_id),
+           CASE WHEN jsonb_typeof(s.items) = 'array' THEN jsonb_array_length(s.items) ELSE 0 END
+         )`
+      : `COALESCE((SELECT COUNT(*) FROM sale_items si WHERE si.sale_id = s.sale_id), 0)`;
+
     const dataResult = await req.shopDB.query(
       `SELECT
          s.sale_id,
@@ -88,6 +96,7 @@ exports.getSalesRecords = async (req, res) => {
          s.user_id,
          u.name          AS cashier_name,
          ${itemsCol}
+         ${itemCountExpr} AS item_count,
          s.subtotal,
          s.tax,
          s.discount,
@@ -146,17 +155,57 @@ exports.getSalesSummary = async (req, res) => {
        WHERE ${intervalClause}`
     );
 
-    // Daily chart — last 7 days
-    const chartResult = await req.shopDB.query(
-      `SELECT
-         TO_CHAR(created_at::date, 'Dy')  AS day_label,
-         created_at::date                 AS sale_day,
-         COALESCE(SUM(total), 0)          AS daily_total
-       FROM sales
-       WHERE created_at >= NOW() - INTERVAL '7 days'
-       GROUP BY created_at::date
-       ORDER BY created_at::date ASC`
-    );
+    // Chart — group by day/week depending on range
+    let chartResult;
+    if (range === 'today') {
+      // Hourly breakdown for today
+      chartResult = await req.shopDB.query(
+        `SELECT
+           TO_CHAR(date_trunc('hour', created_at), 'HH12AM') AS day_label,
+           date_trunc('hour', created_at)                    AS sale_day,
+           COALESCE(SUM(total), 0)                           AS daily_total
+         FROM sales
+         WHERE created_at >= CURRENT_DATE
+         GROUP BY date_trunc('hour', created_at)
+         ORDER BY date_trunc('hour', created_at) ASC`
+      );
+    } else if (range === 'this_week') {
+      // Daily breakdown for current week
+      chartResult = await req.shopDB.query(
+        `SELECT
+           TO_CHAR(created_at::date, 'Dy')  AS day_label,
+           created_at::date                 AS sale_day,
+           COALESCE(SUM(total), 0)          AS daily_total
+         FROM sales
+         WHERE created_at >= date_trunc('week', NOW())
+         GROUP BY created_at::date
+         ORDER BY created_at::date ASC`
+      );
+    } else if (range === 'this_month') {
+      // Week-over-week breakdown for current month
+      chartResult = await req.shopDB.query(
+        `SELECT
+           'Wk ' || TO_CHAR(created_at, 'W')  AS day_label,
+           date_trunc('week', created_at)      AS sale_day,
+           COALESCE(SUM(total), 0)             AS daily_total
+         FROM sales
+         WHERE created_at >= date_trunc('month', NOW())
+         GROUP BY date_trunc('week', created_at), TO_CHAR(created_at, 'W')
+         ORDER BY date_trunc('week', created_at) ASC`
+      );
+    } else {
+      // All time — monthly breakdown, last 12 months
+      chartResult = await req.shopDB.query(
+        `SELECT
+           TO_CHAR(date_trunc('month', created_at), 'Mon YY') AS day_label,
+           date_trunc('month', created_at)                    AS sale_day,
+           COALESCE(SUM(total), 0)                            AS daily_total
+         FROM sales
+         WHERE created_at >= NOW() - INTERVAL '12 months'
+         GROUP BY date_trunc('month', created_at)
+         ORDER BY date_trunc('month', created_at) ASC`
+      );
+    }
 
     // Sales by store
     const storeResult = await req.shopDB.query(

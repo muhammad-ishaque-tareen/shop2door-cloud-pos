@@ -33,6 +33,7 @@ import Products from "./ShopAdminTerminal/Products";
 import Categories from "./ShopAdminTerminal/Categories";
 import Inventory from "./ShopAdminTerminal/Inventory";
 import SalesRecords from "./ShopAdminTerminal/SalesRecords";
+import Suppliers from "./ShopAdminTerminal/Suppliers";
 
 const App = () => {
   return (
@@ -72,6 +73,7 @@ const App = () => {
       <Route path="/categories" element={<Categories />} />
       <Route path="/inventory" element={<Inventory />} />
       <Route path="/salesrecords" element={<SalesRecords />} />
+      <Route path="/suppliers" element={<Suppliers />} />
 
     </Routes>
   );

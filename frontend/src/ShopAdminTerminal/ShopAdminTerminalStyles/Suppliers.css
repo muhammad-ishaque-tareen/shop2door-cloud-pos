@@ -1,0 +1,135 @@
+/* ============================================================
+   Suppliers.css
+   Page-specific styles only.
+   Shared layout (sidebar, header, dropdowns) comes from MyStores.css.
+   ============================================================ */
+
+/* Page header */
+.sp-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+/*  Under-development card  */
+.sp-dev-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 3.5rem 2.5rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 24px rgba(147, 51, 234, 0.07);
+  gap: 1.5rem;
+}
+
+
+
+
+@keyframes sp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sp-icon-center {
+  width: 4.5rem;
+  height: 4.5rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.35);
+  z-index: 1;
+}
+
+/* Orbiting dots */
+.sp-orbit-dot {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  background: white;
+  border: 1.5px solid #e9d5ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9333ea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sp-dot-1 { top: 0;    left: 50%; transform: translateX(-50%); }
+.sp-dot-2 { bottom: 0.25rem; right: 0.25rem; }
+.sp-dot-3 { bottom: 0.25rem; left:  0.25rem; }
+
+/*  Badge  */
+.sp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f3e8ff;
+  color: #7e22ce;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sp-badge-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #9333ea;
+  border-radius: 50%;
+  animation: sp-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sp-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+/*  Heading & description  */
+.sp-dev-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sp-dev-desc {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 480px;
+}
+
+/*  Responsive  */
+@media (max-width: 768px) {
+  .sp-dev-card {
+    padding: 2.5rem 1.5rem 2rem;
+    border-radius: 1.25rem;
+  }
+
+  .sp-dev-title {
+    font-size: 1.25rem;
+  }
+
+  .sp-dev-desc {
+    font-size: 0.875rem;
+  }
+
+  .sp-feature-list {
+    flex-direction: column;
+    align-items: center;
+  }
+}

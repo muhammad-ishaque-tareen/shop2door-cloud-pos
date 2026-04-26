@@ -8,7 +8,6 @@ const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads', 'products');
 
 try {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  console.log('[PRODUCT] Upload directory ready:', UPLOADS_DIR);
 } catch (e) {
   console.error('[PRODUCT] CRITICAL: Could not create upload directory:', e.message);
 }

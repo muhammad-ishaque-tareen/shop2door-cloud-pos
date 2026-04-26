@@ -17,7 +17,13 @@ import {
   ShoppingCart as CartIcon,
   CheckCircle,
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  X,
+  Zap,
+  Star,
+  Crown,
+  CreditCard,
+  Loader
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Subscription.css';
@@ -31,6 +37,15 @@ const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Upgrade modal states
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [availablePlans, setAvailablePlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [purchasing, setPurchasing] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [purchaseError, setPurchaseError] = useState('');
+
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -38,37 +53,45 @@ const Subscription = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
 
-  // Fetch subscription + usage data
+  // Fetch subscription + usage + billing data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [subRes, usageRes] = await Promise.all([
-          fetch('http://localhost:5000/api/shop/subscription', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch('http://localhost:5000/api/shop/usage', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-        ]);
-
-        if (subRes.ok) {
-          const subData = await subRes.json();
-          setSubscriptionData(subData);
-          setBillingHistory(subData.billing_history || []);
-        }
-        if (usageRes.ok) {
-          const uData = await usageRes.json();
-          setUsageData(uData);
-        }
-      } catch (err) {
-        console.error('Error fetching subscription data:', err);
-        setError('Failed to load subscription data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchAllData();
   }, []);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      const [subRes, usageRes, billingRes] = await Promise.all([
+        fetch('http://localhost:5000/api/shop/subscription', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:5000/api/shop/usage', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:5000/api/shop/billing-history', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        setSubscriptionData(subData);
+      }
+      if (usageRes.ok) {
+        const uData = await usageRes.json();
+        setUsageData(uData);
+      }
+      if (billingRes.ok) {
+        const bData = await billingRes.json();
+        setBillingHistory(Array.isArray(bData) ? bData : []);
+      }
+    } catch (err) {
+      console.error('Error fetching subscription data:', err);
+      setError('Failed to load subscription data.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -81,6 +104,66 @@ const Subscription = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Open upgrade modal — fetch higher plans
+  const handleUpgradeClick = async () => {
+    setShowUpgradeModal(true);
+    setPurchaseSuccess(false);
+    setPurchaseError('');
+    setSelectedPlan(null);
+    setPlansLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/shop/available-plans', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAvailablePlans(Array.isArray(data) ? data : []);
+      } else {
+        setAvailablePlans([]);
+      }
+    } catch {
+      setAvailablePlans([]);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  // Purchase plan
+  const handlePurchase = async () => {
+    if (!selectedPlan) return;
+    setPurchasing(true);
+    setPurchaseError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/shop/upgrade-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ package_id: selectedPlan.package_id })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPurchaseSuccess(true);
+        // Refresh all data after upgrade
+        await fetchAllData();
+      } else {
+        setPurchaseError(data.message || 'Purchase failed. Please try again.');
+      }
+    } catch {
+      setPurchaseError('Network error. Please try again.');
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowUpgradeModal(false);
+    setSelectedPlan(null);
+    setPurchaseSuccess(false);
+    setPurchaseError('');
+  };
 
   const handleLogOut = () => {
     localStorage.removeItem('user');
@@ -133,9 +216,24 @@ const Subscription = () => {
     return Math.min((used / max) * 100, 100);
   };
 
+  const getPlanIcon = (name) => {
+    const n = (name || '').toLowerCase();
+    if (n.includes('enterprise')) return <Crown size={22} />;
+    if (n.includes('professional') || n.includes('pro')) return <Star size={22} />;
+    return <Zap size={22} />;
+  };
+
+  const getBillingStatusClass = (status) => {
+    if (!status) return 'paid';
+    const s = status.toLowerCase();
+    if (s === 'paid' || s === 'completed' || s === 'success') return 'paid';
+    if (s === 'pending') return 'pending';
+    return 'failed';
+  };
+
   return (
     <div className="shop-admin-container">
-      {/* SIDEBAR — identical to ShopAdminDashboard */}
+      {/* SIDEBAR */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">
           {renderShopLogo()}
@@ -158,10 +256,6 @@ const Subscription = () => {
             <Store size={18} />
             <span>My Stores</span>
           </button>
-          {/* <button className="shop-nav-item" onClick={() => navigate('/addstore')}>
-            <Plus size={18} />
-            <span>Add Store</span>
-          </button> */}
 
           <div className="nav-divider" />
 
@@ -173,10 +267,6 @@ const Subscription = () => {
             <PackageIcon size={18} />
             <span>Suppliers</span>
           </button>
-          {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
-            <Plus size={18} />
-            <span>Add User</span>
-          </button> */}
 
           <div className="nav-divider" />
 
@@ -185,19 +275,16 @@ const Subscription = () => {
             <span>Products</span>
           </button>
 
-           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
+          <button className="mp-nav-item" onClick={() => navigate('/categories')}>
             <Tags size={18} /><span>Categories</span>
           </button>
-           <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
+          <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
             <Boxes size={18} /><span>Inventory</span>
           </button>
-          
-          
-          
 
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
-           <TrendingUp size={18}/><span>Sales Records</span>
+            <TrendingUp size={18} /><span>Sales Records</span>
           </button>
 
           <button className="shop-nav-item active">
@@ -205,43 +292,37 @@ const Subscription = () => {
           </button>
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/adminprofile')}>
-            <User size={18} />
-            <span>My Profile</span>
+            <User size={18} /><span>My Profile</span>
           </button>
-          <button className="shop-nav-item logout-item" onClick={handleLogOut}>
-            <LogOut size={18} />
-            <span>Logout</span>
+          <button className="shop-nav-item" onClick={handleLogOut}>
+            <LogOut size={18} /><span>Log Out</span>
           </button>
         </nav>
       </aside>
 
       {/* MAIN */}
       <main className="shop-admin-main">
+        {/* HEADER */}
         <header className="shop-main-header">
           <div className="shop-breadcrumb">
-            <button className="sub-back-btn" onClick={() => navigate('/shopadmindashboard')}>
-              <ArrowLeft size={16} />
+            <button className="sub-back-btn" onClick={() => navigate(-1)}>
+              <ArrowLeft size={18} />
             </button>
-            Admin &gt; Subscription
+            Subscription
           </div>
-          <div className="shop-header-actions">
 
-            {/* Stores dropdown */}
+          <div className="shop-header-actions">
             <div className="shop-menu-dropdown-container" ref={menuDropdownRef}>
               <button
                 className="shop-btn-menu"
                 onClick={() => setShowMenuDropdown(!showMenuDropdown)}
               >
-                All Stores <span className="shop-dropdown-arrow">▼</span>
+                Menu <span className="shop-dropdown-arrow">▾</span>
               </button>
               {showMenuDropdown && (
                 <div className="shop-menu-dropdown">
                   <div className="shop-menu-section">
-                    <h4 className="shop-menu-section-title">Quick Links</h4>
-                    <button className="shop-menu-item"
-                      onClick={() => { setShowMenuDropdown(false); navigate('/mystores'); }}>
-                      <Store size={18} /><span>View All Stores</span>
-                    </button>
+                    <p className="shop-menu-section-title">Quick Actions</p>
                     <button className="shop-menu-item"
                       onClick={() => { setShowMenuDropdown(false); navigate('/addstore'); }}>
                       <Plus size={18} /><span>Add New Store</span>
@@ -254,7 +335,6 @@ const Subscription = () => {
             <div className="shop-icon-circle moon"><Moon size={16} /></div>
             <div className="shop-icon-circle bell"><Bell size={16} /></div>
 
-            {/* Profile dropdown */}
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>
               <button
                 className="shop-profile-circle-btn"
@@ -301,7 +381,7 @@ const Subscription = () => {
           </div>
         </header>
 
-        {/* SUBSCRIPTION CONTENT */}
+        {/* CONTENT */}
         <div className="shop-dashboard-content">
           <div className="shop-welcome-section">
             <h1 className="shop-welcome-title">Subscription</h1>
@@ -331,7 +411,7 @@ const Subscription = () => {
                 </div>
               )}
 
-              {/* MAIN GRID: Current Plan + Billing History */}
+              {/* MAIN GRID */}
               <div className="sub-main-grid">
 
                 {/* CURRENT PLAN CARD */}
@@ -348,7 +428,7 @@ const Subscription = () => {
                       </h3>
                       {subscriptionData?.price && (
                         <p className="sub-plan-price">
-                          Rs: {subscriptionData.price}/month
+                          Rs: {parseFloat(subscriptionData.price).toLocaleString()}/month
                         </p>
                       )}
                     </div>
@@ -404,7 +484,7 @@ const Subscription = () => {
                     </div>
                   )}
 
-                  <button className="sub-upgrade-btn">
+                  <button className="sub-upgrade-btn" onClick={handleUpgradeClick}>
                     <TrendingUp size={16} />
                     Upgrade Plan
                   </button>
@@ -422,12 +502,14 @@ const Subscription = () => {
                             {formatDate(item.payment_date || item.created_at)}
                           </span>
                           <span className="sub-billing-desc">
-                            {item.package_name || subscriptionData?.package_name} Plan
+                            {item.package_name || item.plan_name || subscriptionData?.package_name} Plan
                           </span>
                           <span className="sub-billing-amount">
-                            ${parseFloat(item.amount).toFixed(2)}
+                            Rs: {parseFloat(item.amount).toLocaleString()}
                           </span>
-                          <span className="sub-billing-status paid">Paid</span>
+                          <span className={`sub-billing-status ${getBillingStatusClass(item.status)}`}>
+                            {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Paid'}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -444,6 +526,120 @@ const Subscription = () => {
           )}
         </div>
       </main>
+
+      {/* UPGRADE MODAL */}
+      {showUpgradeModal && (
+        <div className="sub-modal-overlay" onClick={handleCloseModal}>
+          <div className="sub-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sub-modal-header">
+              <div>
+                <h2 className="sub-modal-title">Upgrade Your Plan</h2>
+                <p className="sub-modal-subtitle">Choose a plan that fits your business</p>
+              </div>
+              <button className="sub-modal-close" onClick={handleCloseModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {purchaseSuccess ? (
+              <div className="sub-purchase-success">
+                <div className="sub-success-icon">
+                  <CheckCircle size={48} />
+                </div>
+                <h3>Plan Upgraded Successfully!</h3>
+                <p>Your new plan is now active. All limits have been updated.</p>
+                <button className="sub-upgrade-btn" onClick={handleCloseModal}>
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                {plansLoading ? (
+                  <div className="sub-loading">
+                    <div className="sub-spinner" />
+                    <p>Loading available plans...</p>
+                  </div>
+                ) : availablePlans.length === 0 ? (
+                  <div className="sub-billing-empty">
+                    <Crown size={36} />
+                    <p>You are already on the highest plan!</p>
+                  </div>
+                ) : (
+                  <div className="sub-plans-grid">
+                    {availablePlans.map((plan) => (
+                      <div
+                        key={plan.package_id}
+                        className={`sub-plan-option ${selectedPlan?.package_id === plan.package_id ? 'selected' : ''}`}
+                        onClick={() => setSelectedPlan(plan)}
+                      >
+                        <div className="sub-plan-option-header">
+                          <div className="sub-plan-option-icon">
+                            {getPlanIcon(plan.name)}
+                          </div>
+                          {selectedPlan?.package_id === plan.package_id && (
+                            <div className="sub-plan-selected-badge">
+                              <CheckCircle size={14} /> Selected
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="sub-plan-option-name">{plan.name}</h3>
+                        <p className="sub-plan-option-price">
+                          Rs: {parseFloat(plan.price).toLocaleString()}
+                          <span>/month</span>
+                        </p>
+                        <ul className="sub-plan-features">
+                          <li>🏪 {plan.max_stores} Stores</li>
+                          <li>👥 {plan.max_users_per_store} Users per store</li>
+                          <li>📦 {plan.max_products.toLocaleString()} Products</li>
+                          <li>💾 {plan.max_storage_mb >= 1000 ? `${plan.max_storage_mb / 1000} GB` : `${plan.max_storage_mb} MB`} Storage</li>
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {purchaseError && (
+                  <div className="sub-error" style={{ marginTop: '1rem' }}>
+                    <AlertCircle size={18} />
+                    <span>{purchaseError}</span>
+                  </div>
+                )}
+
+                {availablePlans.length > 0 && (
+                  <div className="sub-modal-footer">
+                    <button
+                      className="sub-cancel-btn"
+                      onClick={handleCloseModal}
+                      disabled={purchasing}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="sub-upgrade-btn sub-purchase-btn"
+                      onClick={handlePurchase}
+                      disabled={!selectedPlan || purchasing}
+                    >
+                      {purchasing ? (
+                        <>
+                          <Loader size={16} className="sub-spin-icon" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={16} />
+                          {selectedPlan
+                            ? `Purchase ${selectedPlan.name} — Rs: ${parseFloat(selectedPlan.price).toLocaleString()}`
+                            : 'Select a Plan'}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -399,10 +399,10 @@ const SalesRecords = () => {
 
           {/* Chart + Store breakdown */}
           <div className="sr-mid-grid">
-            {/* Bar chart — daily last 7 days */}
+            {/* Bar chart daily last 7 days */}
             <div className="sr-chart-card">
               <h3 className="sr-chart-card-title">
-                Sales Overview — {rangeChartLabel[range] || 'Today'}
+                Sales Overview : {rangeChartLabel[range] || 'Today'}
                 <span style={{ fontSize: '0.7rem', fontWeight: 400, color: '#9ca3af', marginLeft: '0.5rem' }}>
                   {range === 'today' ? '(by hour)' : range === 'this_week' ? '(by day)' : range === 'this_month' ? '(by week)' : '(last 12 months)'}
                 </span>

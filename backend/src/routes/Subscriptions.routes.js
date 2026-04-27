@@ -1,14 +1,8 @@
 const express = require("express");
 const router  = express.Router();
 const auth    = require("../middlewares/auth.middleware");
-const {
-  // Shop-admin facing (self-service)
-  getMySubscription,
-  getMyUsage,
-  getBillingHistory,
-  getAvailablePlans,
-  upgradePlan,
 
+const {
   // System-admin facing (management)
   getSubscriptions,
   getSubscriptionById,
@@ -16,18 +10,14 @@ const {
   updateSubscription,
 } = require("../controllers/subscriptions.controller");
 
-//  Shop-admin routes (used by the Subscription page) 
-// These sit under /api/shop/ — mount this router there in app.js
-// e.g.  app.use('/api/shop', require('./routes/subscriptions.routes'));
-router.get("/subscription",     auth, getMySubscription);
-router.get("/usage",            auth, getMyUsage);
-router.get("/billing-history",  auth, getBillingHistory);
-router.get("/available-plans",  auth, getAvailablePlans);
-router.post("/upgrade-plan",    auth, upgradePlan);
-
 //  System-admin management routes 
-// These sit under /api/subscriptions/
-// e.g.  app.use('/api/subscriptions', require('./routes/subscriptions.routes'));
+// Mounted at /api/subscriptions  (see app.js)
+// These are for the system-admin panel to view & manage all subscriptions.
+//
+// NOTE: The shop-admin self-service routes (subscription, usage, billing-history,
+//       available-plans, upgrade-plan) are handled in shop.routes.js so that the
+//       frontend's calls to /api/shop/* work correctly.
+
 router.get("/",              auth, getSubscriptions);
 router.get("/:id",           auth, getSubscriptionById);
 router.put("/:id",           auth, updateSubscription);

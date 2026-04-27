@@ -589,7 +589,7 @@ const Subscription = () => {
                         </p>
                         <ul className="sub-plan-features">
                           <li>🏪 {plan.max_stores} Stores</li>
-                          <li>👥 {plan.max_users_per_store} Users per store</li>
+                          <li>👥 {plan.max_users_per_store} Users </li>
                           <li>📦 {plan.max_products.toLocaleString()} Products</li>
                           <li>💾 {plan.max_storage_mb >= 1000 ? `${plan.max_storage_mb / 1000} GB` : `${plan.max_storage_mb} MB`} Storage</li>
                         </ul>
@@ -628,7 +628,7 @@ const Subscription = () => {
                         <>
                           <CreditCard size={16} />
                           {selectedPlan
-                            ? `Purchase ${selectedPlan.name} — Rs: ${parseFloat(selectedPlan.price).toLocaleString()}`
+                            ? `Purchase ${selectedPlan.name}  Rs: ${parseFloat(selectedPlan.price).toLocaleString()}`
                             : 'Select a Plan'}
                         </>
                       )}

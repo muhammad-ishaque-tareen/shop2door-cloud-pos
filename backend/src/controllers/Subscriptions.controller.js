@@ -1,7 +1,7 @@
 const masterPool = require("../db/master.pool");
 
-// HELPER: resolve shop_id from the authenticated user
-// Works whether the token carries shop_id directly OR only user_id
+// Resolve shop_id from the authenticated user token.
+// Works whether the token carries shop_id directly OR only user_id.
 async function resolveShopId(req) {
   if (req.user.shop_id) return req.user.shop_id;
   const r = await masterPool.query(
@@ -12,10 +12,12 @@ async function resolveShopId(req) {
 }
 
 // GET /api/shop/subscription
+// Returns the active subscription + package limits for the calling shop.
 exports.getMySubscription = async (req, res) => {
   try {
     const shopId = await resolveShopId(req);
-    if (!shopId) return res.status(400).json({ message: "Shop not found for this user" });
+    if (!shopId)
+      return res.status(400).json({ message: "Shop not found for this user" });
 
     const result = await masterPool.query(
       `SELECT
@@ -25,7 +27,7 @@ exports.getMySubscription = async (req, res) => {
          sub.end_date,
          sub.status,
          pk.package_id,
-         pk.name          AS package_name,
+         pk.name               AS package_name,
          pk.price,
          pk.max_stores,
          pk.max_users_per_store,
@@ -39,9 +41,10 @@ exports.getMySubscription = async (req, res) => {
        LIMIT 1`,
       [shopId]
     );
-    if (result.rows.length === 0) {
+
+    if (result.rows.length === 0)
       return res.status(404).json({ message: "No active subscription found" });
-    }
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error("[SUBSCRIPTION] getMySubscription error:", error.message);
@@ -50,10 +53,12 @@ exports.getMySubscription = async (req, res) => {
 };
 
 // GET /api/shop/usage
+// Returns current usage counters joined with the package limits.
 exports.getMyUsage = async (req, res) => {
   try {
     const shopId = await resolveShopId(req);
-    if (!shopId) return res.status(400).json({ message: "Shop not found for this user" });
+    if (!shopId)
+      return res.status(400).json({ message: "Shop not found for this user" });
 
     const result = await masterPool.query(
       `SELECT
@@ -67,14 +72,15 @@ exports.getMyUsage = async (req, res) => {
          pk.max_products,
          pk.max_storage_mb
        FROM usage u
-       JOIN shops      s  ON s.shop_id     = u.shop_id
-       JOIN packages   pk ON pk.package_id = s.package_id
+       JOIN shops    s  ON s.shop_id     = u.shop_id
+       JOIN packages pk ON pk.package_id = s.package_id
        WHERE u.shop_id = $1`,
       [shopId]
     );
-    if (result.rows.length === 0) {
+
+    if (result.rows.length === 0)
       return res.status(404).json({ message: "Usage data not found" });
-    }
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error("[SUBSCRIPTION] getMyUsage error:", error.message);
@@ -83,30 +89,25 @@ exports.getMyUsage = async (req, res) => {
 };
 
 // GET /api/shop/billing-history
-//
-// What counts as billing history:
-//   PRIMARY: rows in the payments table (inserted on each upgrade)
-//   FALLBACK: if payments is empty, show subscriptions table rows —
-//             so the very first plan (initial signup) always shows up.
-//
-// This way the shop admin ALWAYS sees at least one billing row from day 1.
+// Primary source: payments table.
+// Fallback: subscriptions table (so first-time shops always see at least one row).
 exports.getBillingHistory = async (req, res) => {
   try {
     const shopId = await resolveShopId(req);
-    if (!shopId) return res.status(400).json({ message: "Shop not found for this user" });
+    if (!shopId)
+      return res.status(400).json({ message: "Shop not found for this user" });
 
-    // Try payments table first
     const paymentsRes = await masterPool.query(
       `SELECT
-         p.payment_id        AS id,
+         p.payment_id                                  AS id,
          p.amount,
          p.payment_method,
          p.transaction_ref,
          COALESCE(p.payment_date, p.created_at::date) AS payment_date,
          COALESCE(p.status, 'paid')                   AS status,
          p.created_at,
-         pk.name             AS package_name,
-         'payment'           AS source
+         pk.name                                       AS package_name,
+         'payment'                                     AS source
        FROM payments p
        LEFT JOIN packages pk ON pk.package_id = p.package_id
        WHERE p.shop_id = $1
@@ -114,11 +115,10 @@ exports.getBillingHistory = async (req, res) => {
       [shopId]
     );
 
-    if (paymentsRes.rows.length > 0) {
+    if (paymentsRes.rows.length > 0)
       return res.json(paymentsRes.rows);
-    }
 
-    // Fallback: subscriptions act as billing history
+    // Fallback — show subscription rows so the page is never blank
     const subsRes = await masterPool.query(
       `SELECT
          sub.subscription_id AS id,
@@ -145,16 +145,14 @@ exports.getBillingHistory = async (req, res) => {
 };
 
 // GET /api/shop/available-plans
-//
-// THE FIX: get current price from shops → packages join (not subscriptions),
-// then return every package with a strictly higher price.
-// Console.log added so you can verify in server logs what's being found.
+// Returns every package priced higher than the shop's current package.
+// Uses shops → packages join (not subscriptions) as the source of truth.
 exports.getAvailablePlans = async (req, res) => {
   try {
     const shopId = await resolveShopId(req);
-    if (!shopId) return res.status(400).json({ message: "Shop not found for this user" });
+    if (!shopId)
+      return res.status(400).json({ message: "Shop not found for this user" });
 
-    // Get current package via shops table (most reliable source of truth)
     const currentRes = await masterPool.query(
       `SELECT pk.package_id, pk.price, pk.name
        FROM shops s
@@ -163,14 +161,14 @@ exports.getAvailablePlans = async (req, res) => {
       [shopId]
     );
 
-    if (currentRes.rows.length === 0) {
+    if (currentRes.rows.length === 0)
       return res.status(404).json({ message: "Shop or package not found" });
-    }
 
     const current = currentRes.rows[0];
-    console.log(`[AVAILABLE-PLANS] shop_id=${shopId} | current: "${current.name}" @ Rs ${current.price}`);
+    console.log(
+      `[AVAILABLE-PLANS] shop_id=${shopId} | current: "${current.name}" @ Rs ${current.price}`
+    );
 
-    // All packages priced higher → these are valid upgrades
     const result = await masterPool.query(
       `SELECT
          package_id,
@@ -186,7 +184,9 @@ exports.getAvailablePlans = async (req, res) => {
       [current.price]
     );
 
-    console.log(`[AVAILABLE-PLANS] upgrade options found: ${result.rows.map(r => r.name).join(', ') || 'none'}`);
+    console.log(
+      `[AVAILABLE-PLANS] upgrade options: ${result.rows.map((r) => r.name).join(", ") || "none"}`
+    );
 
     res.json(result.rows);
   } catch (error) {
@@ -197,12 +197,19 @@ exports.getAvailablePlans = async (req, res) => {
 
 // POST /api/shop/upgrade-plan
 // Body: { package_id }
-// 
+//
+// Transaction steps:
+//   1. Verify new package exists and is a genuine upgrade (higher price).
+//   2. Expire the current active subscription.
+//   3. Insert a new active subscription (1-year term).
+//   4. Update shops.package_id so limits take effect immediately.
+//   5. Record the payment in the payments table.
+//
+// All steps run inside a single DB transaction — either all succeed or all roll back.
 exports.upgradePlan = async (req, res) => {
   const { package_id } = req.body;
-  if (!package_id) {
+  if (!package_id)
     return res.status(400).json({ message: "package_id is required" });
-  }
 
   const client = await masterPool.connect();
   try {
@@ -215,9 +222,11 @@ exports.upgradePlan = async (req, res) => {
 
     await client.query("BEGIN");
 
-    // Verify new package exists
     const pkgRes = await client.query(
-      `SELECT package_id, name, price FROM packages WHERE package_id = $1`,
+      `SELECT package_id, name, price,
+              max_stores, max_users_per_store, max_products, max_storage_mb
+       FROM packages
+       WHERE package_id = $1`,
       [package_id]
     );
     if (pkgRes.rows.length === 0) {
@@ -226,51 +235,60 @@ exports.upgradePlan = async (req, res) => {
     }
     const newPkg = pkgRes.rows[0];
 
-    // Verify it's a genuine upgrade
     const currentRes = await client.query(
-      `SELECT pk.price, pk.name
+      `SELECT pk.price, pk.name, pk.package_id
        FROM shops s
        JOIN packages pk ON pk.package_id = s.package_id
        WHERE s.shop_id = $1`,
       [shopId]
     );
     const currentPrice = parseFloat(currentRes.rows[0]?.price || 0);
+
     if (parseFloat(newPkg.price) <= currentPrice) {
       await client.query("ROLLBACK");
-      return res.status(400).json({ message: "Selected package is not an upgrade over the current plan" });
+      return res.status(400).json({
+        message: "Selected package is not an upgrade over the current plan",
+      });
     }
 
-    // 1. Expire old subscription
+    //  3. Expire old active subscription 
     await client.query(
-      `UPDATE subscriptions SET status = 'expired' WHERE shop_id = $1 AND status = 'active'`,
+      `UPDATE subscriptions
+       SET status = 'expired'
+       WHERE shop_id = $1 AND status = 'active'`,
       [shopId]
     );
 
-    // 2. Create new subscription (1 year)
+    //  4. Create new subscription (1 year) 
     await client.query(
       `INSERT INTO subscriptions (shop_id, package_id, start_date, end_date, status)
        VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE + INTERVAL '1 year', 'active')`,
       [shopId, package_id]
     );
 
-    // 3. Update shops.package_id so limits take effect immediately
+    //  5. Update shops.package_id (limits take effect immediately) 
     await client.query(
       `UPDATE shops SET package_id = $1 WHERE shop_id = $2`,
       [package_id, shopId]
     );
 
-    // 4. Record the payment
+    //  6. Record the payment 
     await client.query(
-      `INSERT INTO payments (user_id, shop_id, package_id, payment_method, amount, payment_date, status)
+      `INSERT INTO payments
+         (user_id, shop_id, package_id, payment_method, amount, payment_date, status)
        VALUES ($1, $2, $3, 'online', $4, CURRENT_DATE, 'paid')`,
       [userId, shopId, package_id, newPkg.price]
     );
 
     await client.query("COMMIT");
 
+    console.log(
+      `[UPGRADE-PLAN] shop_id=${shopId} upgraded to "${newPkg.name}" (package_id=${package_id})`
+    );
+
     res.json({
       message: `Successfully upgraded to ${newPkg.name} plan`,
-      package: newPkg
+      package: newPkg,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -281,17 +299,28 @@ exports.upgradePlan = async (req, res) => {
   }
 };
 
-// System-admin endpoints (unchanged)
+//  SYSTEM-ADMIN ENDPOINTS 
+
+// GET /api/subscriptions
 exports.getSubscriptions = async (req, res) => {
   try {
     const result = await masterPool.query(
-      `SELECT sub.subscription_id, s.shop_id, s.name AS shop,
-         pk.name AS package, pk.price AS amount,
-         sub.start_date, sub.end_date,
-         CASE WHEN sub.status='active' AND sub.end_date>=CURRENT_DATE THEN 'active' ELSE 'inactive' END AS status
+      `SELECT
+         sub.subscription_id,
+         s.shop_id,
+         s.name  AS shop,
+         pk.name AS package,
+         pk.price AS amount,
+         sub.start_date,
+         sub.end_date,
+         CASE
+           WHEN sub.status = 'active' AND sub.end_date >= CURRENT_DATE
+           THEN 'active'
+           ELSE 'inactive'
+         END AS status
        FROM subscriptions sub
-       JOIN shops s ON s.shop_id=sub.shop_id
-       JOIN packages pk ON pk.package_id=sub.package_id
+       JOIN shops    s  ON s.shop_id     = sub.shop_id
+       JOIN packages pk ON pk.package_id = sub.package_id
        ORDER BY sub.start_date DESC`
     );
     res.json(result.rows);
@@ -301,21 +330,32 @@ exports.getSubscriptions = async (req, res) => {
   }
 };
 
+// GET /api/subscriptions/:id
 exports.getSubscriptionById = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await masterPool.query(
-      `SELECT sub.subscription_id, s.shop_id, s.name AS shop,
-         pk.name AS package, pk.price AS amount,
-         sub.start_date, sub.end_date,
-         CASE WHEN sub.status='active' AND sub.end_date>=CURRENT_DATE THEN 'active' ELSE 'inactive' END AS status
+      `SELECT
+         sub.subscription_id,
+         s.shop_id,
+         s.name  AS shop,
+         pk.name AS package,
+         pk.price AS amount,
+         sub.start_date,
+         sub.end_date,
+         CASE
+           WHEN sub.status = 'active' AND sub.end_date >= CURRENT_DATE
+           THEN 'active'
+           ELSE 'inactive'
+         END AS status
        FROM subscriptions sub
-       JOIN shops s ON s.shop_id=sub.shop_id
-       JOIN packages pk ON pk.package_id=sub.package_id
-       WHERE sub.subscription_id=$1`,
+       JOIN shops    s  ON s.shop_id     = sub.shop_id
+       JOIN packages pk ON pk.package_id = sub.package_id
+       WHERE sub.subscription_id = $1`,
       [id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ message: "Subscription not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "Subscription not found" });
     res.json(result.rows[0]);
   } catch (error) {
     console.error("[SUBSCRIPTIONS] getSubscriptionById error:", error.message);
@@ -323,18 +363,19 @@ exports.getSubscriptionById = async (req, res) => {
   }
 };
 
+// PATCH /api/subscriptions/:id/status
 exports.toggleSubscriptionStatus = async (req, res) => {
-  const { id } = req.params;
+  const { id }     = req.params;
   const { status } = req.body;
-  if (!["active", "inactive"].includes(status)) {
+  if (!["active", "inactive"].includes(status))
     return res.status(400).json({ message: "status must be 'active' or 'inactive'" });
-  }
   try {
     const result = await masterPool.query(
-      `UPDATE subscriptions SET status=$1 WHERE subscription_id=$2 RETURNING *`,
+      `UPDATE subscriptions SET status = $1 WHERE subscription_id = $2 RETURNING *`,
       [status, id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ message: "Subscription not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "Subscription not found" });
     res.json({ message: `Subscription marked as ${status}`, subscription: result.rows[0] });
   } catch (error) {
     console.error("[SUBSCRIPTIONS] toggleSubscriptionStatus error:", error.message);
@@ -342,18 +383,24 @@ exports.toggleSubscriptionStatus = async (req, res) => {
   }
 };
 
+// PUT /api/subscriptions/:id
 exports.updateSubscription = async (req, res) => {
-  const { id } = req.params;
+  const { id }                  = req.params;
   const { end_date, package_id } = req.body;
   try {
     const existing = await masterPool.query(
-      `SELECT subscription_id FROM subscriptions WHERE subscription_id=$1`, [id]
+      `SELECT subscription_id FROM subscriptions WHERE subscription_id = $1`,
+      [id]
     );
-    if (existing.rows.length === 0) return res.status(404).json({ message: "Subscription not found" });
+    if (existing.rows.length === 0)
+      return res.status(404).json({ message: "Subscription not found" });
+
     const result = await masterPool.query(
       `UPDATE subscriptions
-       SET end_date=COALESCE($1, end_date), package_id=COALESCE($2, package_id)
-       WHERE subscription_id=$3 RETURNING *`,
+       SET end_date   = COALESCE($1, end_date),
+           package_id = COALESCE($2, package_id)
+       WHERE subscription_id = $3
+       RETURNING *`,
       [end_date || null, package_id || null, id]
     );
     res.json({ message: "Subscription updated", subscription: result.rows[0] });

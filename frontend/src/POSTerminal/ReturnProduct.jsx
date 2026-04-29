@@ -9,21 +9,25 @@ import './POSTerminalstyles/ReturnProduct.css';
 
 const ReturnProduct = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [returnReason, setReturnReason] = useState('Changed Mind');
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [loadingSale, setLoadingSale] = useState(false);
-  const [processingReturn, setProcessingReturn] = useState(false);
-  const [currentSale, setCurrentSale] = useState(null); // fetched sale object
-  const [items, setItems] = useState([]);
 
-  const menuDropdownRef = useRef(null);
+  // ─── State ────────────────────────────────────────────────────────────────
+  const [searchQuery,        setSearchQuery]        = useState('');
+  const [returnReason,       setReturnReason]       = useState('Changed Mind');
+  const [selectedItems,      setSelectedItems]      = useState([]);
+  const [showMenuDropdown,   setShowMenuDropdown]   = useState(false);
+  const [showProfileDropdown,setShowProfileDropdown]= useState(false);
+  const [isDarkMode,         setIsDarkMode]         = useState(false);
+  const [loadingSale,        setLoadingSale]        = useState(false);
+  const [processingReturn,   setProcessingReturn]   = useState(false);
+  const [currentSale,        setCurrentSale]        = useState(null);
+  const [items,              setItems]              = useState([]);
+
+  // ─── Refs & user ─────────────────────────────────────────────────────────
+  const menuDropdownRef    = useRef(null);
   const profileDropdownRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  // ─── Click-outside handler ────────────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -35,9 +39,11 @@ const ReturnProduct = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ─── Search receipt ───────────────────────────────────────────────────────
   const handleSearch = async () => {
     const query = searchQuery.trim();
     if (!query) return alert('Please enter a Receipt Number.');
+
     try {
       setLoadingSale(true);
       setCurrentSale(null);
@@ -45,18 +51,34 @@ const ReturnProduct = () => {
       setSelectedItems([]);
 
       const sale = await salesAPI.getByReceipt(query);
+
+      // Block if sale is already fully returned
+      if (sale.status === 'returned') {
+        alert('This sale has already been fully returned.');
+        return;
+      }
+
       setCurrentSale(sale);
 
+      // Map items — compute returnable qty per line
       const saleItems = Array.isArray(sale.items) ? sale.items : [];
-      setItems(saleItems.map((item, idx) => ({
-        id: idx,
-        product_id: item.product_id,
-        name: item.product_name,
-        qtySold: parseFloat(item.quantity),
-        unitPrice: parseFloat(item.price),
-        lineTotal: parseFloat(item.total),
-        returnQty: parseFloat(item.quantity)
-      })));
+      setItems(saleItems.map((item, idx) => {
+        const alreadyReturned = parseFloat(item.already_returned_qty) || 0;
+        const returnable      = parseFloat(item.quantity) - alreadyReturned;
+        return {
+          id:             idx,
+          sale_item_id:   item.sale_item_id,  // required by backend validation
+          product_id:     item.product_id,
+          name:           item.product_name,
+          qtySold:        parseFloat(item.quantity),
+          alreadyReturned,
+          returnable,
+          unitPrice:      parseFloat(item.price),
+          lineTotal:      parseFloat(item.total),
+          returnQty:      returnable > 0 ? returnable : 0,
+          fullyReturned:  returnable <= 0,
+        };
+      }));
     } catch (error) {
       alert(error.message || 'Sale not found.');
     } finally {
@@ -64,10 +86,11 @@ const ReturnProduct = () => {
     }
   };
 
+  // ─── Selection helpers ────────────────────────────────────────────────────
   const handleSelectAll = () => {
-    setSelectedItems(
-      selectedItems.length === items.length ? [] : items.map(i => i.id)
-    );
+    const selectableIds = items.filter(i => !i.fullyReturned).map(i => i.id);
+    const allSelected   = selectableIds.every(id => selectedItems.includes(id));
+    setSelectedItems(allSelected ? [] : selectableIds);
   };
 
   const handleSelectItem = (id) => {
@@ -76,25 +99,28 @@ const ReturnProduct = () => {
     );
   };
 
+  // ─── Return qty change — capped at returnable qty ─────────────────────────
   const handleReturnQtyChange = (id, qty) => {
     setItems(prev =>
       prev.map(item =>
         item.id === id
-          ? { ...item, returnQty: Math.min(Math.max(parseInt(qty) || 0, 0), item.qtySold) }
+          ? { ...item, returnQty: Math.min(Math.max(parseInt(qty) || 0, 0), item.returnable) }
           : item
       )
     );
   };
 
+  // ─── Refund calculation ───────────────────────────────────────────────────
   const selectedItemsData = items.filter(i => selectedItems.includes(i.id));
-  const itemsSubtotal = selectedItemsData.reduce((s, i) => s + i.unitPrice * i.returnQty, 0);
-  const originalTax = itemsSubtotal * 0.085;
-  const restockingFee = 0;
-  const refundAmount = itemsSubtotal + originalTax - restockingFee;
+  const itemsSubtotal     = selectedItemsData.reduce((s, i) => s + i.unitPrice * i.returnQty, 0);
+  const originalTax       = itemsSubtotal * 0.085;
+  const restockingFee     = 0;
+  const refundAmount      = itemsSubtotal + originalTax - restockingFee;
 
+  // ─── Process return ───────────────────────────────────────────────────────
   const handleProcessReturn = async () => {
-    if (!currentSale) return alert('No sale loaded.');
-    if (selectedItems.length === 0) return alert('Please select at least one item to return.');
+    if (!currentSale)           return alert('No sale loaded.');
+    if (!selectedItems.length)  return alert('Please select at least one item to return.');
 
     const hasZeroQty = selectedItemsData.some(i => i.returnQty === 0);
     if (hasZeroQty) return alert('Return quantity must be greater than 0 for selected items.');
@@ -104,11 +130,12 @@ const ReturnProduct = () => {
       await salesAPI.processReturn({
         sale_id: currentSale.sale_id,
         items: selectedItemsData.map(i => ({
-          product_id: i.product_id,
-          quantity: i.returnQty,
-          unit_price: i.unitPrice
+          sale_item_id: i.sale_item_id,  // backend uses this to validate + track double-returns
+          product_id:   i.product_id,
+          quantity:     i.returnQty,
+          unit_price:   i.unitPrice,
         })),
-        reason: returnReason
+        reason: returnReason,
       });
 
       alert(`Return processed! Refund amount: Rs.${refundAmount.toFixed(2)}`);
@@ -123,46 +150,70 @@ const ReturnProduct = () => {
     }
   };
 
+  // ─── Auth helpers ─────────────────────────────────────────────────────────
   const handleLogOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
   };
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const toggleDarkMode      = () => setIsDarkMode(!isDarkMode);
   const handleProfileLogout = () => { setShowProfileDropdown(false); handleLogOut(); };
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="return-container">
+
+      {/* ── Sidebar ── */}
       <aside className="return-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
           <h1 className="brand-title">{user.shop_name || 'Shop2Door'}</h1>
         </div>
         <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => navigate('/posterminal')}><User size={18} /><span>POS Terminal</span></button>
-          <button className="nav-item" onClick={() => navigate('/shiftreport')}><FileText size={18} /><span>Shift Report</span></button>
+          <button className="nav-item" onClick={() => navigate('/posterminal')}>
+            <User size={18} /><span>POS Terminal</span>
+          </button>
+          <button className="nav-item" onClick={() => navigate('/shiftreport')}>
+            <FileText size={18} /><span>Shift Report</span>
+          </button>
 
           <div className="nav-divider" />
-          <button className="nav-item" onClick={() => navigate('/findproducts')}><Search size={18} /><span>Find Products</span></button>
-          <button className="nav-item active"><Package size={18} /><span>Return Product</span></button>
+          <button className="nav-item" onClick={() => navigate('/findproducts')}>
+            <Search size={18} /><span>Find Products</span>
+          </button>
+          <button className="nav-item active">
+            <Package size={18} /><span>Return Product</span>
+          </button>
 
           <div className="nav-divider" />
-          <button className="nav-item" onClick={() => navigate('/mysales')}><BarChart3 size={18} /><span>My Sales</span></button>
-          <button className="nav-item" onClick={() => navigate('/settings')}><Settings size={18} /><span>Settings</span></button>
+          <button className="nav-item" onClick={() => navigate('/mysales')}>
+            <BarChart3 size={18} /><span>My Sales</span>
+          </button>
+          <button className="nav-item" onClick={() => navigate('/settings')}>
+            <Settings size={18} /><span>Settings</span>
+          </button>
 
           <div className="nav-divider" />
-          <button className="nav-item" onClick={() => navigate('/myprofile')}><User size={18} /><span>My Profile</span></button>
-          <button className="nav-item" onClick={handleLogOut}><LogOut size={18} /><span>Logout</span></button>
+          <button className="nav-item" onClick={() => navigate('/myprofile')}>
+            <User size={18} /><span>My Profile</span>
+          </button>
+          <button className="nav-item" onClick={handleLogOut}>
+            <LogOut size={18} /><span>Logout</span>
+          </button>
         </nav>
       </aside>
 
+      {/* ── Main ── */}
       <main className="return-main">
+
+        {/* Header */}
         <header className="main-header">
           <div className="breadcrumb">POS &gt; Return Product</div>
           <div className="header-actions">
             <button className="btn-shift-active">Shift Active</button>
 
+            {/* Menu dropdown */}
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
               <button className="btn-menu" onClick={() => setShowMenuDropdown(!showMenuDropdown)}>
                 Menu <span className="dropdown-arrow">▼</span>
@@ -171,16 +222,28 @@ const ReturnProduct = () => {
                 <div className="menu-dropdown">
                   <div className="menu-section">
                     <h4 className="menu-section-title">Quick Actions</h4>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/posterminal'); }}><ShoppingCart size={18} /><span>New Sale</span></button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/findproducts'); }}><Search size={18} /><span>Find Products</span></button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}><FileText size={18} /><span>Shift Report</span></button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}><BarChart3 size={18} /><span>My Sales</span></button>
+                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/posterminal'); }}>
+                      <ShoppingCart size={18} /><span>New Sale</span>
+                    </button>
+                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/findproducts'); }}>
+                      <Search size={18} /><span>Find Products</span>
+                    </button>
+                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
+                      <FileText size={18} /><span>Shift Report</span>
+                    </button>
+                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}>
+                      <BarChart3 size={18} /><span>My Sales</span>
+                    </button>
                   </div>
-                  <div className="menu-divider"></div>
+                  <div className="menu-divider" />
                   <div className="menu-section">
                     <h4 className="menu-section-title">Settings</h4>
-                    <button className="menu-item" onClick={toggleDarkMode}>{isDarkMode ? '☀️' : '🌙'}<span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span></button>
-                    <button className="menu-item" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button>
+                    <button className="menu-item" onClick={toggleDarkMode}>
+                      {isDarkMode ? '☀️' : '🌙'}<span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                    </button>
+                    <button className="menu-item" onClick={() => navigate('/settingss')}>
+                      <Settings size={18} /><span>Settings</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -189,10 +252,12 @@ const ReturnProduct = () => {
             <div className="icon-circle moon">🌙</div>
             <div className="icon-circle calculator">🧮</div>
 
+            {/* Profile dropdown */}
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
               <button className="profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                 {user.image_url
-                  ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                   : <span className="profile-initials">{user.name?.substring(0, 2).toUpperCase() || 'AM'}</span>}
               </button>
               {showProfileDropdown && (
@@ -200,7 +265,8 @@ const ReturnProduct = () => {
                   <div className="profile-dropdown-header">
                     <div className="profile-dropdown-avatar">
                       {user.image_url
-                        ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                         : <span className="avatar-initials">{user.name?.substring(0, 2).toUpperCase() || 'AM'}</span>}
                     </div>
                     <div className="profile-dropdown-info">
@@ -208,16 +274,28 @@ const ReturnProduct = () => {
                       <p className="profile-role">{user.role || 'Cashier'}</p>
                     </div>
                   </div>
-                  <div className="profile-divider"></div>
+                  <div className="profile-divider" />
                   <div className="profile-details">
-                    <div className="profile-detail-item"><span className="detail-icon">📧</span><span className="detail-text">{user.email || 'N/A'}</span></div>
-                    <div className="profile-detail-item"><span className="detail-icon">📱</span><span className="detail-text">{user.phone || 'N/A'}</span></div>
+                    <div className="profile-detail-item">
+                      <span className="detail-icon">📧</span>
+                      <span className="detail-text">{user.email || 'N/A'}</span>
+                    </div>
+                    <div className="profile-detail-item">
+                      <span className="detail-icon">📱</span>
+                      <span className="detail-text">{user.phone || 'N/A'}</span>
+                    </div>
                   </div>
-                  <div className="profile-divider"></div>
+                  <div className="profile-divider" />
                   <div className="profile-actions">
-                    <button className="profile-action-btn" onClick={() => navigate('/myprofile')}><User size={18} /><span>My Profile</span></button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button>
-                    <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}><LogOut size={18} /><span>Logout</span></button>
+                    <button className="profile-action-btn" onClick={() => navigate('/myprofile')}>
+                      <User size={18} /><span>My Profile</span>
+                    </button>
+                    <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
+                      <Settings size={18} /><span>Settings</span>
+                    </button>
+                    <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
+                      <LogOut size={18} /><span>Logout</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -225,7 +303,10 @@ const ReturnProduct = () => {
           </div>
         </header>
 
+        {/* Content */}
         <div className="return-content">
+
+          {/* Search bar */}
           <div className="search-section">
             <div className="search-wrapper-return">
               <Search className="search-icon-return" size={20} />
@@ -243,7 +324,7 @@ const ReturnProduct = () => {
             </button>
           </div>
 
-        
+          {/* Receipt number display */}
           {currentSale && (
             <div className="order-id-section">
               <label className="order-id-label">Order ID / Receipt Number</label>
@@ -251,15 +332,17 @@ const ReturnProduct = () => {
             </div>
           )}
 
-          
+          {/* Empty state */}
           {!currentSale && !loadingSale && (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
               <p>Search for a receipt number to load order items.</p>
             </div>
           )}
 
+          {/* Items + Refund section */}
           {currentSale && items.length > 0 && (
             <>
+              {/* Items table */}
               <div className="items-section">
                 <div className="section-header-return">
                   <span className="section-icon-return">📦</span>
@@ -270,8 +353,12 @@ const ReturnProduct = () => {
                     <thead>
                       <tr>
                         <th className="th-checkbox">
-                          <input type="checkbox"
-                            checked={selectedItems.length === items.length && items.length > 0}
+                          <input
+                            type="checkbox"
+                            checked={
+                              items.filter(i => !i.fullyReturned).length > 0 &&
+                              items.filter(i => !i.fullyReturned).every(i => selectedItems.includes(i.id))
+                            }
                             onChange={handleSelectAll}
                             className="checkbox-input"
                           />
@@ -287,12 +374,21 @@ const ReturnProduct = () => {
                     </thead>
                     <tbody>
                       {items.map(item => (
-                        <tr key={item.id} className={selectedItems.includes(item.id) ? 'selected-row' : ''}>
+                        <tr
+                          key={item.id}
+                          className={
+                            item.fullyReturned
+                              ? 'disabled-row'
+                              : selectedItems.includes(item.id) ? 'selected-row' : ''
+                          }
+                        >
                           <td>
-                            <input type="checkbox"
+                            <input
+                              type="checkbox"
                               checked={selectedItems.includes(item.id)}
-                              onChange={() => handleSelectItem(item.id)}
+                              onChange={() => !item.fullyReturned && handleSelectItem(item.id)}
                               className="checkbox-input"
+                              disabled={item.fullyReturned}
                             />
                           </td>
                           <td className="product-name-cell">{item.name}</td>
@@ -300,15 +396,30 @@ const ReturnProduct = () => {
                           <td className="price-cell">Rs.{item.unitPrice.toFixed(2)}</td>
                           <td className="total-cell">Rs.{item.lineTotal.toFixed(2)}</td>
                           <td className="return-qty-cell">
-                            <input
-                              type="number" min="0" max={item.qtySold}
-                              value={item.returnQty}
-                              onChange={(e) => handleReturnQtyChange(item.id, e.target.value)}
-                              className="qty-input"
-                              disabled={!selectedItems.includes(item.id)}
-                            />
+                            {item.fullyReturned ? (
+                              <span style={{ color: '#ef4444', fontSize: '0.8rem' }}>Returned</span>
+                            ) : (
+                              <>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={item.returnable}
+                                  value={item.returnQty}
+                                  onChange={(e) => handleReturnQtyChange(item.id, e.target.value)}
+                                  className="qty-input"
+                                  disabled={!selectedItems.includes(item.id)}
+                                />
+                                {item.alreadyReturned > 0 && (
+                                  <span style={{ fontSize: '0.75rem', color: '#f59e0b', display: 'block' }}>
+                                    {item.alreadyReturned} already returned
+                                  </span>
+                                )}
+                              </>
+                            )}
                           </td>
-                          <td className="subtotal-cell">Rs.{(item.unitPrice * item.returnQty).toFixed(2)}</td>
+                          <td className="subtotal-cell">
+                            Rs.{item.fullyReturned ? '0.00' : (item.unitPrice * item.returnQty).toFixed(2)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -320,6 +431,7 @@ const ReturnProduct = () => {
                 </div>
               </div>
 
+              {/* Refund calculation */}
               <div className="refund-section">
                 <div className="refund-header">
                   <div className="refund-title-wrapper">
@@ -329,9 +441,18 @@ const ReturnProduct = () => {
                 </div>
                 <div className="refund-content-wrapper">
                   <div className="refund-calculations">
-                    <div className="refund-row"><span className="refund-label">Items Subtotal:</span><span className="refund-value">Rs.{itemsSubtotal.toFixed(2)}</span></div>
-                    <div className="refund-row"><span className="refund-label">Original Tax (8.5%):</span><span className="refund-value">Rs.{originalTax.toFixed(2)}</span></div>
-                    <div className="refund-row"><span className="refund-label">Restocking Fee (-):</span><span className="refund-value">Rs.{restockingFee.toFixed(2)}</span></div>
+                    <div className="refund-row">
+                      <span className="refund-label">Items Subtotal:</span>
+                      <span className="refund-value">Rs.{itemsSubtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="refund-row">
+                      <span className="refund-label">Original Tax (8.5%):</span>
+                      <span className="refund-value">Rs.{originalTax.toFixed(2)}</span>
+                    </div>
+                    <div className="refund-row">
+                      <span className="refund-label">Restocking Fee (-):</span>
+                      <span className="refund-value">Rs.{restockingFee.toFixed(2)}</span>
+                    </div>
                     <div className="refund-row refund-total">
                       <span className="refund-label-total">Refund Amount:</span>
                       <span className="refund-value-total">Rs.{refundAmount.toFixed(2)}</span>
@@ -339,7 +460,11 @@ const ReturnProduct = () => {
                   </div>
                   <div className="refund-reason-wrapper">
                     <label className="reason-label">Return Reason *</label>
-                    <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="reason-select">
+                    <select
+                      value={returnReason}
+                      onChange={(e) => setReturnReason(e.target.value)}
+                      className="reason-select"
+                    >
                       <option value="Need Alternative">Need Alternative</option>
                       <option value="Defective Product">Defective Product</option>
                       <option value="Wrong Item">Wrong Item</option>
@@ -349,10 +474,22 @@ const ReturnProduct = () => {
                   </div>
                 </div>
                 <div className="refund-actions">
-                  <button className="btn-cancel" onClick={() => { setCurrentSale(null); setItems([]); setSelectedItems([]); setSearchQuery(''); }}>
+                  <button
+                    className="btn-cancel"
+                    onClick={() => {
+                      setCurrentSale(null);
+                      setItems([]);
+                      setSelectedItems([]);
+                      setSearchQuery('');
+                    }}
+                  >
                     Cancel
                   </button>
-                  <button className="btn-process-return" onClick={handleProcessReturn} disabled={processingReturn}>
+                  <button
+                    className="btn-process-return"
+                    onClick={handleProcessReturn}
+                    disabled={processingReturn}
+                  >
                     {processingReturn ? 'Processing...' : 'Process Return'}
                   </button>
                 </div>

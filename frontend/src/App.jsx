@@ -34,6 +34,7 @@ import Categories from "./ShopAdminTerminal/Categories";
 import Inventory from "./ShopAdminTerminal/Inventory";
 import SalesRecords from "./ShopAdminTerminal/SalesRecords";
 import Suppliers from "./ShopAdminTerminal/Suppliers";
+import ReportsAndAnalytics from "./ShopAdminTerminal/ReportsAndAnalytics";
 
 const App = () => {
   return (
@@ -74,6 +75,7 @@ const App = () => {
       <Route path="/inventory" element={<Inventory />} />
       <Route path="/salesrecords" element={<SalesRecords />} />
       <Route path="/suppliers" element={<Suppliers />} />
+      <Route path="/reportsandanalytics" element={<ReportsAndAnalytics />} />
 
     </Routes>
   );

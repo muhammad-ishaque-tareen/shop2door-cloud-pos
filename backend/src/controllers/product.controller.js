@@ -68,6 +68,7 @@ exports.getProducts = async (req, res) => {
          LEFT JOIN categories c ON c.category_id = p.category_id
          WHERE si.store_id = $1
            AND si.quantity  > 0
+           AND p.is_active  = TRUE
          ORDER BY p.name ASC`,
         [storeId]
       );
@@ -90,6 +91,7 @@ exports.getProducts = async (req, res) => {
            c.name AS category_name
          FROM products p
          LEFT JOIN categories c ON p.category_id = c.category_id
+         WHERE p.is_active = TRUE 
          ORDER BY p.created_at DESC`
       );
     }
@@ -122,7 +124,8 @@ exports.getProductById = async (req, res) => {
          c.name AS category_name
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.category_id
-       WHERE p.product_id = $1`,
+       WHERE p.product_id = $1
+        AND p.is_active  = TRUE` ,
       [id]
     );
 

@@ -6,7 +6,7 @@ import {
   Plus,
   Users,TrendingUp,
   ShoppingCart,
-  Package as PackageIcon,
+  Package as PackageIcon,FileBarChart,
   Diamond,
   LogOut,
   User,
@@ -189,6 +189,9 @@ const ShopAdminDashboard = () => {
 
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
 
 

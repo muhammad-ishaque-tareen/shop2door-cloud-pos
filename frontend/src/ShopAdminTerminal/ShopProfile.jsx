@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Home, Store, Plus, Users,
   ShoppingCart, Package as PackageIcon, Diamond,
   LogOut, Settings, ArrowLeft, Building2,Boxes,
-  Phone, Mail, Clock, MapPin, Tag,Tags,TrendingUp,
+  Phone, Mail, Clock, MapPin, Tag,Tags,TrendingUp,FileBarChart,
   User, Bell, Moon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -169,6 +169,9 @@ const ShopProfile = () => {
           <div className="sp-nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
           <button className="sp-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>

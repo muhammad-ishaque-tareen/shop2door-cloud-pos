@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Plus, Users, ShoppingCart,
-  Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,
+  Package as PackageIcon, Diamond, LogOut, User, Bell, Tags,FileBarChart,
   Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save, Boxes,TrendingUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -270,6 +270,9 @@ const Myprofile = () => {
           <div className="mp-nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
 
           <button className="mp-nav-item" onClick={() => navigate('/subscription')}>

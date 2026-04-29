@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,Tags, 
   Moon, Settings, Plus, X, AlertCircle, CheckCircle,
-  Edit3, Eye, Save, Search, Download, Tag, Trash2,Boxes,Receipt, TrendingUp,
+  Edit3, Eye, Save, Search, Download, Tag, Trash2,Boxes,Receipt, TrendingUp,FileBarChart,
   ChevronLeft, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -288,20 +288,27 @@ const Products = () => {
   };
 
   //  Delete product 
-  const handleDelete = async (product_id) => {
-    if (!window.confirm('Delete this product? This cannot be undone.')) return;
-    try {
-      const res = await fetch(`${API}/api/shopproducts/${product_id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) fetchAll();
-      else {
-        const d = await res.json();
-        alert(d.message || 'Failed to delete product.');
+ const handleDelete = async (product_id) => {
+  if (!window.confirm('Remove this product? If it has sales history it will be archived rather than permanently deleted.')) return;
+  try {
+    const res = await fetch(`${API}/api/shopproducts/${product_id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const d = await res.json();
+    if (res.ok) {
+      fetchAll();
+      if (d.archived) {
+        alert('Product archived. Its sales history has been preserved.');
       }
-    } catch { alert('Network error.'); }
-  };
+      // if not archived, it was silently deleted — no alert needed
+    } else {
+      alert(d.message || 'Failed to delete product.');
+    }
+  } catch {
+    alert('Network error.');
+  }
+};
 
   //  View product 
   const openViewModal  = (p) => { setViewProduct(p); setShowViewModal(true); };
@@ -498,6 +505,9 @@ const Products = () => {
           
            <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18}/><span>Sales Records</span>
+          </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18}/><span>Subscription</span>

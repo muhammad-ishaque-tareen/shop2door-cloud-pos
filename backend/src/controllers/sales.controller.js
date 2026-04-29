@@ -183,19 +183,24 @@ exports.getSaleByReceipt = async (req, res) => {
 
     const sale = saleResult.rows[0];
 
+    // Fetch items with how much qty has already been returned per sale_item
     const itemsResult = await req.shopDB.query(
       `SELECT
          si.sale_item_id,
          si.product_id,
-         si.quantity,
+         si.quantity                              AS quantity,
          si.price,
          si.total,
-         p.name    AS product_name,
+         p.name                                   AS product_name,
          p.barcode,
-         p.unit
+         p.unit,
+         COALESCE(SUM(ri.quantity), 0)::DECIMAL   AS already_returned_qty
        FROM sale_items si
        JOIN products p ON si.product_id = p.product_id
-       WHERE si.sale_id = $1`,
+       LEFT JOIN return_items ri ON ri.sale_item_id = si.sale_item_id
+       WHERE si.sale_id = $1
+       GROUP BY si.sale_item_id, si.product_id, si.quantity, si.price, si.total,
+                p.name, p.barcode, p.unit`,
       [sale.sale_id]
     );
 
@@ -211,8 +216,7 @@ exports.getSaleByReceipt = async (req, res) => {
 //  PROCESS RETURN 
 exports.processReturn = async (req, res) => {
   const { sale_id, items, reason } = req.body;
-  const userId  = req.user.id;
-  const storeId = req.user.store_id || null;
+  const userId = req.user.id;
 
   if (!sale_id || !items || !items.length)
     return res.status(400).json({ error: 'sale_id and items are required' });
@@ -220,19 +224,55 @@ exports.processReturn = async (req, res) => {
   try {
     await req.shopDB.query('BEGIN');
 
-    // Verify the original sale exists
+    // 1. Verify sale exists and get store_id + status
     const saleCheck = await req.shopDB.query(
-      `SELECT sale_id, store_id FROM sales WHERE sale_id = $1`, [sale_id]
+      `SELECT sale_id, store_id, status FROM sales WHERE sale_id = $1`, [sale_id]
     );
     if (saleCheck.rows.length === 0) {
       await req.shopDB.query('ROLLBACK');
-      return res.status(404).json({ error: 'Original sale not found' });
+      return res.status(404).json({ error: 'Original sale not found.' });
     }
 
-    // Use store_id from the original sale (more reliable than JWT)
-    const saleStoreId = saleCheck.rows[0].store_id;
+    const { store_id: saleStoreId, status: saleStatus } = saleCheck.rows[0];
 
-    // Insert return header
+    if (saleStatus === 'returned') {
+      await req.shopDB.query('ROLLBACK');
+      return res.status(409).json({ error: 'This sale has already been fully returned.' });
+    }
+
+    // 2. Validate each item against actual sale_items and already-returned qty
+    for (const item of items) {
+      const saleItemCheck = await req.shopDB.query(
+        `SELECT
+           si.sale_item_id,
+           si.quantity                            AS sold_qty,
+           COALESCE(SUM(ri.quantity), 0)::DECIMAL AS returned_qty
+         FROM sale_items si
+         LEFT JOIN return_items ri ON ri.sale_item_id = si.sale_item_id
+         WHERE si.sale_item_id = $1 AND si.sale_id = $2
+         GROUP BY si.sale_item_id, si.quantity`,
+        [item.sale_item_id, sale_id]
+      );
+
+      if (saleItemCheck.rows.length === 0) {
+        await req.shopDB.query('ROLLBACK');
+        return res.status(400).json({
+          error: `Item with sale_item_id ${item.sale_item_id} does not belong to this sale.`
+        });
+      }
+
+      const { sold_qty, returned_qty } = saleItemCheck.rows[0];
+      const returnable = parseFloat(sold_qty) - parseFloat(returned_qty);
+
+      if (parseFloat(item.quantity) > returnable) {
+        await req.shopDB.query('ROLLBACK');
+        return res.status(400).json({
+          error: `Return quantity (${item.quantity}) exceeds returnable quantity (${returnable}) for sale_item_id ${item.sale_item_id}.`
+        });
+      }
+    }
+
+    // 3. Insert return header
     const returnResult = await req.shopDB.query(
       `INSERT INTO returns (sale_id, user_id, reason)
        VALUES ($1, $2, $3)
@@ -241,14 +281,15 @@ exports.processReturn = async (req, res) => {
     );
     const ret = returnResult.rows[0];
 
+    // 4. Insert return line items and restore stock
     for (const item of items) {
       const subtotal = parseFloat(item.unit_price) * parseFloat(item.quantity);
 
-      // Insert return line item
+      // Link return_item to the exact sale_item so double-return is trackable
       await req.shopDB.query(
-        `INSERT INTO return_items (return_id, product_id, quantity, unit_price, subtotal)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [ret.return_id, item.product_id, item.quantity, item.unit_price, subtotal]
+        `INSERT INTO return_items (return_id, sale_item_id, product_id, quantity, unit_price, subtotal)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [ret.return_id, item.sale_item_id, item.product_id, item.quantity, item.unit_price, subtotal]
       );
 
       // Restore products.stock
@@ -259,7 +300,7 @@ exports.processReturn = async (req, res) => {
         [item.quantity, item.product_id]
       );
 
-      // Restore store_inventory.quantity (if store is known)
+      // Restore store_inventory
       if (saleStoreId) {
         await req.shopDB.query(
           `UPDATE store_inventory
@@ -268,6 +309,25 @@ exports.processReturn = async (req, res) => {
           [item.quantity, saleStoreId, item.product_id]
         );
       }
+    }
+
+    // 5. Check if ALL items in this sale are now fully returned
+    //    If yes → mark sale as 'returned'
+    const remainingCheck = await req.shopDB.query(
+      `SELECT
+         SUM(si.quantity)                          AS total_sold,
+         COALESCE(SUM(ri.quantity), 0)::DECIMAL    AS total_returned
+       FROM sale_items si
+       LEFT JOIN return_items ri ON ri.sale_item_id = si.sale_item_id
+       WHERE si.sale_id = $1`,
+      [sale_id]
+    );
+
+    const { total_sold, total_returned } = remainingCheck.rows[0];
+    if (parseFloat(total_returned) >= parseFloat(total_sold)) {
+      await req.shopDB.query(
+        `UPDATE sales SET status = 'returned' WHERE sale_id = $1`, [sale_id]
+      );
     }
 
     await req.shopDB.query('COMMIT');

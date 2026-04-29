@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,
-  Tags, Moon, Settings, TrendingUp, Boxes, Truck,
+  Tags, Moon, Settings, TrendingUp, Boxes, Truck,FileBarChart,
   Clock, Wrench,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -127,6 +127,10 @@ const Suppliers = () => {
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18} /><span>Sales Records</span>
           </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
+          </button>
+          
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
             <Diamond size={18} /><span>Subscription</span>
           </button>

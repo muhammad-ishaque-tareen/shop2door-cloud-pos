@@ -200,10 +200,12 @@ const POSTerminal = () => {
     navigate("/myprofile");
   };
 
-  const handleLogOut = () => {
-    navigate("/");
-  };
-
+ 
+const handleLogOut = () => {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  navigate('/');
+};
   const handleCompleteSale = async () => {
     if (cart.length === 0) {
       alert('Cart is empty! Please add items before completing sale.');
@@ -269,8 +271,6 @@ const POSTerminal = () => {
       setCart([]);
       setDiscountValue(0);
       setDiscountReason('');
-      
-      alert('Sale completed successfully!');
     } catch (error) {
       console.error('Error completing sale:', error);
       alert(error.response?.data?.error || 'Failed to complete sale. Please try again.');

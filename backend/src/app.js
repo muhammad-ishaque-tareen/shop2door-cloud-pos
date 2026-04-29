@@ -40,6 +40,8 @@ app.use('/api/shopproducts', require('./routes/shopproducts.routes'));
 app.use('/api/categories', require('./routes/categories.routes'));
 app.use('/api/inventory', require('./routes/inventory.routes'));
 app.use('/api/salesrecords', require('./routes/salesrecords.routes'));
+app.use('/api/reportsandanalytics', require('./routes/reportsandanalytics.routes'));
+ 
 
 
 module.exports = app;

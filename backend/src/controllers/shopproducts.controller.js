@@ -142,16 +142,9 @@ exports.getProducts = async (req, res) => {
   try {
     const result = await req.shopDB.query(
       `SELECT
-         p.product_id,
-         p.name,
-         p.barcode,
-         p.price,
-         p.unit,
-         p.description,
-         p.image_url,
-         p.created_at,
-         p.store_id,
-         p.category_id,
+         p.product_id, p.name, p.barcode, p.price, p.unit,
+         p.description, p.image_url, p.created_at,
+         p.store_id, p.category_id,
          c.name   AS category_name,
          s.name   AS store_name,
          COALESCE(si.quantity, p.stock, 0)::INT AS stock
@@ -160,6 +153,7 @@ exports.getProducts = async (req, res) => {
        LEFT JOIN stores          s  ON s.store_id    = p.store_id
        LEFT JOIN store_inventory si ON si.product_id = p.product_id
                                    AND si.store_id   = p.store_id
+       WHERE p.is_active = TRUE
        ORDER BY p.created_at DESC`
     );
     res.json(result.rows);
@@ -400,12 +394,38 @@ exports.deleteProduct = async (req, res) => {
 
     const product = existing.rows[0];
 
-    await req.shopDB.query(
-      `DELETE FROM store_inventory WHERE product_id = $1`, [id]
-    );
-    await req.shopDB.query(
-      `DELETE FROM products WHERE product_id = $1`, [id]
-    );
+    // Check if product has any sales, supply orders, or return history
+    const [salesCheck, supplyCheck, returnCheck] = await Promise.all([
+      req.shopDB.query(`SELECT COUNT(*) FROM sale_items         WHERE product_id = $1`, [id]),
+      req.shopDB.query(`SELECT COUNT(*) FROM supply_order_items WHERE product_id = $1`, [id]),
+      req.shopDB.query(`SELECT COUNT(*) FROM return_items       WHERE product_id = $1`, [id]),
+    ]);
+
+    const hasHistory =
+      parseInt(salesCheck.rows[0].count)  > 0 ||
+      parseInt(supplyCheck.rows[0].count) > 0 ||
+      parseInt(returnCheck.rows[0].count) > 0;
+
+    if (hasHistory) {
+      // Soft delete — archive the product, preserve all history
+      await req.shopDB.query(
+        `UPDATE products SET is_active = FALSE WHERE product_id = $1`, [id]
+      );
+
+      // Remove from inventory so it won't appear in POS/stock views
+      await req.shopDB.query(
+        `DELETE FROM store_inventory WHERE product_id = $1`, [id]
+      );
+
+      return res.json({
+        message: 'Product archived successfully. It has been removed from your product list but its sales history is preserved.',
+        archived: true,
+      });
+    }
+
+    // No history — safe to permanently delete
+    await req.shopDB.query(`DELETE FROM store_inventory WHERE product_id = $1`, [id]);
+    await req.shopDB.query(`DELETE FROM products        WHERE product_id = $1`, [id]);
 
     if (product.image_url) deleteOldImage(product.image_url);
 
@@ -416,7 +436,10 @@ exports.deleteProduct = async (req, res) => {
       [shop_id]
     );
 
-    res.json({ message: 'Product deleted successfully.' });
+    res.json({
+      message: 'Product deleted successfully.',
+      archived: false,
+    });
 
   } catch (err) {
     console.error('[PRODUCT] deleteProduct:', err.message);

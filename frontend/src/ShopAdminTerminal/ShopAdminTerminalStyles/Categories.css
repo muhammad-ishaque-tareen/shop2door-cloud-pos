@@ -381,7 +381,7 @@
 .cat-btn-confirm-delete:hover    { background: #b91c1c; }
 .cat-btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ── RESPONSIVE ── */
+/*  RESPONSIVE  */
 @media (max-width: 1100px) {
   .cat-stat-cards   { grid-template-columns: repeat(2, 1fr); }
   .cat-grid         { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }

@@ -6,7 +6,7 @@ import {
   Plus,
   Users,
   ShoppingCart,
-  Package as PackageIcon,
+  Package as PackageIcon,FileBarChart,
   Diamond,
   LogOut, Boxes,
   User,
@@ -285,6 +285,9 @@ const Subscription = () => {
           <div className="nav-divider" />
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
             <TrendingUp size={18} /><span>Sales Records</span>
+          </button>
+           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+            <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
 
           <button className="shop-nav-item active">

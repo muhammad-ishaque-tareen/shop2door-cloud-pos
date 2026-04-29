@@ -287,16 +287,10 @@ exports.getSaleById = async (req, res) => {
   try {
     const result = await req.shopDB.query(
       `SELECT
-         s.sale_id,
-         s.receipt_no,
-         s.store_id,
-         s.user_id,
+         s.sale_id, s.receipt_no, s.store_id, s.user_id,
          u.name        AS cashier_name,
          ${itemsCol}
-         s.subtotal,
-         s.tax,
-         s.discount,
-         s.total,
+         s.subtotal, s.tax, s.discount, s.total,
          s.payment_method,
          s.created_at  AS sale_date,
          st.name       AS store_name
@@ -308,7 +302,33 @@ exports.getSaleById = async (req, res) => {
     );
     if (!result.rows.length)
       return res.status(404).json({ message: 'Sale record not found.' });
-    res.json(result.rows[0]);
+
+    const sale = result.rows[0];
+
+    // Always fetch line items from sale_items table
+    const itemsResult = await req.shopDB.query(
+      `SELECT
+         si.sale_item_id,
+         si.quantity,
+         si.price,
+         si.total,
+         p.name         AS name,
+         p.barcode      AS barcode
+       FROM sale_items si
+       LEFT JOIN products p ON p.product_id = si.product_id
+       WHERE si.sale_id = $1
+       ORDER BY si.sale_item_id ASC`,
+      [id]
+    );
+
+    // Merge: prefer sale_items rows; fall back to JSONB if empty
+    if (itemsResult.rows.length > 0) {
+      sale.items = itemsResult.rows;
+    } else if (!Array.isArray(sale.items)) {
+      sale.items = [];
+    }
+
+    res.json(sale);
   } catch (err) {
     console.error('[SALESRECORDS] getSaleById:', err.message);
     res.status(500).json({ message: 'Server error', detail: err.message });

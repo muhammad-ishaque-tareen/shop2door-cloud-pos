@@ -10,7 +10,7 @@ import './POSTerminalstyles/ReturnProduct.css';
 const ReturnProduct = () => {
   const navigate = useNavigate();
 
-  // ─── State ────────────────────────────────────────────────────────────────
+  //  State 
   const [searchQuery,        setSearchQuery]        = useState('');
   const [returnReason,       setReturnReason]       = useState('Changed Mind');
   const [selectedItems,      setSelectedItems]      = useState([]);
@@ -22,12 +22,12 @@ const ReturnProduct = () => {
   const [currentSale,        setCurrentSale]        = useState(null);
   const [items,              setItems]              = useState([]);
 
-  // ─── Refs & user ─────────────────────────────────────────────────────────
+  //  Refs & user 
   const menuDropdownRef    = useRef(null);
   const profileDropdownRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // ─── Click-outside handler ────────────────────────────────────────────────
+  //  Click-outside handler 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target))
@@ -39,7 +39,7 @@ const ReturnProduct = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ─── Search receipt ───────────────────────────────────────────────────────
+  //  Search receipt 
   const handleSearch = async () => {
     const query = searchQuery.trim();
     if (!query) return alert('Please enter a Receipt Number.');
@@ -86,7 +86,7 @@ const ReturnProduct = () => {
     }
   };
 
-  // ─── Selection helpers ────────────────────────────────────────────────────
+  //  Selection helpers 
   const handleSelectAll = () => {
     const selectableIds = items.filter(i => !i.fullyReturned).map(i => i.id);
     const allSelected   = selectableIds.every(id => selectedItems.includes(id));
@@ -99,7 +99,7 @@ const ReturnProduct = () => {
     );
   };
 
-  // ─── Return qty change — capped at returnable qty ─────────────────────────
+  //  Return qty change — capped at returnable qty 
   const handleReturnQtyChange = (id, qty) => {
     setItems(prev =>
       prev.map(item =>
@@ -110,14 +110,14 @@ const ReturnProduct = () => {
     );
   };
 
-  // ─── Refund calculation ───────────────────────────────────────────────────
+  //  Refund calculation 
   const selectedItemsData = items.filter(i => selectedItems.includes(i.id));
   const itemsSubtotal     = selectedItemsData.reduce((s, i) => s + i.unitPrice * i.returnQty, 0);
   const originalTax       = itemsSubtotal * 0.085;
   const restockingFee     = 0;
   const refundAmount      = itemsSubtotal + originalTax - restockingFee;
 
-  // ─── Process return ───────────────────────────────────────────────────────
+  //  Process return 
   const handleProcessReturn = async () => {
     if (!currentSale)           return alert('No sale loaded.');
     if (!selectedItems.length)  return alert('Please select at least one item to return.');
@@ -150,7 +150,7 @@ const ReturnProduct = () => {
     }
   };
 
-  // ─── Auth helpers ─────────────────────────────────────────────────────────
+  //  Auth helpers 
   const handleLogOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -160,11 +160,11 @@ const ReturnProduct = () => {
   const toggleDarkMode      = () => setIsDarkMode(!isDarkMode);
   const handleProfileLogout = () => { setShowProfileDropdown(false); handleLogOut(); };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  //  Render 
   return (
     <div className="return-container">
 
-      {/* ── Sidebar ── */}
+      {/*  Sidebar  */}
       <aside className="return-sidebar">
         <div className="brand-header">
           <ShoppingCart className="brand-icon" size={24} />
@@ -204,7 +204,7 @@ const ReturnProduct = () => {
         </nav>
       </aside>
 
-      {/* ── Main ── */}
+      {/*  Main  */}
       <main className="return-main">
 
         {/* Header */}

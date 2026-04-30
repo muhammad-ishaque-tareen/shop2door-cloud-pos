@@ -34,6 +34,7 @@ const POSTerminal = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [storeInfo, setStoreInfo] = useState(null); // fetched store details for receipt
+  const [selectedProduct, setSelectedProduct] = useState(null); // for product detail modal
 
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
@@ -553,19 +554,54 @@ const handleLogOut = () => {
                 <p>No products found</p>
               </div>
             ) : (
-              <div className="products-grid">
-                {filteredProducts.map(product => (
-                  <div
-                    key={product.product_id}
-                    onClick={() => addToCart(product)}
-                    className="product-card"
-                  >
-                    {renderProductImage(product)}
-                    <h3 className="product-name">{product.name}</h3>
-                    <p className="product-price">Rs.{product.price.toFixed(2)}</p>
-                    <p className="product-stock">Stock: {product.stock}</p>
-                  </div>
-                ))}
+              <div className="products-table-wrapper">
+                <table className="products-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Product Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Add</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product, index) => (
+                      <tr
+                        key={product.product_id}
+                        className={`product-row ${product.stock === 0 ? 'out-of-stock' : ''}`}
+                      >
+                        <td className="col-num">{index + 1}</td>
+                        <td className="col-name">
+                          <button
+                            className="product-name-btn"
+                            onClick={() => setSelectedProduct(product)}
+                          >
+                            {product.name}
+                          </button>
+                        </td>
+                        <td className="col-category">{product.category_name || '—'}</td>
+                        <td className="col-price">Rs.{product.price.toFixed(2)}</td>
+                        <td className="col-stock">
+                          <span className={`stock-badge ${product.stock <= 5 ? 'low' : 'ok'}`}>
+                            {product.stock}
+                          </span>
+                        </td>
+                        <td className="col-add">
+                          <button
+                            className="add-to-cart-btn"
+                            onClick={() => addToCart(product)}
+                            disabled={product.stock === 0}
+                            title={product.stock === 0 ? 'Out of stock' : 'Add to cart'}
+                          >
+                            +
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>
@@ -707,6 +743,45 @@ const handleLogOut = () => {
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={resetTax}>Reset to Default</button>
               <button className="btn btn-primary" onClick={applyTax}>Apply Tax</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedProduct && (
+        <div className="modal-overlay" onClick={() => setSelectedProduct(null)}>
+          <div className="modal product-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Product Details</h3>
+              <button className="modal-close" onClick={() => setSelectedProduct(null)}>&times;</button>
+            </div>
+            <div className="modal-body product-detail-body">
+              <div className="product-detail-image-wrap">
+                {selectedProduct.image_url
+                  ? <img src={`http://localhost:5000${selectedProduct.image_url}`} alt={selectedProduct.name} className="product-detail-img" />
+                  : <div className="product-detail-emoji">{selectedProduct.emoji || '📦'}</div>
+                }
+              </div>
+              <div className="product-detail-info">
+                <h2 className="pd-name">{selectedProduct.name}</h2>
+                <div className="pd-row"><span className="pd-label">Category</span><span className="pd-value">{selectedProduct.category_name || '—'}</span></div>
+                <div className="pd-row"><span className="pd-label">Price</span><span className="pd-value pd-price">Rs.{selectedProduct.price.toFixed(2)}</span></div>
+                <div className="pd-row"><span className="pd-label">Stock</span>
+                  <span className={`pd-value stock-badge ${selectedProduct.stock <= 5 ? 'low' : 'ok'}`}>{selectedProduct.stock} units</span>
+                </div>
+                {selectedProduct.barcode && <div className="pd-row"><span className="pd-label">Barcode</span><span className="pd-value pd-barcode">{selectedProduct.barcode}</span></div>}
+                {selectedProduct.description && <div className="pd-row pd-desc"><span className="pd-label">Description</span><span className="pd-value">{selectedProduct.description}</span></div>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setSelectedProduct(null)}>Close</button>
+              <button
+                className="btn btn-primary"
+                disabled={selectedProduct.stock === 0}
+                onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+              >
+                + Add to Cart
+              </button>
             </div>
           </div>
         </div>

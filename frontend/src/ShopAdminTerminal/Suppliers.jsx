@@ -1,42 +1,466 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, Store, Users, ShoppingCart,
   Package as PackageIcon, Diamond, LogOut, User, Bell,
-  Tags, Moon, Settings, TrendingUp, Boxes, Truck,FileBarChart,
-  Clock, Wrench,
+  Tags, Moon, Settings, TrendingUp, Boxes, FileBarChart,
+  Search, ChevronLeft, ChevronRight, Plus, Edit3, Trash2,
+  X, AlertCircle, CheckCircle, Save, Truck, ShoppingBag,
+  Phone, Mail, MapPin, ClipboardList, DollarSign, Eye,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Suppliers.css';
 
 const API = 'http://localhost:5000';
+const ITEMS_PER_PAGE = 10;
 
+/* Helper: format currency */
+const fmt = (n) => `Rs. ${parseFloat(n || 0).toLocaleString()}`;
+
+/*  Add / Edit Supplier Modal */
+const SupplierModal = ({ supplier, onClose, onSaved, token }) => {
+  const isEdit = !!supplier;
+  const [form, setForm] = useState({
+    name:           supplier?.name           || '',
+    contact_person: supplier?.contact_person || '',
+    phone:          supplier?.phone          || '',
+    email:          supplier?.email          || '',
+    address:        supplier?.address        || '',
+  });
+  const [saving,  setSaving]  = useState(false);
+  const [error,   setError]   = useState('');
+  const [success, setSuccess] = useState('');
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!form.name.trim()) { setError('Supplier name is required.'); return; }
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      const url    = isEdit
+        ? `${API}/api/suppliers/${supplier.supplier_id}`
+        : `${API}/api/suppliers`;
+      const method = isEdit ? 'PUT' : 'POST';
+      const res    = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(isEdit ? 'Supplier updated!' : 'Supplier added!');
+        setTimeout(() => { onSaved(); onClose(); }, 900);
+      } else {
+        setError(data.message || 'Failed to save supplier.');
+      }
+    } catch { setError('Network error. Please try again.'); }
+    finally   { setSaving(false); }
+  };
+
+  return (
+    <div className="ms-modal-overlay" onClick={onClose}>
+      <div className="ms-modal sup-modal" onClick={e => e.stopPropagation()}>
+        <div className="ms-modal-header">
+          <h2 className="ms-modal-title">
+            <Truck size={17} style={{ marginRight: 8 }} />
+            {isEdit ? 'Edit Supplier' : 'Add New Supplier'}
+          </h2>
+          <button className="ms-modal-close" onClick={onClose}><X size={20} /></button>
+        </div>
+
+        <div className="ms-modal-body">
+          {error   && <div className="ms-modal-error"  ><AlertCircle  size={16}/><span>{error}</span></div>}
+          {success && <div className="ms-modal-success"><CheckCircle size={16}/><span>{success}</span></div>}
+
+          <div className="sup-form-grid">
+            <div className="ms-form-group sup-full">
+              <label className="ms-form-label">Supplier / Company Name <span className="sup-required">*</span></label>
+              <input className="ms-form-input" placeholder="e.g. TechWorld Distributors"
+                value={form.name} onChange={set('name')} />
+            </div>
+
+            <div className="ms-form-group">
+              <label className="ms-form-label">Contact Person</label>
+              <input className="ms-form-input" placeholder="e.g. Mr. IT"
+                value={form.contact_person} onChange={set('contact_person')} />
+            </div>
+
+            <div className="ms-form-group">
+              <label className="ms-form-label">Phone Number</label>
+              <input className="ms-form-input" placeholder="e.g. 0300-0000000"
+                value={form.phone} onChange={set('phone')} />
+            </div>
+
+            <div className="ms-form-group">
+              <label className="ms-form-label">Email Address</label>
+              <input className="ms-form-input" type="email" placeholder="e.g. supplier@example.com"
+                value={form.email} onChange={set('email')} />
+            </div>
+
+            <div className="ms-form-group sup-full">
+              <label className="ms-form-label">Address</label>
+              <textarea className="ms-form-input sup-textarea" rows={3}
+                placeholder="Full address..."
+                value={form.address} onChange={set('address')} />
+            </div>
+          </div>
+        </div>
+
+        <div className="ms-modal-footer">
+          <button className="ms-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="ms-btn-save" onClick={handleSave} disabled={saving || !!success}>
+            <Save size={14} /> {saving ? 'Saving…' : isEdit ? 'Update Supplier' : 'Add Supplier'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/*  Delete Confirm Modal */
+const DeleteModal = ({ supplier, onClose, onDeleted, token }) => {
+  const [deleting, setDeleting] = useState(false);
+  const [error,    setError]    = useState('');
+
+  const handleDelete = async () => {
+    setDeleting(true); setError('');
+    try {
+      const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) { onDeleted(); onClose(); }
+      else { const d = await res.json(); setError(d.message || 'Failed to delete.'); }
+    } catch { setError('Network error.'); }
+    finally   { setDeleting(false); }
+  };
+
+  return (
+    <div className="ms-modal-overlay" onClick={onClose}>
+      <div className="ms-modal sup-delete-modal" onClick={e => e.stopPropagation()}>
+        <div className="ms-modal-header sup-delete-header">
+          <h2 className="ms-modal-title"><Trash2 size={17} style={{ marginRight: 8 }} /> Delete Supplier</h2>
+          <button className="ms-modal-close" onClick={onClose}><X size={20} /></button>
+        </div>
+        <div className="ms-modal-body">
+          {error && <div className="ms-modal-error"><AlertCircle size={16}/><span>{error}</span></div>}
+          <div className="sup-delete-confirm">
+            <div className="sup-delete-icon-wrap"><Trash2 size={28} /></div>
+            <p className="sup-delete-msg">
+              Are you sure you want to delete <strong>{supplier.name}</strong>?
+              This will also remove all associated supply orders.
+            </p>
+          </div>
+        </div>
+        <div className="ms-modal-footer">
+          <button className="ms-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="sup-btn-delete" onClick={handleDelete} disabled={deleting}>
+            <Trash2 size={14} /> {deleting ? 'Deleting…' : 'Yes, Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/*  Add Supply Order Modal */
+const AddOrderModal = ({ supplier, stores, products, onClose, onSaved, token }) => {
+  const [storeId,  setStoreId]  = useState('');
+  const [items,    setItems]    = useState([{ product_id: '', quantity: 1, price: '' }]);
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [success,  setSuccess]  = useState('');
+
+  const addLine    = () => setItems(i => [...i, { product_id: '', quantity: 1, price: '' }]);
+  const removeLine = (idx) => setItems(i => i.filter((_, j) => j !== idx));
+  const setLine    = (idx, key, val) => setItems(i => i.map((it, j) => j === idx ? { ...it, [key]: val } : it));
+
+  const total = items.reduce((sum, it) => sum + (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0), 0);
+
+  const handleSave = async () => {
+    if (!storeId)                        { setError('Please select a store.');          return; }
+    if (items.some(i => !i.product_id)) { setError('Please select a product for every line.'); return; }
+    if (items.some(i => !i.price || parseFloat(i.price) <= 0)) {
+      setError('Please enter a valid price for every line.'); return;
+    }
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ store_id: storeId, items, total }),
+      });
+      const data = await res.json();
+      if (res.ok) { setSuccess('Supply order created!'); setTimeout(() => { onSaved(); onClose(); }, 900); }
+      else          setError(data.message || 'Failed to create order.');
+    } catch { setError('Network error.'); }
+    finally   { setSaving(false); }
+  };
+
+  return (
+    <div className="ms-modal-overlay" onClick={onClose}>
+      <div className="ms-modal sup-order-modal" onClick={e => e.stopPropagation()}>
+        <div className="ms-modal-header">
+          <h2 className="ms-modal-title">
+            <ShoppingBag size={17} style={{ marginRight: 8 }} />
+            New Supply Order — {supplier.name}
+          </h2>
+          <button className="ms-modal-close" onClick={onClose}><X size={20} /></button>
+        </div>
+
+        <div className="ms-modal-body">
+          {error   && <div className="ms-modal-error"  ><AlertCircle  size={16}/><span>{error}</span></div>}
+          {success && <div className="ms-modal-success"><CheckCircle size={16}/><span>{success}</span></div>}
+
+          <div className="ms-form-group">
+            <label className="ms-form-label">Store <span className="sup-required">*</span></label>
+            <select className="ms-form-input" value={storeId} onChange={e => setStoreId(e.target.value)}>
+              <option value=""> Select Store  ... </option>
+              {stores.map(s => <option key={s.store_id} value={s.store_id}>{s.name}</option>)}
+            </select>
+          </div>
+
+          <div className="sup-order-items-header">
+            <span className="sup-items-label">Order Items</span>
+            <button className="sup-add-line-btn" onClick={addLine}><Plus size={13} /> Add Line</button>
+          </div>
+
+          <div className="sup-order-lines">
+            {items.map((it, idx) => (
+              <div key={idx} className="sup-order-line">
+                <select className="ms-form-input sup-line-product"
+                  value={it.product_id}
+                  onChange={e => {
+                    const p = products.find(pr => String(pr.product_id) === e.target.value);
+                    setLine(idx, 'product_id', e.target.value);
+                    if (p) setLine(idx, 'price', p.price);
+                  }}>
+                  <option value=""> Choose Product to order </option>
+                  {products.map(p => <option key={p.product_id} value={p.product_id}>{p.name}</option>)}
+                </select>
+
+                <div className="sup-line-qty-wrap">
+                  <label className="sup-line-mini-label">Qty</label>
+                  <input type="number" min="1" className="ms-form-input sup-line-qty"
+                    value={it.quantity}
+                    onChange={e => setLine(idx, 'quantity', parseInt(e.target.value) || 1)} />
+                </div>
+
+                <div className="sup-line-price-wrap">
+                  <label className="sup-line-mini-label">Unit Cost (Rs.)</label>
+                  <input type="number" min="0" className="ms-form-input sup-line-price"
+                    placeholder="0"
+                    value={it.price}
+                    onChange={e => setLine(idx, 'price', e.target.value)} />
+                </div>
+
+                <div className="sup-line-subtotal">
+                  {fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0))}
+                </div>
+
+                {items.length > 1 && (
+                  <button className="sup-line-remove" onClick={() => removeLine(idx)}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="sup-order-total-row">
+            <span className="sup-order-total-label">Order Total</span>
+            <span className="sup-order-total-val">{fmt(total)}</span>
+          </div>
+        </div>
+
+        <div className="ms-modal-footer">
+          <button className="ms-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="ms-btn-save" onClick={handleSave} disabled={saving || !!success}>
+            <Save size={14} /> {saving ? 'Saving…' : 'Place Order'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* View Orders Modal (per supplier) */
+const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) => {
+  const [orders,       setOrders]       = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [showAddOrder, setShowAddOrder] = useState(false);
+  const [expanded,     setExpanded]     = useState(null);
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setOrders(await res.json());
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  }, [supplier.supplier_id, token]);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const statusClass = (s) =>
+    s === 'received' ? 'sup-ord-received' :
+    s === 'cancelled' ? 'sup-ord-cancelled' : 'sup-ord-pending';
+
+  return (
+    <>
+      <div className="ms-modal-overlay" onClick={onClose}>
+        <div className="ms-modal sup-orders-modal" onClick={e => e.stopPropagation()}>
+          <div className="ms-modal-header">
+            <div>
+              <h2 className="ms-modal-title"><ClipboardList size={17} style={{ marginRight: 8 }} /> Supply Orders</h2>
+              <p className="sup-orders-subtitle">{supplier.name}</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button className="sup-new-order-btn" onClick={() => setShowAddOrder(true)}>
+                <Plus size={14} /> New Order
+              </button>
+              <button className="ms-modal-close" onClick={onClose}><X size={20} /></button>
+            </div>
+          </div>
+
+          <div className="ms-modal-body sup-orders-body">
+            {loading ? (
+              <div className="sup-orders-loading">Loading orders…</div>
+            ) : orders.length === 0 ? (
+              <div className="sup-orders-empty">
+                <ShoppingBag size={36} />
+                <p>No supply orders yet for this supplier.</p>
+                <button className="ms-btn-save" style={{ marginTop: '1rem' }}
+                  onClick={() => setShowAddOrder(true)}>
+                  <Plus size={14} /> Create First Order
+                </button>
+              </div>
+            ) : (
+              <div className="sup-orders-list">
+                {orders.map(ord => (
+                  <div key={ord.order_id} className="sup-order-card">
+                    <div className="sup-order-card-header"
+                      onClick={() => setExpanded(expanded === ord.order_id ? null : ord.order_id)}>
+                      <div className="sup-order-card-left">
+                        <span className="sup-order-id">Order #{ord.order_id}</span>
+                        <span className="sup-order-store">{ord.store_name || '—'}</span>
+                        <span className={`sup-order-status-badge ${statusClass(ord.status)}`}>
+                          {ord.status || 'pending'}
+                        </span>
+                      </div>
+                      <div className="sup-order-card-right">
+                        <span className="sup-order-total">{fmt(ord.total)}</span>
+                        <span className="sup-order-date">
+                          {ord.created_at ? new Date(ord.created_at).toLocaleDateString() : '—'}
+                        </span>
+                        <span className="sup-order-chevron">{expanded === ord.order_id ? '▲' : '▼'}</span>
+                      </div>
+                    </div>
+
+                    {expanded === ord.order_id && ord.items && (
+                      <div className="sup-order-items-table-wrap">
+                        <table className="sup-order-items-table">
+                          <thead>
+                            <tr>
+                              <th>Product</th>
+                              <th>Qty</th>
+                              <th>Unit Cost</th>
+                              <th>Subtotal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ord.items.map((it, i) => (
+                              <tr key={i}>
+                                <td>{it.product_name || '—'}</td>
+                                <td>{it.quantity}</td>
+                                <td>{fmt(it.price)}</td>
+                                <td>{fmt((parseFloat(it.price) || 0) * (parseFloat(it.quantity) || 0))}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="ms-modal-footer">
+            <button className="ms-btn-cancel" onClick={onClose}>Close</button>
+          </div>
+        </div>
+      </div>
+
+      {showAddOrder && (
+        <AddOrderModal
+          supplier={supplier}
+          stores={stores}
+          products={products}
+          token={token}
+          onClose={() => setShowAddOrder(false)}
+          onSaved={() => { fetchOrders(); onRefresh(); }}
+        />
+      )}
+    </>
+  );
+};
+
+/*  Main Suppliers Component */
 const Suppliers = () => {
-  const [showMenuDropdown,    setShowMenuDropdown]    = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [stores,              setStores]              = useState([]);
-
-  const menuDropdownRef    = useRef(null);
-  const profileDropdownRef = useRef(null);
-  const navigate           = useNavigate();
-
+  const navigate = useNavigate();
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
   const token = localStorage.getItem('token');
 
-  /* fetch stores for the header dropdown */
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const res = await fetch(`${API}/api/stores`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) setStores(await res.json());
-      } catch { /* silent */ }
-    };
-    fetchStores();
+  const menuDropdownRef    = useRef(null);
+  const profileDropdownRef = useRef(null);
+  const [showMenuDropdown,    setShowMenuDropdown]    = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+  // data
+  const [suppliers, setSuppliers] = useState([]);
+  const [stores,    setStores]    = useState([]);
+  const [products,  setProducts]  = useState([]);
+  const [summary,   setSummary]   = useState({ total: 0, active_month: 0, total_orders: 0, total_spent: 0 });
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState('');
+
+  // filters
+  const [search, setSearch] = useState('');
+  const [page,   setPage]   = useState(1);
+
+  // modals
+  const [editSupplier,   setEditSupplier]   = useState(null);   // null | supplier obj
+  const [addOpen,        setAddOpen]        = useState(false);
+  const [deleteSupplier, setDeleteSupplier] = useState(null);
+  const [ordersSupplier, setOrdersSupplier] = useState(null);
+
+  /*  fetch all data  */
+  const fetchAll = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const [supRes, storeRes, prodRes, sumRes] = await Promise.all([
+        fetch(`${API}/api/suppliers`,              { headers }),
+        fetch(`${API}/api/inventory/stores`,       { headers }),
+        fetch(`${API}/api/shopproducts`,           { headers }),
+        fetch(`${API}/api/suppliers/summary`,      { headers }),
+      ]);
+      if (supRes.ok)   setSuppliers(await supRes.json());
+      else             setError('Failed to load suppliers.');
+      if (storeRes.ok) setStores(await storeRes.json());
+      if (prodRes.ok)  setProducts(await prodRes.json());
+      if (sumRes.ok)   setSummary(await sumRes.json());
+    } catch { setError('Network error. Please try again.'); }
+    finally  { setLoading(false); }
   }, [token]);
 
-  /* close dropdowns on outside click */
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  /*  outside click  */
   useEffect(() => {
     const h = (e) => {
       if (menuDropdownRef.current    && !menuDropdownRef.current.contains(e.target))
@@ -55,30 +479,31 @@ const Suppliers = () => {
   };
 
   const shopLogoUrl = user.shop_logo ? `${API}${user.shop_logo}` : null;
-
   const renderShopLogo = () => {
     if (shopLogoUrl)
-      return (
-        <img src={shopLogoUrl} alt={user.shop_name || 'Shop'}
-          className="shop-sidebar-logo-img"
-          onError={(e) => { e.target.style.display = 'none'; }} />
-      );
+      return <img src={shopLogoUrl} alt={user.shop_name || 'Shop'}
+        className="shop-sidebar-logo-img" onError={e => { e.target.style.display='none'; }} />;
     return <span className="shop-brand-title">{user.shop_name || 'Shop'}</span>;
   };
-
   const renderProfileImage = (size = 'default') => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
     if (user.image_url)
-      return (
-        <img src={`${API}${user.image_url}`} alt="Profile"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-      );
-    return (
-      <span className={size === 'dropdown' ? 'avatar-initials' : 'profile-initials'}>
-        {initials}
-      </span>
-    );
+      return <img src={`${API}${user.image_url}`} alt="Profile"
+        style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} />;
+    return <span className={size === 'dropdown' ? 'avatar-initials' : 'profile-initials'}>{initials}</span>;
   };
+
+  /*  filter & paginate  */
+  const filtered = suppliers.filter(s =>
+    !search ||
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    (s.phone  || '').toLowerCase().includes(search.toLowerCase()) ||
+    (s.email  || '').toLowerCase().includes(search.toLowerCase()) ||
+    (s.contact_person || '').toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safePage   = Math.min(page, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   return (
     <div className="shop-admin-container">
@@ -87,63 +512,50 @@ const Suppliers = () => {
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">{renderShopLogo()}</div>
         <nav className="shop-sidebar-nav">
-
           <button className="shop-nav-item" onClick={() => navigate('/shopadmindashboard')}>
-            <LayoutDashboard size={18} /><span>Dashboard</span>
+            <LayoutDashboard size={18}/><span>Dashboard</span>
           </button>
           <button className="shop-nav-item" onClick={() => navigate('/shopprofile')}>
-            <Settings size={18} /><span>Shop Profile</span>
+            <Settings size={18}/><span>Shop Profile</span>
           </button>
-
-          <div className="nav-divider" />
-
+          <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/mystores')}>
-            <Store size={18} /><span>My Stores</span>
+            <Store size={18}/><span>My Stores</span>
           </button>
-
-          <div className="nav-divider" />
-
+          <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/myuser')}>
-            <Users size={18} /><span>My Users</span>
+            <Users size={18}/><span>My Users</span>
           </button>
           <button className="shop-nav-item active">
-            <PackageIcon size={18} /><span>Suppliers</span>
+            <PackageIcon size={18}/><span>Suppliers</span>
           </button>
-
-          <div className="nav-divider" />
-
+          <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/products')}>
-            <ShoppingCart size={18} /><span>Products</span>
+            <ShoppingCart size={18}/><span>Products</span>
           </button>
           <button className="mp-nav-item" onClick={() => navigate('/categories')}>
-            <Tags size={18} /><span>Categories</span>
+            <Tags size={18}/><span>Categories</span>
           </button>
           <button className="mp-nav-item" onClick={() => navigate('/inventory')}>
-            <Boxes size={18} /><span>Inventory</span>
+            <Boxes size={18}/><span>Inventory</span>
           </button>
-
-          <div className="nav-divider" />
-
+          <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/salesrecords')}>
-            <TrendingUp size={18} /><span>Sales Records</span>
+            <TrendingUp size={18}/><span>Sales Records</span>
           </button>
-           <button className="mp-nav-item" onClick={()=> navigate('/reportsandanalytics')}>
+          <button className="mp-nav-item" onClick={() => navigate('/reportsandanalytics')}>
             <FileBarChart size={18}/><span>Reports & Analytics</span>
           </button>
-          
           <button className="shop-nav-item" onClick={() => navigate('/subscription')}>
-            <Diamond size={18} /><span>Subscription</span>
+            <Diamond size={18}/><span>Subscription</span>
           </button>
-
-          <div className="nav-divider" />
-
+          <div className="nav-divider"/>
           <button className="shop-nav-item" onClick={() => navigate('/adminprofile')}>
-            <User size={18} /><span>My Profile</span>
+            <User size={18}/><span>My Profile</span>
           </button>
           <button className="shop-nav-item logout-item" onClick={handleLogOut}>
-            <LogOut size={18} /><span>Logout</span>
+            <LogOut size={18}/><span>Logout</span>
           </button>
-
         </nav>
       </aside>
 
@@ -153,12 +565,9 @@ const Suppliers = () => {
         {/* HEADER */}
         <header className="shop-main-header">
           <div className="shop-breadcrumb">Admin &gt; Suppliers</div>
-
           <div className="shop-header-actions">
-            {/* Stores dropdown */}
             <div className="shop-menu-dropdown-container" ref={menuDropdownRef}>
-              <button className="shop-btn-menu"
-                onClick={() => setShowMenuDropdown(!showMenuDropdown)}>
+              <button className="shop-btn-menu" onClick={() => setShowMenuDropdown(!showMenuDropdown)}>
                 All Stores <span className="shop-dropdown-arrow">▼</span>
               </button>
               {showMenuDropdown && (
@@ -168,20 +577,15 @@ const Suppliers = () => {
                     {stores.length > 0 ? stores.map(s => (
                       <button key={s.store_id} className="shop-menu-item"
                         onClick={() => setShowMenuDropdown(false)}>
-                        <Store size={16} /><span>{s.name}</span>
+                        <Store size={16}/><span>{s.name}</span>
                       </button>
-                    )) : (
-                      <div className="shop-menu-item">No stores found</div>
-                    )}
+                    )) : <div className="shop-menu-item">No stores found</div>}
                   </div>
                 </div>
               )}
             </div>
-
-            <div className="shop-icon-circle moon"><Moon size={16} /></div>
-            <div className="shop-icon-circle bell"><Bell size={16} /></div>
-
-            {/* Profile dropdown */}
+            <div className="shop-icon-circle moon"><Moon size={16}/></div>
+            <div className="shop-icon-circle bell"><Bell size={16}/></div>
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>
               <button className="shop-profile-circle-btn"
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
@@ -190,15 +594,13 @@ const Suppliers = () => {
               {showProfileDropdown && (
                 <div className="shop-profile-dropdown">
                   <div className="shop-profile-dropdown-header">
-                    <div className="shop-profile-dropdown-avatar">
-                      {renderProfileImage('dropdown')}
-                    </div>
+                    <div className="shop-profile-dropdown-avatar">{renderProfileImage('dropdown')}</div>
                     <div className="shop-profile-dropdown-info">
                       <h4 className="shop-profile-name">{user.name || 'Admin'}</h4>
                       <p className="shop-profile-role">{user.role || 'Shop Admin'}</p>
                     </div>
                   </div>
-                  <div className="shop-profile-divider" />
+                  <div className="shop-profile-divider"/>
                   <div className="shop-profile-details">
                     <div className="shop-profile-detail-item">
                       <span className="shop-detail-icon">📧</span>
@@ -209,15 +611,14 @@ const Suppliers = () => {
                       <span className="shop-detail-text">{user.phone || 'N/A'}</span>
                     </div>
                   </div>
-                  <div className="shop-profile-divider" />
+                  <div className="shop-profile-divider"/>
                   <div className="shop-profile-actions">
                     <button className="shop-profile-action-btn"
                       onClick={() => { setShowProfileDropdown(false); navigate('/adminprofile'); }}>
-                      <User size={18} /><span>My Profile</span>
+                      <User size={18}/><span>My Profile</span>
                     </button>
-                    <button className="shop-profile-action-btn shop-logout-btn"
-                      onClick={handleLogOut}>
-                      <LogOut size={18} /><span>Logout</span>
+                    <button className="shop-profile-action-btn shop-logout-btn" onClick={handleLogOut}>
+                      <LogOut size={18}/><span>Logout</span>
                     </button>
                   </div>
                 </div>
@@ -229,35 +630,222 @@ const Suppliers = () => {
         {/*  PAGE CONTENT  */}
         <div className="shop-dashboard-content">
 
-          {/* Page title */}
-          <div className="sp-page-header">
+          {/* Page title + Add button */}
+          <div className="sup-page-header">
             <div>
               <h1 className="shop-welcome-title">Suppliers</h1>
-              <p className="ms-subtitle">Manage your product suppliers and vendor relationships</p>
+              <p className="ms-subtitle">Manage vendors, track purchase orders and spending</p>
+            </div>
+            <button className="sup-add-btn" onClick={() => setAddOpen(true)}>
+              <Plus size={16} /> Add Supplier
+            </button>
+          </div>
+
+          {/*  STAT CARDS  */}
+          <div className="sup-stat-cards">
+            <div className="sup-stat-card">
+              <div className="sup-stat-icon-wrap sup-icon-total"><Truck size={20}/></div>
+              <div className="sup-stat-info">
+                <p className="sup-stat-label">Total Suppliers</p>
+                <p className="sup-stat-value">{summary.total ?? suppliers.length}</p>
+              </div>
+            </div>
+            <div className="sup-stat-card">
+              <div className="sup-stat-icon-wrap sup-icon-active"><CheckCircle size={20}/></div>
+              <div className="sup-stat-info">
+                <p className="sup-stat-label">Active This Month</p>
+                <p className="sup-stat-value">{summary.active_month ?? 0}</p>
+              </div>
+            </div>
+            <div className="sup-stat-card">
+              <div className="sup-stat-icon-wrap sup-icon-orders"><ClipboardList size={20}/></div>
+              <div className="sup-stat-info">
+                <p className="sup-stat-label">Total Orders</p>
+                <p className="sup-stat-value">{summary.total_orders ?? 0}</p>
+              </div>
+            </div>
+            <div className="sup-stat-card">
+              <div className="sup-stat-icon-wrap sup-icon-spent"><DollarSign size={20}/></div>
+              <div className="sup-stat-info">
+                <p className="sup-stat-label">Total Spent</p>
+                <p className="sup-stat-value">{fmt(summary.total_spent)}</p>
+              </div>
             </div>
           </div>
 
-          {/* Under-development card */}
-          <div className="sp-dev-card">
+          {/*  SUPPLIERS TABLE PANEL  */}
+          <div className="prod-table-card">
 
-            {/* Badge */}
-            <div className="sp-badge">
-              <span className="sp-badge-dot" />
-              In Development Phase
+            {/* Filter bar */}
+            <div className="sup-filter-bar">
+              <div className="prod-search-wrap">
+                <Search size={15} className="prod-search-icon"/>
+                <input className="prod-search-input" placeholder="Search suppliers by name, phone, email…"
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setPage(1); }} />
+              </div>
             </div>
 
-            <h2 className="sp-dev-title">Supplier Management is on its way</h2>
+            {/* Table */}
+            {loading ? (
+              <div className="prod-loading">Loading suppliers…</div>
+            ) : error ? (
+              <div className="prod-empty">
+                <div className="prod-empty-icon"><AlertCircle size={24}/></div>
+                <h3>Error</h3><p>{error}</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="prod-empty">
+                <div className="prod-empty-icon"><Truck size={24}/></div>
+                <h3>No suppliers found</h3>
+                <p>{search ? 'Try adjusting your search.' : 'Add your first supplier to get started.'}</p>
+                {!search && (
+                  <button className="ms-btn-save" style={{ marginTop:'1rem' }}
+                    onClick={() => setAddOpen(true)}>
+                    <Plus size={14}/> Add Supplier
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="prod-table-wrap">
+                  <table className="prod-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Supplier</th>
+                        <th>Contact Person</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Orders</th>
+                        <th>Total Spent</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginated.map((s, idx) => (
+                        <tr key={s.supplier_id}>
+                          <td style={{ color:'#9ca3af', fontSize:'0.8125rem' }}>
+                            {(safePage - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </td>
+                          <td>
+                            <div className="sup-name-cell">
+                              <div className="sup-avatar">
+                                {s.name.substring(0, 2).toUpperCase()}
+                              </div>
+                              <span className="sup-name">{s.name}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="sup-contact-person">
+                              {s.contact_person || <span style={{ color:'#9ca3af' }}>—</span>}
+                            </span>
+                          </td>
+                          <td>
+                            {s.phone
+                              ? <span className="sup-info-chip"><Phone size={11}/>{s.phone}</span>
+                              : <span style={{ color:'#9ca3af' }}>—</span>}
+                          </td>
+                          <td>
+                            {s.email
+                              ? <span className="sup-info-chip"><Mail size={11}/>{s.email}</span>
+                              : <span style={{ color:'#9ca3af' }}>—</span>}
+                          </td>
+                          <td>
+                            {s.address
+                              ? <span className="sup-address-cell"><MapPin size={11}/>{s.address}</span>
+                              : <span style={{ color:'#9ca3af' }}></span>}
+                          </td>
+                          <td>
+                            <span className="sup-orders-badge">{s.order_count ?? 0} orders</span>
+                          </td>
+                          <td>
+                            <span className="sup-spent">{fmt(s.total_spent)}</span>
+                          </td>
+                          <td>
+                            <div className="prod-action-btns">
+                              <button className="prod-tbl-btn-view sup-tbl-orders"
+                                onClick={() => setOrdersSupplier(s)}
+                                title="View Orders">
+                                <Eye size={13}/> Orders
+                              </button>
+                              <button className="prod-tbl-btn-edit"
+                                onClick={() => setEditSupplier(s)}
+                                title="Edit">
+                                <Edit3 size={13}/>
+                              </button>
+                              <button className="sup-tbl-btn-del"
+                                onClick={() => setDeleteSupplier(s)}
+                                title="Delete">
+                                <Trash2 size={13}/>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            <p className="sp-dev-desc">
-              We're building a complete supplier management system. add vendors, track purchase orders,
-              monitor delivery timelines, and manage payment terms.     all from one place.
-              This feature will be available soon.
-            </p>
-
+                {/* Pagination */}
+                <div className="prod-table-footer">
+                  <span className="prod-pagination-info">
+                    Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} suppliers
+                  </span>
+                  <div className="prod-pagination-btns">
+                    <button className="prod-page-btn" disabled={safePage === 1}
+                      onClick={() => setPage(p => p - 1)}>
+                      <ChevronLeft size={14}/> Previous
+                    </button>
+                    <button className="prod-page-btn" disabled={safePage === totalPages}
+                      onClick={() => setPage(p => p + 1)}>
+                      Next <ChevronRight size={14}/>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-
         </div>
       </main>
+
+      {/*  MODALS  */}
+      {addOpen && (
+        <SupplierModal
+          supplier={null}
+          token={token}
+          onClose={() => setAddOpen(false)}
+          onSaved={fetchAll}
+        />
+      )}
+      {editSupplier && (
+        <SupplierModal
+          supplier={editSupplier}
+          token={token}
+          onClose={() => setEditSupplier(null)}
+          onSaved={fetchAll}
+        />
+      )}
+      {deleteSupplier && (
+        <DeleteModal
+          supplier={deleteSupplier}
+          token={token}
+          onClose={() => setDeleteSupplier(null)}
+          onDeleted={fetchAll}
+        />
+      )}
+      {ordersSupplier && (
+        <OrdersModal
+          supplier={ordersSupplier}
+          stores={stores}
+          products={products}
+          token={token}
+          onClose={() => setOrdersSupplier(null)}
+          onRefresh={fetchAll}
+        />
+      )}
     </div>
   );
 };

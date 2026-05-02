@@ -1,51 +1,87 @@
 import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import '../styles/PaymentConfirmation.css';
 
+const BASE = "http://localhost:5000";
+
 const PaymentConfirmation = () => {
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
+  // Passed from ShopSetup after successful submission
+  const { request_id, package_name, price } = location.state || {};
+
   const [formData, setFormData] = useState({
     paymentMethod: '',
     accountNumber: '',
     transactionId: '',
-    amount: '',
-    paymentDate: ''
+    amount:        price ? String(price) : '',  // pre-fill with package price
+    paymentDate:   ''
   });
-  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError('');
+
     if (!formData.paymentMethod) {
-      alert('Please select a payment method!');
-      return;
+      setError('Please select a payment method.'); return;
     }
-    
     if (!formData.accountNumber || !formData.transactionId || !formData.amount || !formData.paymentDate) {
-      alert('Please fill all required fields!');
-      return;
+      setError('Please fill in all required fields.'); return;
     }
-    
-    console.log('Payment submitted:', formData);
+    if (!request_id) {
+      setError('Missing shop request. Please go back and submit shop details first.'); return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${BASE}/api/shopsetup/${request_id}/payment`, {
+        method:  "PUT",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          payment_method:  formData.paymentMethod,
+          sender_account:  formData.accountNumber,
+          transaction_ref: formData.transactionId,
+          amount:          formData.amount,
+          payment_date:    formData.paymentDate,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        navigate("/pending");   // or whatever your "under review" page is
+      } else {
+        setError(data.message || "Submission failed. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="payment-container">
       <div className="payment-left-section">
         <div className="payment-left-content">
-          <h1 className="payment-logo">
-            Shop2Door LOGO
-          </h1>
-          
+          <h1 className="payment-logo">Shop2Door LOGO</h1>
+
           <h2 className="payment-main-heading">
-            Secure Payment<br />
-            Confirmation
+            Secure Payment<br />Confirmation
           </h2>
 
           <p className="payment-description">
@@ -53,10 +89,20 @@ const PaymentConfirmation = () => {
             All transactions are encrypted and protected.
           </p>
 
-          <div className="payment-security-card">
-            <div className="security-icon">
-              🛡️
+          {/* Package summary — pulled from ShopSetup navigation state */}
+          {package_name && (
+            <div className="payment-security-card">
+              <div className="security-icon">📦</div>
+              <div className="security-content">
+                <h3 className="security-title">{package_name} Plan</h3>
+                <p className="security-text">Rs. {Number(price).toLocaleString()} / month</p>
+                <p className="security-subtext">Transfer this exact amount</p>
+              </div>
             </div>
+          )}
+
+          <div className="payment-security-card" style={{ marginTop: '12px' }}>
+            <div className="security-icon">🛡️</div>
             <div className="security-content">
               <h3 className="security-title">Bank-grade Security</h3>
               <p className="security-text">256-bit SSL • PCI DSS Compliant</p>
@@ -64,35 +110,27 @@ const PaymentConfirmation = () => {
             </div>
           </div>
 
-          {/* Trust Badges */}
           <div className="payment-trust-section">
             <p className="trust-text">Trusted by 50,000+ customers</p>
             <div className="trust-badges">
-              <div className="trust-badge trust-badge-green">
-                <span className="badge-icon">✓</span>
-              </div>
-              <div className="trust-badge trust-badge-blue">
-                <span className="badge-icon">✓</span>
-              </div>
-              <div className="trust-badge trust-badge-orange">
-                <span className="badge-icon">✓</span>
-              </div>
+              <div className="trust-badge trust-badge-green"><span className="badge-icon">✓</span></div>
+              <div className="trust-badge trust-badge-blue"><span className="badge-icon">✓</span></div>
+              <div className="trust-badge trust-badge-orange"><span className="badge-icon">✓</span></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Side - White Section */}
+      {/* Right Side */}
       <div className="payment-right-section">
         <div className="payment-form-container">
           <div className="payment-form-header">
             <h2 className="payment-title">Payment Details</h2>
-            <p className="payment-form-subtitle">
-              Please provide your payment information below
-            </p>
+            <p className="payment-form-subtitle">Please provide your payment information below</p>
           </div>
 
           <form onSubmit={handleSubmit} className="payment-form">
+
             <div className="payment-form-group">
               <label className="payment-label">Payment Method</label>
               <div className="payment-select-wrapper">
@@ -111,7 +149,6 @@ const PaymentConfirmation = () => {
                 </select>
                 <span className="select-arrow">↓</span>
               </div>
-              <p className="payment-options-hint">Options: EasyPaisa • JazzCash • Bank Transfer • Other</p>
             </div>
 
             <div className="payment-form-group">
@@ -167,9 +204,8 @@ const PaymentConfirmation = () => {
               <div className="payment-input-wrapper">
                 <span className="input-icon">📅</span>
                 <input
-                  type="text"
+                  type="date"
                   name="paymentDate"
-                  placeholder="YYYY-MM-DD (e.g. 2025-12-24)"
                   value={formData.paymentDate}
                   onChange={handleChange}
                   className="payment-input payment-input-with-icon"
@@ -178,9 +214,12 @@ const PaymentConfirmation = () => {
               </div>
             </div>
 
-            <button type="submit" className="payment-submit-button">
-              SUBMIT
+            {error && <p style={{ color: 'red', fontSize: '0.85rem', marginBottom: '8px' }}>{error}</p>}
+
+            <button type="submit" className="payment-submit-button" disabled={loading}>
+              {loading ? "Submitting…" : "SUBMIT PAYMENT →"}
             </button>
+
           </form>
         </div>
       </div>

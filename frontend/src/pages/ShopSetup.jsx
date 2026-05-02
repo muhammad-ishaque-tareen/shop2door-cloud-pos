@@ -1,0 +1,478 @@
+import React, { useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import "../styles/ShopSetup.css";
+
+const BASE = "http://localhost:5000";
+
+const STEPS = ["Shop Info", "Location & Hours", "Logo & Review"];
+
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+const defaultHours = DAYS.reduce((acc, day) => {
+  acc[day] = { open: "09:00", close: "21:00", closed: false };
+  return acc;
+}, {});
+
+const CATEGORIES = [
+  { value: "grocery",     label: "🛒 Grocery"    },
+  { value: "electronics", label: "📱 Electronics" },
+  { value: "clothing",    label: "👗 Clothing"    },
+  { value: "pharmacy",    label: "💊 Pharmacy"    },
+  { value: "restaurant",  label: "🍽️ Restaurant" },
+  { value: "bakery",      label: "🥐 Bakery"      },
+  { value: "cosmetics",   label: "💄 Cosmetics"   },
+  { value: "other",       label: "📦 Other"       },
+];
+
+const ShopSetup = () => {
+  const navigate        = useNavigate();
+  const location        = useLocation();
+  const selectedPackage = location.state;
+
+  const [step, setStep]               = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // Step 0  Shop Info
+  const [shopName,  setShopName]  = useState("");
+  const [shopPhone, setShopPhone] = useState("");
+  const [shopEmail, setShopEmail] = useState("");
+  const [shopType,  setShopType]  = useState("");
+
+  // Step 1  Location & Hours
+  const [address, setAddress] = useState("");
+  const [city,    setCity]    = useState("");
+  const [hours,   setHours]   = useState(defaultHours);
+
+  // Step 2  Logo
+  const [logo,        setLogo]        = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const fileRef = useRef();
+
+  //  Validators 
+  const validateStep = () => {
+    const errs = {};
+    if (step === 0) {
+      if (!shopName.trim())  errs.shopName  = "Shop name is required.";
+      if (!shopPhone.trim()) errs.shopPhone = "Shop phone is required.";
+      if (!shopType)         errs.shopType  = "Please select a category.";
+    }
+    if (step === 1) {
+      if (!address.trim()) errs.address = "Address is required.";
+      if (!city.trim())    errs.city    = "City is required.";
+    }
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const clearFieldError = (key) =>
+    setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+
+  //  Navigation 
+  const handleNext = () => {
+    if (!validateStep()) return;
+    setError("");
+    setStep((s) => s + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleBack = () => {
+    setError("");
+    setFieldErrors({});
+    setStep((s) => s - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  //  Logo 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setFieldErrors((prev) => ({ ...prev, logo: "Logo must be under 2MB." }));
+      return;
+    }
+    setLogo(file);
+    setLogoPreview(URL.createObjectURL(file));
+    clearFieldError("logo");
+  };
+
+  //  Hours 
+  const handleHourChange = (day, field, value) =>
+    setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+
+  const toggleClosed = (day) =>
+    setHours((prev) => ({ ...prev, [day]: { ...prev[day], closed: !prev[day].closed } }));
+
+  //  Submit 
+  const handleSubmit = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("shop_name",     shopName.trim());
+      formData.append("phone",         shopPhone.trim());
+      formData.append("email",         shopEmail.trim());
+      formData.append("shop_type",     shopType);
+      formData.append("address",       address.trim());
+      formData.append("city",          city.trim());
+      formData.append("opening_hours", JSON.stringify(hours));
+      formData.append("package_id",    selectedPackage?.package_id ?? "");
+      if (logo) formData.append("logo", logo);
+
+      const res = await fetch(`${BASE}/api/shopsetup`, {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body:    formData,
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        navigate("/paymentconfirmation", {
+          state: {
+            request_id:   data.request_id,
+            package_id:   selectedPackage?.package_id,
+            package_name: selectedPackage?.package_name,
+            price:        selectedPackage?.price,
+          },
+        });
+      } else {
+        setError(data.message || "Failed to submit. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //  Render 
+  return (
+    <div className="shopsetup-container">
+
+      {/*  Left Panel  */}
+      <div className="shopsetup-left-section">
+        <div className="shopsetup-dots-pattern" />
+        <div className="shopsetup-left-content">
+
+          <div className="shopsetup-logo">🏪 Shop2Door</div>
+
+          <h1 className="shopsetup-main-heading">
+            Launch Your<br />Shop Online
+          </h1>
+          <p className="shopsetup-description">
+            Fill in your shop details and we'll review your request
+            within 24–48 hours. Once approved, your shop goes live instantly.
+          </p>
+
+          {selectedPackage && (
+            <div className="shopsetup-package-card">
+              <h3>Selected Plan</h3>
+              <p className="shopsetup-package-name">{selectedPackage.package_name}</p>
+              <p className="shopsetup-package-price">
+                Rs. {Number(selectedPackage.price).toLocaleString()} / month
+              </p>
+            </div>
+          )}
+
+          <div className="shopsetup-steps-list">
+            {STEPS.map((label, i) => (
+              <div
+                key={label}
+                className={`shopsetup-step-item ${i === step ? "active" : i < step ? "done" : ""}`}
+              >
+                <div className="shopsetup-step-dot">
+                  {i < step ? "✓" : i + 1}
+                </div>
+                <span className="shopsetup-step-label">{label}</span>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </div>
+
+      {/*  Right Panel  */}
+      <div className="shopsetup-right-section">
+        <div className="shopsetup-form-container">
+
+          {/* Header */}
+          <div className="shopsetup-form-header">
+            <p className="shopsetup-step-title">Step {step + 1} of {STEPS.length}</p>
+            <h2 className="shopsetup-form-title">{STEPS[step]}</h2>
+            <p className="shopsetup-form-subtitle">
+              {step === 0 && "Tell us the basics about your shop."}
+              {step === 1 && "Where is your shop and when is it open?"}
+              {step === 2 && "Upload your logo and confirm your details."}
+            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="shopsetup-progress-bar">
+            {STEPS.map((label, i) => (
+              <React.Fragment key={label}>
+                <div className={`shopsetup-progress-step ${i === step ? "active" : i < step ? "done" : ""}`}>
+                  <div className="shopsetup-progress-circle">
+                    {i < step ? "✓" : i + 1}
+                  </div>
+                  <span className="shopsetup-progress-step-label">{label}</span>
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div className={`shopsetup-progress-line ${i < step ? "done" : ""}`} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Form Steps */}
+          <div className="shopsetup-form shopsetup-fade-in" key={step}>
+
+            {/*  STEP 0  */}
+            {step === 0 && (
+              <>
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">
+                    Shop Name <span className="shopsetup-req">*</span>
+                  </label>
+                  <input
+                    className={`shopsetup-input ${fieldErrors.shopName ? "error" : ""}`}
+                    type="text"
+                    placeholder=" Tareen's Electronics"
+                    value={shopName}
+                    onChange={(e) => { setShopName(e.target.value); clearFieldError("shopName"); }}
+                  />
+                  {fieldErrors.shopName && <span className="shopsetup-field-error">{fieldErrors.shopName}</span>}
+                </div>
+
+                <div className="shopsetup-row">
+                  <div className="shopsetup-form-group">
+                    <label className="shopsetup-label">
+                      Shop Phone <span className="shopsetup-req">*</span>
+                    </label>
+                    <input
+                      className={`shopsetup-input ${fieldErrors.shopPhone ? "error" : ""}`}
+                      type="tel"
+                      placeholder="0300-0000000"
+                      value={shopPhone}
+                      onChange={(e) => { setShopPhone(e.target.value); clearFieldError("shopPhone"); }}
+                    />
+                    {fieldErrors.shopPhone && <span className="shopsetup-field-error">{fieldErrors.shopPhone}</span>}
+                  </div>
+
+                  <div className="shopsetup-form-group">
+                    <label className="shopsetup-label">
+                      Shop Email <span className="shopsetup-optional">(optional)</span>
+                    </label>
+                    <input
+                      className="shopsetup-input"
+                      type="email"
+                      placeholder="shop@example.com"
+                      value={shopEmail}
+                      onChange={(e) => setShopEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">
+                    Shop Category <span className="shopsetup-req">*</span>
+                  </label>
+                  <div className="shopsetup-category-grid">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        className={`shopsetup-category-chip ${shopType === cat.value ? "active" : ""}`}
+                        onClick={() => { setShopType(cat.value); clearFieldError("shopType"); }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                  {fieldErrors.shopType && <span className="shopsetup-field-error">{fieldErrors.shopType}</span>}
+                </div>
+              </>
+            )}
+
+            {/*  STEP 1  */}
+            {step === 1 && (
+              <>
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">
+                    Street Address <span className="shopsetup-req">*</span>
+                  </label>
+                  <textarea
+                    className={`shopsetup-textarea ${fieldErrors.address ? "error" : ""}`}
+                    placeholder="Near Akhuwat College University, Kasur"
+                    value={address}
+                    onChange={(e) => { setAddress(e.target.value); clearFieldError("address"); }}
+                  />
+                  {fieldErrors.address && <span className="shopsetup-field-error">{fieldErrors.address}</span>}
+                </div>
+
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">
+                    City <span className="shopsetup-req">*</span>
+                  </label>
+                  <input
+                    className={`shopsetup-input ${fieldErrors.city ? "error" : ""}`}
+                    type="text"
+                    placeholder="e.g. Lahore"
+                    value={city}
+                    onChange={(e) => { setCity(e.target.value); clearFieldError("city"); }}
+                  />
+                  {fieldErrors.city && <span className="shopsetup-field-error">{fieldErrors.city}</span>}
+                </div>
+
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">Opening Hours</label>
+                  <div className="shopsetup-hours-grid">
+                    {DAYS.map((day) => (
+                      <div
+                        key={day}
+                        className={`shopsetup-hours-row ${hours[day].closed ? "closed" : ""}`}
+                      >
+                        <div className="shopsetup-hours-day">
+                          <button
+                            type="button"
+                            className={`shopsetup-closed-toggle ${hours[day].closed ? "" : "off"}`}
+                            onClick={() => toggleClosed(day)}
+                            title={hours[day].closed ? "Mark as Open" : "Mark as Closed"}
+                          >
+                            {hours[day].closed ? "✕" : "✓"}
+                          </button>
+                          <span className="shopsetup-day-name">{day.slice(0, 3)}</span>
+                        </div>
+
+                        {hours[day].closed ? (
+                          <span className="shopsetup-closed-label">Closed</span>
+                        ) : (
+                          <div className="shopsetup-time-inputs">
+                            <input
+                              type="time"
+                              className="shopsetup-time-input"
+                              value={hours[day].open}
+                              onChange={(e) => handleHourChange(day, "open", e.target.value)}
+                            />
+                            <span className="shopsetup-time-sep">→</span>
+                            <input
+                              type="time"
+                              className="shopsetup-time-input"
+                              value={hours[day].close}
+                              onChange={(e) => handleHourChange(day, "close", e.target.value)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/*  STEP 2  */}
+            {step === 2 && (
+              <>
+                <div className="shopsetup-form-group">
+                  <label className="shopsetup-label">
+                    Shop Logo <span className="shopsetup-optional">(optional, max 2MB)</span>
+                  </label>
+                  <div className="shopsetup-logo-drop" onClick={() => fileRef.current.click()}>
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo preview" className="shopsetup-logo-preview" />
+                    ) : (
+                      <div className="shopsetup-logo-placeholder">
+                        <span className="shopsetup-upload-icon">📷</span>
+                        <span className="shopsetup-upload-text">Click to upload your shop logo</span>
+                        <span className="shopsetup-upload-hint">PNG, JPG — max 2MB</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleLogoChange}
+                  />
+                  {logoPreview && (
+                    <button
+                      type="button"
+                      className="shopsetup-remove-logo"
+                      onClick={() => { setLogo(null); setLogoPreview(null); }}
+                    >
+                      Remove logo
+                    </button>
+                  )}
+                  {fieldErrors.logo && <span className="shopsetup-field-error">{fieldErrors.logo}</span>}
+                </div>
+
+                {/* Review */}
+                <div className="shopsetup-review">
+                  <p className="shopsetup-review-title">Review Your Details</p>
+                  <div className="shopsetup-review-grid">
+                    {[
+                      { key: "Shop Name", val: shopName },
+                      { key: "Category",  val: shopType,  cap: true },
+                      { key: "Phone",     val: shopPhone },
+                      { key: "Email",     val: shopEmail || "—" },
+                      { key: "Address",   val: address ? `${address}, ${city}` : "—" },
+                      {
+                        key: "Plan",
+                        val: selectedPackage
+                          ? `${selectedPackage.package_name} — Rs. ${Number(selectedPackage.price).toLocaleString()}/mo`
+                          : "—",
+                      },
+                    ].map(({ key, val, cap }) => (
+                      <div key={key} className="shopsetup-review-item">
+                        <span className="shopsetup-review-key">{key}</span>
+                        <span className={`shopsetup-review-val${cap ? " cap" : ""}`}>{val || "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+          </div>{/* end .shopsetup-form */}
+
+          {/* Error Banner */}
+          {error && <div className="shopsetup-error-banner">{error}</div>}
+
+          {/* Navigation */}
+          <div className="shopsetup-nav">
+            {step > 0 && (
+              <button type="button" className="shopsetup-btn-back" onClick={handleBack}>
+                ← Back
+              </button>
+            )}
+            {step < STEPS.length - 1 ? (
+              <button type="button" className="shopsetup-btn-next" onClick={handleNext}>
+                Continue →
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="shopsetup-btn-submit"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading
+                  ? <><span className="shopsetup-spinner" /> Submitting…</>
+                  : "Submit Shop Request →"}
+              </button>
+            )}
+          </div>
+
+          <p className="shopsetup-footer-note">
+            Reviewed within 24–48 hours after payment confirmation.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ShopSetup;

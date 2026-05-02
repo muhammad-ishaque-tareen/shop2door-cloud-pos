@@ -31,7 +31,8 @@ const WelcomePage = () => {
 
             <button 
               className="buy-shop2door-btn"
-              onClick={() => navigate("/pricing")}
+               onClick={() => navigate("/pricing")}
+             
             >
               BUY SHOP2DOOR
             </button>

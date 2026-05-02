@@ -103,10 +103,16 @@ const Pricing = () => {
                   </ul>
 
                   <button
-                    className="get-started-btn"
-                    onClick={() => navigate("/signup")}
-                  >
-                    Get Started
+                      onClick={() => navigate("/signup", {
+                      state: 
+                      {
+                          package_id: plan.package_id,
+                          package_name: plan.name,
+                          price: plan.price
+                      }
+                    })}
+                       >
+                      Get Started
                   </button>
                 </div>
               );

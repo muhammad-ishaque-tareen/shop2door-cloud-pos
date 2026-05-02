@@ -6,18 +6,25 @@ import {
   Search, ChevronLeft, ChevronRight, Plus, Edit3, Trash2,
   X, AlertCircle, CheckCircle, Save, Truck, ShoppingBag,
   Phone, Mail, MapPin, ClipboardList, DollarSign, Eye,
+  RefreshCw, CheckSquare, XCircle, Clock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Suppliers.css';
 
-const API = 'http://localhost:5000';
-const ITEMS_PER_PAGE = 10;
+const API          = 'http://localhost:5000';
+const ITEMS_PER_PAGE = 20;
 
-/* Helper: format currency */
-const fmt = (n) => `Rs. ${parseFloat(n || 0).toLocaleString()}`;
+const fmt   = (n)  => `Rs. ${parseFloat(n || 0).toLocaleString()}`;
+const hdr   = (tk) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${tk}` });
+const plain = (tk) => ({ Authorization: `Bearer ${tk}` });
 
-/*  Add / Edit Supplier Modal */
+/*  email / phone validation  */
+const isValidEmail = (e) => !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const isValidPhone = (p) => !p || /^[\d\s\-+()]{7,20}$/.test(p);
+
+/* 
+   ADD / EDIT SUPPLIER MODAL */
 const SupplierModal = ({ supplier, onClose, onSaved, token }) => {
   const isEdit = !!supplier;
   const [form, setForm] = useState({
@@ -34,7 +41,11 @@ const SupplierModal = ({ supplier, onClose, onSaved, token }) => {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setError('Supplier name is required.'); return; }
+    // client-side validation mirrors backend
+    if (!form.name.trim())        { setError('Supplier name is required.');    return; }
+    if (!isValidEmail(form.email)){ setError('Invalid email format.');         return; }
+    if (!isValidPhone(form.phone)){ setError('Invalid phone number format.');  return; }
+
     setSaving(true); setError(''); setSuccess('');
     try {
       const url    = isEdit
@@ -43,7 +54,7 @@ const SupplierModal = ({ supplier, onClose, onSaved, token }) => {
       const method = isEdit ? 'PUT' : 'POST';
       const res    = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: hdr(token),
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -117,7 +128,9 @@ const SupplierModal = ({ supplier, onClose, onSaved, token }) => {
   );
 };
 
-/*  Delete Confirm Modal */
+/* ══════════════════════════════════════════════════════════════════════════
+   DELETE CONFIRM MODAL  — now uses transactional backend
+══════════════════════════════════════════════════════════════════════════ */
 const DeleteModal = ({ supplier, onClose, onDeleted, token }) => {
   const [deleting, setDeleting] = useState(false);
   const [error,    setError]    = useState('');
@@ -127,7 +140,7 @@ const DeleteModal = ({ supplier, onClose, onDeleted, token }) => {
     try {
       const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: plain(token),
       });
       if (res.ok) { onDeleted(); onClose(); }
       else { const d = await res.json(); setError(d.message || 'Failed to delete.'); }
@@ -163,47 +176,110 @@ const DeleteModal = ({ supplier, onClose, onDeleted, token }) => {
   );
 };
 
-/*  Add Supply Order Modal */
+/* ══════════════════════════════════════════════════════════════════════════
+   ADD SUPPLY ORDER MODAL — with backend total recalculation awareness
+══════════════════════════════════════════════════════════════════════════ */
 const AddOrderModal = ({ supplier, stores, products, onClose, onSaved, token }) => {
-  const [storeId,  setStoreId]  = useState('');
-  const [items,    setItems]    = useState([{ product_id: '', quantity: 1, price: '' }]);
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
-  const [success,  setSuccess]  = useState('');
+  const emptyLine = () => ({
+    product_id:      '',
+    product_name:    '',
+    quantity:        1,
+    price:           '',
+    showSuggestions: false,
+  });
 
-  const addLine    = () => setItems(i => [...i, { product_id: '', quantity: 1, price: '' }]);
+  const [storeId,        setStoreId]        = useState('');
+  const [items,          setItems]          = useState([emptyLine()]);
+  const [invoiceNumber,  setInvoiceNumber]  = useState('');
+  const [notes,          setNotes]          = useState('');
+  const [saving,         setSaving]         = useState(false);
+  const [error,          setError]          = useState('');
+  const [success,        setSuccess]        = useState('');
+
+  const addLine    = () => setItems(i => [...i, emptyLine()]);
   const removeLine = (idx) => setItems(i => i.filter((_, j) => j !== idx));
-  const setLine    = (idx, key, val) => setItems(i => i.map((it, j) => j === idx ? { ...it, [key]: val } : it));
+  const setLine    = (idx, key, val) =>
+    setItems(i => i.map((it, j) => j === idx ? { ...it, [key]: val } : it));
 
-  const total = items.reduce((sum, it) => sum + (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0), 0);
+  const handleDropdownSelect = (idx, productId) => {
+    const p = products.find(pr => String(pr.product_id) === productId);
+    setItems(i => i.map((it, j) => j !== idx ? it : {
+      ...it,
+      product_id:   productId,
+      product_name: p ? p.name : it.product_name,
+      price: it.price === '' && p ? String(p.price) : it.price,
+    }));
+  };
+
+  const handleProductType = (idx, val) => {
+    setItems(i => i.map((it, j) => j !== idx ? it : {
+      ...it,
+      product_name:    val,
+      product_id:      '',
+      showSuggestions: val.trim().length > 0,
+    }));
+  };
+
+  const handlePickSuggestion = (idx, product) => {
+    setItems(i => i.map((it, j) => j !== idx ? it : {
+      ...it,
+      product_id:      String(product.product_id),
+      product_name:    product.name,
+      price:           it.price === '' ? String(product.price) : it.price,
+      showSuggestions: false,
+    }));
+  };
+
+  // display total (backend will recompute — this is just for UX preview)
+  const displayTotal = items.reduce((sum, it) =>
+    sum + (parseFloat(it.price) || 0) * (parseFloat(it.quantity) || 0), 0);
 
   const handleSave = async () => {
-    if (!storeId)                        { setError('Please select a store.');          return; }
-    if (items.some(i => !i.product_id)) { setError('Please select a product for every line.'); return; }
-    if (items.some(i => !i.price || parseFloat(i.price) <= 0)) {
-      setError('Please enter a valid price for every line.'); return;
-    }
+    if (!storeId)                                      { setError('Please select a store.');                          return; }
+    if (items.some(i => !i.product_name.trim()))       { setError('Every line needs a product name.');                return; }
+    if (items.some(i => !i.price || parseFloat(i.price) <= 0))
+                                                       { setError('Every line needs a valid purchase price > 0.');    return; }
+    if (items.some(i => !i.quantity || parseFloat(i.quantity) < 1))
+                                                       { setError('Quantity must be at least 1 on every line.');      return; }
+
     setSaving(true); setError(''); setSuccess('');
     try {
+      const payload = {
+        store_id:       storeId,
+        invoice_number: invoiceNumber.trim() || null,
+        notes:          notes.trim()         || null,
+        // NOTE: backend recalculates total — we still send items so backend can verify
+        items: items.map(it => ({
+          product_id:   it.product_id || null,
+          product_name: it.product_name.trim(),
+          quantity:     parseFloat(it.quantity) || 1,
+          price:        parseFloat(it.price)    || 0,
+        })),
+      };
       const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ store_id: storeId, items, total }),
+        method:  'POST',
+        headers: hdr(token),
+        body:    JSON.stringify(payload),
       });
       const data = await res.json();
-      if (res.ok) { setSuccess('Supply order created!'); setTimeout(() => { onSaved(); onClose(); }, 900); }
-      else          setError(data.message || 'Failed to create order.');
-    } catch { setError('Network error.'); }
-    finally   { setSaving(false); }
+      if (res.ok) {
+        setSuccess(`Supply order placed! Verified total: ${fmt(data.total)}`);
+        setTimeout(() => { onSaved(); onClose(); }, 1200);
+      } else {
+        setError(data.message || 'Failed to place order.');
+      }
+    } catch { setError('Network error. Please try again.'); }
+    finally  { setSaving(false); }
   };
 
   return (
     <div className="ms-modal-overlay" onClick={onClose}>
       <div className="ms-modal sup-order-modal" onClick={e => e.stopPropagation()}>
+
         <div className="ms-modal-header">
           <h2 className="ms-modal-title">
             <ShoppingBag size={17} style={{ marginRight: 8 }} />
-            New Supply Order — {supplier.name}
+            New Supply Order: <i> {supplier.name}</i>
           </h2>
           <button className="ms-modal-close" onClick={onClose}><X size={20} /></button>
         </div>
@@ -212,71 +288,155 @@ const AddOrderModal = ({ supplier, stores, products, onClose, onSaved, token }) 
           {error   && <div className="ms-modal-error"  ><AlertCircle  size={16}/><span>{error}</span></div>}
           {success && <div className="ms-modal-success"><CheckCircle size={16}/><span>{success}</span></div>}
 
-          <div className="ms-form-group">
-            <label className="ms-form-label">Store <span className="sup-required">*</span></label>
-            <select className="ms-form-input" value={storeId} onChange={e => setStoreId(e.target.value)}>
-              <option value=""> Select Store  ... </option>
-              {stores.map(s => <option key={s.store_id} value={s.store_id}>{s.name}</option>)}
-            </select>
+          {/* Store + Invoice row */}
+          <div className="sup-form-grid">
+            <div className="ms-form-group">
+              <label className="ms-form-label">Store <span className="sup-required">*</span></label>
+              <select className="ms-form-input" value={storeId} onChange={e => setStoreId(e.target.value)}>
+                <option value=""> Select Store...</option>
+                {stores.map(s => <option key={s.store_id} value={s.store_id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            <div className="ms-form-group">
+              <label className="ms-form-label">Invoice / Reference No.</label>
+              <input className="ms-form-input" placeholder="e.g. INV-2025-001"
+                value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
+            </div>
+
+            <div className="ms-form-group sup-full">
+              <label className="ms-form-label">Notes (optional)</label>
+              <input className="ms-form-input" placeholder="Any notes about this order..."
+                value={notes} onChange={e => setNotes(e.target.value)} />
+            </div>
           </div>
 
+          {/* Items header */}
           <div className="sup-order-items-header">
-            <span className="sup-items-label">Order Items</span>
-            <button className="sup-add-line-btn" onClick={addLine}><Plus size={13} /> Add Line</button>
+            <div>
+              <span className="sup-items-label">Order Items :</span>
+              <span className="sup-items-hint">  select existing or type a new product</span>
+            </div>
+            <button className="sup-add-line-btn" onClick={addLine}><Plus size={13}/>  LINE</button>
           </div>
 
+          {/* Line items */}
           <div className="sup-order-lines">
-            {items.map((it, idx) => (
-              <div key={idx} className="sup-order-line">
-                <select className="ms-form-input sup-line-product"
-                  value={it.product_id}
-                  onChange={e => {
-                    const p = products.find(pr => String(pr.product_id) === e.target.value);
-                    setLine(idx, 'product_id', e.target.value);
-                    if (p) setLine(idx, 'price', p.price);
-                  }}>
-                  <option value=""> Choose Product to order </option>
-                  {products.map(p => <option key={p.product_id} value={p.product_id}>{p.name}</option>)}
-                </select>
+            {items.map((it, idx) => {
+              const suggestions = it.product_name.trim().length > 0
+                ? products
+                    .filter(p => p.name.toLowerCase().includes(it.product_name.toLowerCase()))
+                    .slice(0, 6)
+                : [];
 
-                <div className="sup-line-qty-wrap">
-                  <label className="sup-line-mini-label">Qty</label>
-                  <input type="number" min="1" className="ms-form-input sup-line-qty"
-                    value={it.quantity}
-                    onChange={e => setLine(idx, 'quantity', parseInt(e.target.value) || 1)} />
+              return (
+                <div key={idx} className="sup-order-line-card">
+                  <div className="sup-order-line-row1">
+                    <div className="sup-line-col sup-line-col-product">
+                      <label className="sup-line-mini-label">
+                        Select Existing Product
+                        {it.product_id && <span className="sup-linked-badge">✓ linked</span>}
+                      </label>
+                      <select
+                        className="ms-form-input"
+                        value={it.product_id}
+                        onChange={e => handleDropdownSelect(idx, e.target.value)}
+                      >
+                        <option value="">Choose from existing products </option>
+                        {products.map(p => (
+                          <option key={p.product_id} value={p.product_id}>
+                            {p.name}  |  Rs. {parseFloat(p.price).toLocaleString()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="sup-line-col sup-line-col-qty">
+                      <label className="sup-line-mini-label">Qty <span className="sup-required">*</span></label>
+                      <input type="number" min="1"
+                        className="ms-form-input"
+                        value={it.quantity}
+                        onChange={e => setLine(idx, 'quantity', e.target.value)} />
+                    </div>
+
+                    <div className="sup-line-col sup-line-col-price">
+                      <label className="sup-line-mini-label">Purchase Price (Rs.) <span className="sup-required">*</span></label>
+                      <input type="number" min="0"
+                        className="ms-form-input"
+                        placeholder="Actual price paid"
+                        value={it.price}
+                        onChange={e => setLine(idx, 'price', e.target.value)} />
+                    </div>
+
+                    <div className="sup-line-col sup-line-col-sub">
+                      <label className="sup-line-mini-label">Subtotal</label>
+                      <div className="sup-line-subtotal">
+                        {fmt((parseFloat(it.price) || 0) * (parseFloat(it.quantity) || 0))}
+                      </div>
+                    </div>
+
+                    {items.length > 1 && (
+                      <button className="sup-line-remove" onClick={() => removeLine(idx)} title="Remove line">
+                        <X size={14}/>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="sup-order-line-row2">
+                    <div className="sup-product-input-wrap" style={{ flex: 1 }}>
+                      <label className="sup-line-mini-label">
+                        Product Name <span className="sup-required">*</span>
+                        <span className="sup-name-hint">  edit name or type a brand-new product</span>
+                      </label>
+                      <input
+                        className="ms-form-input"
+                        placeholder="Any new product not in your list"
+                        value={it.product_name}
+                        autoComplete="off"
+                        onChange={e => handleProductType(idx, e.target.value)}
+                        onFocus={() => {
+                          if (it.product_name.trim().length > 0)
+                            setLine(idx, 'showSuggestions', true);
+                        }}
+                        onBlur={() =>
+                          setTimeout(() => setLine(idx, 'showSuggestions', false), 180)
+                        }
+                      />
+                      {it.showSuggestions && suggestions.length > 0 && (
+                        <div className="sup-suggestions-drop">
+                          {suggestions.map(p => (
+                            <button
+                              key={p.product_id}
+                              className="sup-suggestion-item"
+                              onMouseDown={() => handlePickSuggestion(idx, p)}
+                            >
+                              <span className="sup-sug-name">{p.name}</span>
+                              <span className="sup-sug-price">Rs. {parseFloat(p.price).toLocaleString()}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                <div className="sup-line-price-wrap">
-                  <label className="sup-line-mini-label">Unit Cost (Rs.)</label>
-                  <input type="number" min="0" className="ms-form-input sup-line-price"
-                    placeholder="0"
-                    value={it.price}
-                    onChange={e => setLine(idx, 'price', e.target.value)} />
-                </div>
-
-                <div className="sup-line-subtotal">
-                  {fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0))}
-                </div>
-
-                {items.length > 1 && (
-                  <button className="sup-line-remove" onClick={() => removeLine(idx)}>
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="sup-order-total-row">
-            <span className="sup-order-total-label">Order Total</span>
-            <span className="sup-order-total-val">{fmt(total)}</span>
+            <div>
+              <span className="sup-order-total-label">Preview Total</span>
+              <span className="sup-order-items-count"> ({items.length} item{items.length !== 1 ? 's' : ''})</span>
+              <span className="sup-total-note"> — final total verified by server</span>
+            </div>
+            <span className="sup-order-total-val">{fmt(displayTotal)}</span>
           </div>
         </div>
 
         <div className="ms-modal-footer">
           <button className="ms-btn-cancel" onClick={onClose}>Cancel</button>
           <button className="ms-btn-save" onClick={handleSave} disabled={saving || !!success}>
-            <Save size={14} /> {saving ? 'Saving…' : 'Place Order'}
+            <Save size={14}/> {saving ? 'Placing Order…' : 'Place Order'}
           </button>
         </div>
       </div>
@@ -284,18 +444,39 @@ const AddOrderModal = ({ supplier, stores, products, onClose, onSaved, token }) 
   );
 };
 
-/* View Orders Modal (per supplier) */
+/* ══════════════════════════════════════════════════════════════════════════
+   ORDER STATUS BADGE + ICON helper
+══════════════════════════════════════════════════════════════════════════ */
+const StatusBadge = ({ status }) => {
+  const map = {
+    received:  { cls: 'sup-ord-received',  Icon: CheckSquare, label: 'Received'  },
+    cancelled: { cls: 'sup-ord-cancelled', Icon: XCircle,     label: 'Cancelled' },
+    pending:   { cls: 'sup-ord-pending',   Icon: Clock,       label: 'Pending'   },
+  };
+  const { cls, Icon, label } = map[status] || map.pending;
+  return (
+    <span className={`sup-order-status-badge ${cls}`}>
+      <Icon size={11} style={{ marginRight: 3 }}/>{label}
+    </span>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VIEW ORDERS MODAL — with status update (pending → received / cancelled)
+══════════════════════════════════════════════════════════════════════════ */
 const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) => {
-  const [orders,       setOrders]       = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [showAddOrder, setShowAddOrder] = useState(false);
-  const [expanded,     setExpanded]     = useState(null);
+  const [orders,        setOrders]        = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [showAddOrder,  setShowAddOrder]  = useState(false);
+  const [expanded,      setExpanded]      = useState(null);
+  const [updatingId,    setUpdatingId]    = useState(null);   // order being status-updated
+  const [statusError,   setStatusError]   = useState('');
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/suppliers/${supplier.supplier_id}/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: plain(token),
       });
       if (res.ok) setOrders(await res.json());
     } catch { /* silent */ }
@@ -304,9 +485,31 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const statusClass = (s) =>
-    s === 'received' ? 'sup-ord-received' :
-    s === 'cancelled' ? 'sup-ord-cancelled' : 'sup-ord-pending';
+  /* Mark order received or cancelled */
+  const handleStatusChange = async (orderId, newStatus) => {
+    setUpdatingId(orderId); setStatusError('');
+    try {
+      const res = await fetch(
+        `${API}/api/suppliers/${supplier.supplier_id}/orders/${orderId}/status`,
+        {
+          method:  'PUT',
+          headers: hdr(token),
+          body:    JSON.stringify({ status: newStatus }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        // optimistic update in local state
+        setOrders(prev =>
+          prev.map(o => o.order_id === orderId ? { ...o, status: newStatus } : o)
+        );
+        onRefresh(); // refresh summary cards
+      } else {
+        setStatusError(data.message || 'Failed to update status.');
+      }
+    } catch { setStatusError('Network error.'); }
+    finally { setUpdatingId(null); }
+  };
 
   return (
     <>
@@ -326,6 +529,12 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
           </div>
 
           <div className="ms-modal-body sup-orders-body">
+            {statusError && (
+              <div className="ms-modal-error" style={{ marginBottom: '0.75rem' }}>
+                <AlertCircle size={16}/><span>{statusError}</span>
+              </div>
+            )}
+
             {loading ? (
               <div className="sup-orders-loading">Loading orders…</div>
             ) : orders.length === 0 ? (
@@ -346,9 +555,10 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
                       <div className="sup-order-card-left">
                         <span className="sup-order-id">Order #{ord.order_id}</span>
                         <span className="sup-order-store">{ord.store_name || '—'}</span>
-                        <span className={`sup-order-status-badge ${statusClass(ord.status)}`}>
-                          {ord.status || 'pending'}
-                        </span>
+                        {ord.invoice_number && (
+                          <span className="sup-order-invoice">INV: {ord.invoice_number}</span>
+                        )}
+                        <StatusBadge status={ord.status || 'pending'} />
                       </div>
                       <div className="sup-order-card-right">
                         <span className="sup-order-total">{fmt(ord.total)}</span>
@@ -359,13 +569,49 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
                       </div>
                     </div>
 
+                    {/*  STATUS ACTION BUTTONS  */}
+                    {(ord.status === 'pending' || !ord.status) && (
+                      <div className="sup-order-actions">
+                        <button
+                          className="sup-action-btn sup-receive-btn"
+                          disabled={updatingId === ord.order_id}
+                          onClick={e => { e.stopPropagation(); handleStatusChange(ord.order_id, 'received'); }}
+                          title="Mark as Received — will update inventory automatically"
+                        >
+                          {updatingId === ord.order_id
+                            ? <RefreshCw size={13} className="sup-spinning"/>
+                            : <CheckSquare size={13}/>}
+                          {updatingId === ord.order_id ? ' Updating…' : ' Mark Received'}
+                        </button>
+                        <button
+                          className="sup-action-btn sup-cancel-btn"
+                          disabled={updatingId === ord.order_id}
+                          onClick={e => { e.stopPropagation(); handleStatusChange(ord.order_id, 'cancelled'); }}
+                          title="Cancel this order"
+                        >
+                          <XCircle size={13}/> Cancel Order
+                        </button>
+                      </div>
+                    )}
+
+                    {ord.status === 'received' && (
+                      <div className="sup-order-received-note">
+                        <CheckCircle size={13}/> Inventory updated when this order was received.
+                      </div>
+                    )}
+
+                    {/*  EXPANDED ITEMS TABLE  */}
                     {expanded === ord.order_id && ord.items && (
                       <div className="sup-order-items-table-wrap">
+                        {ord.notes && (
+                          <p className="sup-order-notes-row"><strong>Notes:</strong> {ord.notes}</p>
+                        )}
                         <table className="sup-order-items-table">
                           <thead>
                             <tr>
                               <th>Product</th>
-                              <th>Qty</th>
+                              <th>Ordered</th>
+                              <th>Received</th>
                               <th>Unit Cost</th>
                               <th>Subtotal</th>
                             </tr>
@@ -375,6 +621,11 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
                               <tr key={i}>
                                 <td>{it.product_name || '—'}</td>
                                 <td>{it.quantity}</td>
+                                <td>
+                                  {it.quantity_received !== undefined
+                                    ? it.quantity_received
+                                    : <span style={{ color:'#9ca3af' }}>—</span>}
+                                </td>
                                 <td>{fmt(it.price)}</td>
                                 <td>{fmt((parseFloat(it.price) || 0) * (parseFloat(it.quantity) || 0))}</td>
                               </tr>
@@ -409,7 +660,9 @@ const OrdersModal = ({ supplier, stores, products, onClose, onRefresh, token }) 
   );
 };
 
-/*  Main Suppliers Component */
+/* ══════════════════════════════════════════════════════════════════════════
+   MAIN SUPPLIERS COMPONENT — server-side pagination
+══════════════════════════════════════════════════════════════════════════ */
 const Suppliers = () => {
   const navigate = useNavigate();
   const user  = JSON.parse(localStorage.getItem('user')  || '{}');
@@ -421,46 +674,80 @@ const Suppliers = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   // data
-  const [suppliers, setSuppliers] = useState([]);
-  const [stores,    setStores]    = useState([]);
-  const [products,  setProducts]  = useState([]);
-  const [summary,   setSummary]   = useState({ total: 0, active_month: 0, total_orders: 0, total_spent: 0 });
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState('');
+  const [suppliers,  setSuppliers]  = useState([]);
+  const [stores,     setStores]     = useState([]);
+  const [products,   setProducts]   = useState([]);
+  const [summary,    setSummary]    = useState({
+    total: 0, active_month: 0, total_orders: 0,
+    pending_orders: 0, received_orders: 0, total_spent: 0,
+  });
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
 
-  // filters
-  const [search, setSearch] = useState('');
-  const [page,   setPage]   = useState(1);
+  // server-side pagination + search
+  const [search,     setSearch]     = useState('');
+  const [page,       setPage]       = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // modals
-  const [editSupplier,   setEditSupplier]   = useState(null);   // null | supplier obj
+  const [editSupplier,   setEditSupplier]   = useState(null);
   const [addOpen,        setAddOpen]        = useState(false);
   const [deleteSupplier, setDeleteSupplier] = useState(null);
   const [ordersSupplier, setOrdersSupplier] = useState(null);
 
-  /*  fetch all data  */
-  const fetchAll = useCallback(async () => {
+  /* fetch suppliers (server-side paginated + searched) */
+  const fetchSuppliers = useCallback(async (pg = 1, q = '') => {
     setLoading(true); setError('');
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const [supRes, storeRes, prodRes, sumRes] = await Promise.all([
-        fetch(`${API}/api/suppliers`,              { headers }),
-        fetch(`${API}/api/inventory/stores`,       { headers }),
-        fetch(`${API}/api/shopproducts`,           { headers }),
-        fetch(`${API}/api/suppliers/summary`,      { headers }),
-      ]);
-      if (supRes.ok)   setSuppliers(await supRes.json());
-      else             setError('Failed to load suppliers.');
-      if (storeRes.ok) setStores(await storeRes.json());
-      if (prodRes.ok)  setProducts(await prodRes.json());
-      if (sumRes.ok)   setSummary(await sumRes.json());
+      const params = new URLSearchParams({ page: pg, limit: ITEMS_PER_PAGE });
+      if (q.trim()) params.set('search', q.trim());
+
+      const res = await fetch(`${API}/api/suppliers?${params}`, { headers: plain(token) });
+      if (res.ok) {
+        const json = await res.json();
+        setSuppliers(json.data       || []);
+        setTotalPages(json.total_pages || 1);
+        setTotalCount(json.total      || 0);
+      } else {
+        setError('Failed to load suppliers.');
+      }
     } catch { setError('Network error. Please try again.'); }
     finally  { setLoading(false); }
   }, [token]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  /* fetch supporting data */
+  const fetchSupporting = useCallback(async () => {
+    try {
+      const headers = plain(token);
+      const [storeRes, prodRes, sumRes] = await Promise.all([
+        fetch(`${API}/api/inventory/stores`,  { headers }),
+        fetch(`${API}/api/shopproducts`,      { headers }),
+        fetch(`${API}/api/suppliers/summary`, { headers }),
+      ]);
+      if (storeRes.ok) setStores(await storeRes.json());
+      if (prodRes.ok)  setProducts(await prodRes.json());
+      if (sumRes.ok)   setSummary(await sumRes.json());
+    } catch { /* silent */ }
+  }, [token]);
 
-  /*  outside click  */
+  const refreshAll = useCallback(() => {
+    fetchSuppliers(page, search);
+    fetchSupporting();
+  }, [fetchSuppliers, fetchSupporting, page, search]);
+
+  useEffect(() => { fetchSuppliers(1, ''); fetchSupporting(); }, [fetchSuppliers, fetchSupporting]);
+
+  /* debounced search */
+  useEffect(() => {
+    const t = setTimeout(() => { setPage(1); fetchSuppliers(1, search); }, 350);
+    return () => clearTimeout(t);
+  }, [search, fetchSuppliers]);
+
+  /* page change */
+  useEffect(() => { fetchSuppliers(page, search); }, [page]); // eslint-disable-line
+
+  /* outside click */
   useEffect(() => {
     const h = (e) => {
       if (menuDropdownRef.current    && !menuDropdownRef.current.contains(e.target))
@@ -493,22 +780,13 @@ const Suppliers = () => {
     return <span className={size === 'dropdown' ? 'avatar-initials' : 'profile-initials'}>{initials}</span>;
   };
 
-  /*  filter & paginate  */
-  const filtered = suppliers.filter(s =>
-    !search ||
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    (s.phone  || '').toLowerCase().includes(search.toLowerCase()) ||
-    (s.email  || '').toLowerCase().includes(search.toLowerCase()) ||
-    (s.contact_person || '').toLowerCase().includes(search.toLowerCase())
-  );
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const safePage   = Math.min(page, totalPages);
-  const paginated  = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  const startItem = (page - 1) * ITEMS_PER_PAGE + 1;
+  const endItem   = Math.min(page * ITEMS_PER_PAGE, totalCount);
 
   return (
     <div className="shop-admin-container">
 
-      {/*  SIDEBAR  */}
+      {/* SIDEBAR */}
       <aside className="shop-admin-sidebar">
         <div className="shop-brand-header">{renderShopLogo()}</div>
         <nav className="shop-sidebar-nav">
@@ -559,7 +837,7 @@ const Suppliers = () => {
         </nav>
       </aside>
 
-      {/*  MAIN  */}
+      {/* MAIN */}
       <main className="shop-admin-main">
 
         {/* HEADER */}
@@ -627,7 +905,7 @@ const Suppliers = () => {
           </div>
         </header>
 
-        {/*  PAGE CONTENT  */}
+        {/* PAGE CONTENT */}
         <div className="shop-dashboard-content">
 
           {/* Page title + Add button */}
@@ -641,13 +919,13 @@ const Suppliers = () => {
             </button>
           </div>
 
-          {/*  STAT CARDS  */}
+          {/* STAT CARDS — now includes pending + received counts */}
           <div className="sup-stat-cards">
             <div className="sup-stat-card">
               <div className="sup-stat-icon-wrap sup-icon-total"><Truck size={20}/></div>
               <div className="sup-stat-info">
                 <p className="sup-stat-label">Total Suppliers</p>
-                <p className="sup-stat-value">{summary.total ?? suppliers.length}</p>
+                <p className="sup-stat-value">{summary.total ?? 0}</p>
               </div>
             </div>
             <div className="sup-stat-card">
@@ -658,10 +936,10 @@ const Suppliers = () => {
               </div>
             </div>
             <div className="sup-stat-card">
-              <div className="sup-stat-icon-wrap sup-icon-orders"><ClipboardList size={20}/></div>
+              <div className="sup-stat-icon-wrap sup-icon-orders"><Clock size={20}/></div>
               <div className="sup-stat-info">
-                <p className="sup-stat-label">Total Orders</p>
-                <p className="sup-stat-value">{summary.total_orders ?? 0}</p>
+                <p className="sup-stat-label">Pending Orders</p>
+                <p className="sup-stat-value">{summary.pending_orders ?? 0}</p>
               </div>
             </div>
             <div className="sup-stat-card">
@@ -673,17 +951,22 @@ const Suppliers = () => {
             </div>
           </div>
 
-          {/*  SUPPLIERS TABLE PANEL  */}
+          {/* SUPPLIERS TABLE PANEL */}
           <div className="prod-table-card">
 
             {/* Filter bar */}
             <div className="sup-filter-bar">
               <div className="prod-search-wrap">
                 <Search size={15} className="prod-search-icon"/>
-                <input className="prod-search-input" placeholder="Search suppliers by name, phone, email…"
+                <input className="prod-search-input" placeholder="Search by name, phone, email, contact…"
                   value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }} />
+                  onChange={e => setSearch(e.target.value)} />
               </div>
+              {search && (
+                <button className="sup-clear-search" onClick={() => setSearch('')}>
+                  <X size={14}/> Clear
+                </button>
+              )}
             </div>
 
             {/* Table */}
@@ -694,7 +977,7 @@ const Suppliers = () => {
                 <div className="prod-empty-icon"><AlertCircle size={24}/></div>
                 <h3>Error</h3><p>{error}</p>
               </div>
-            ) : filtered.length === 0 ? (
+            ) : suppliers.length === 0 ? (
               <div className="prod-empty">
                 <div className="prod-empty-icon"><Truck size={24}/></div>
                 <h3>No suppliers found</h3>
@@ -724,10 +1007,10 @@ const Suppliers = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginated.map((s, idx) => (
+                      {suppliers.map((s, idx) => (
                         <tr key={s.supplier_id}>
                           <td style={{ color:'#9ca3af', fontSize:'0.8125rem' }}>
-                            {(safePage - 1) * ITEMS_PER_PAGE + idx + 1}
+                            {startItem + idx}
                           </td>
                           <td>
                             <div className="sup-name-cell">
@@ -755,10 +1038,18 @@ const Suppliers = () => {
                           <td>
                             {s.address
                               ? <span className="sup-address-cell"><MapPin size={11}/>{s.address}</span>
-                              : <span style={{ color:'#9ca3af' }}></span>}
+                              : <span style={{ color:'#9ca3af' }}>—</span>}
                           </td>
                           <td>
-                            <span className="sup-orders-badge">{s.order_count ?? 0} orders</span>
+                            <div className="sup-orders-breakdown">
+                              <span className="sup-orders-badge">{s.order_count ?? 0} total</span>
+                              {(s.pending_orders  > 0) && (
+                                <span className="sup-orders-badge sup-badge-pending">{s.pending_orders} pending</span>
+                              )}
+                              {(s.received_orders > 0) && (
+                                <span className="sup-orders-badge sup-badge-received">{s.received_orders} received</span>
+                              )}
+                            </div>
                           </td>
                           <td>
                             <span className="sup-spent">{fmt(s.total_spent)}</span>
@@ -788,18 +1079,20 @@ const Suppliers = () => {
                   </table>
                 </div>
 
-                {/* Pagination */}
+                {/* Pagination — server-side */}
                 <div className="prod-table-footer">
                   <span className="prod-pagination-info">
-                    Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}–
-                    {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} suppliers
+                    {totalCount > 0
+                      ? `Showing ${startItem}–${endItem} of ${totalCount} suppliers`
+                      : 'No suppliers'}
                   </span>
                   <div className="prod-pagination-btns">
-                    <button className="prod-page-btn" disabled={safePage === 1}
+                    <button className="prod-page-btn" disabled={page === 1}
                       onClick={() => setPage(p => p - 1)}>
                       <ChevronLeft size={14}/> Previous
                     </button>
-                    <button className="prod-page-btn" disabled={safePage === totalPages}
+                    <span className="sup-page-indicator">Page {page} of {totalPages}</span>
+                    <button className="prod-page-btn" disabled={page === totalPages}
                       onClick={() => setPage(p => p + 1)}>
                       Next <ChevronRight size={14}/>
                     </button>
@@ -811,13 +1104,13 @@ const Suppliers = () => {
         </div>
       </main>
 
-      {/*  MODALS  */}
+      {/* MODALS */}
       {addOpen && (
         <SupplierModal
           supplier={null}
           token={token}
           onClose={() => setAddOpen(false)}
-          onSaved={fetchAll}
+          onSaved={refreshAll}
         />
       )}
       {editSupplier && (
@@ -825,7 +1118,7 @@ const Suppliers = () => {
           supplier={editSupplier}
           token={token}
           onClose={() => setEditSupplier(null)}
-          onSaved={fetchAll}
+          onSaved={refreshAll}
         />
       )}
       {deleteSupplier && (
@@ -833,7 +1126,7 @@ const Suppliers = () => {
           supplier={deleteSupplier}
           token={token}
           onClose={() => setDeleteSupplier(null)}
-          onDeleted={fetchAll}
+          onDeleted={refreshAll}
         />
       )}
       {ordersSupplier && (
@@ -843,7 +1136,7 @@ const Suppliers = () => {
           products={products}
           token={token}
           onClose={() => setOrdersSupplier(null)}
-          onRefresh={fetchAll}
+          onRefresh={refreshAll}
         />
       )}
     </div>

@@ -5,6 +5,8 @@ import ServicesPage from "./components/ServicesPage";
 import Pricing from "./pages/Pricing";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import PendingApproval from "./pages/PendingApproval";
+
 import PaymentConfirmation from "./pages/PaymentConfirmation";
 import POSTerminal from "./POSTerminal/POSTerminal";
 import MyProfile from "./POSTerminal/MyProfile";
@@ -23,6 +25,7 @@ import SystemAdminProfile from "./SystemTerminal/SystemAdminProfile";
 import SystemSettings from "./SystemTerminal/Systemsettings";
 
 
+import ShopSetup from "./pages/ShopSetup";
 import ShopAdminDashboard from "./ShopAdminTerminal/ShopAdminDashboard";
 import ShopProfile from "./ShopAdminTerminal/ShopProfile";
 import Subscription from "./ShopAdminTerminal/Subscription";
@@ -45,7 +48,8 @@ const App = () => {
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/payementconfirmation" element={<PaymentConfirmation />} />
+      <Route path="/pending" element={<PendingApproval />} />
+      
       <Route path="/posterminal" element={<POSTerminal />} />
       <Route path="/myprofile" element={<MyProfile />} />
       <Route path="/shiftreport" element={<ShiftReport />} />
@@ -64,6 +68,9 @@ const App = () => {
 
 
 
+
+      <Route path="/shopsetup" element={<ShopSetup/>} />
+      <Route path="/paymentconfirmation" element={<PaymentConfirmation />} />
       <Route path="/shopadmindashboard" element={<ShopAdminDashboard/>} />
       <Route path="/shopprofile" element={<ShopProfile />} />
       <Route path="/subscription" element={<Subscription />} />

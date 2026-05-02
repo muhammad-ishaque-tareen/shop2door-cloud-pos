@@ -1,16 +1,17 @@
+// inventory.controller.js
 
+/*  configurable per-product threshold fallback 
+   In future each product can have its own reorder_level column.
+   Until then we use this global default.                                  */
+const DEFAULT_LOW_STOCK = 10;
 
-const LOW_STOCK_THRESHOLD = 10; 
-
-//  helpers 
-
-const getStatus = (qty) => {
-  if (qty === 0) return 'Out of Stock';
-  if (qty <= LOW_STOCK_THRESHOLD) return 'Low Stock';
+const getStatus = (qty, threshold = DEFAULT_LOW_STOCK) => {
+  if (qty === 0)          return 'Out of Stock';
+  if (qty <= threshold)   return 'Low Stock';
   return 'In Stock';
 };
 
-//  GET /api/inventory/summary 
+/* GET /api/inventory/summary */
 exports.getSummary = async (req, res) => {
   if (!req.shopDB)
     return res.status(500).json({ message: 'Database connection unavailable.' });
@@ -18,16 +19,17 @@ exports.getSummary = async (req, res) => {
   try {
     const result = await req.shopDB.query(
       `SELECT
-         COUNT(*)::INT                                                           AS total_products,
-         COUNT(*) FILTER (WHERE COALESCE(si.quantity, p.stock, 0) >  $1)::INT   AS in_stock,
+         COUNT(*)::INT                                                             AS total_products,
+         COUNT(*) FILTER (WHERE COALESCE(si.quantity, p.stock, 0) >  $1)::INT     AS in_stock,
          COUNT(*) FILTER (WHERE COALESCE(si.quantity, p.stock, 0) >  0
-                            AND COALESCE(si.quantity, p.stock, 0) <= $1)::INT   AS low_stock,
-         COUNT(*) FILTER (WHERE COALESCE(si.quantity, p.stock, 0) =  0)::INT   AS out_of_stock
+                            AND COALESCE(si.quantity, p.stock, 0) <= $1)::INT     AS low_stock,
+         COUNT(*) FILTER (WHERE COALESCE(si.quantity, p.stock, 0) =  0)::INT      AS out_of_stock,
+         COALESCE(SUM(p.price * COALESCE(si.quantity, p.stock, 0)), 0)            AS total_inventory_value
        FROM products p
        LEFT JOIN store_inventory si
               ON si.product_id = p.product_id
              AND si.store_id   = p.store_id`,
-      [LOW_STOCK_THRESHOLD]
+      [DEFAULT_LOW_STOCK]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -36,16 +38,18 @@ exports.getSummary = async (req, res) => {
   }
 };
 
-//  GET /api/inventory 
+/* GET /api/inventory
+   Supports: ?store_id= &category_id= &status= &search= &page= &limit=    */
 exports.getInventory = async (req, res) => {
   if (!req.shopDB)
     return res.status(500).json({ message: 'Database connection unavailable.' });
 
-  // optional filters: ?store_id=&category_id=&status=&search=
   const { store_id, category_id, status, search } = req.query;
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, parseInt(req.query.limit) || 50);
 
   try {
-    const params = [];
+    const params     = [];
     const conditions = [];
 
     if (store_id) {
@@ -63,8 +67,17 @@ exports.getInventory = async (req, res) => {
       );
     }
 
-    const whereClause =
-      conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // count total (before status filter — status is computed, not a DB column)
+    const countRes = await req.shopDB.query(
+      `SELECT COUNT(*)::INT AS total
+       FROM products p
+       LEFT JOIN store_inventory si ON si.product_id = p.product_id
+                                   AND si.store_id   = p.store_id
+       ${whereClause}`,
+      params
+    );
 
     const result = await req.shopDB.query(
       `SELECT
@@ -75,12 +88,14 @@ exports.getInventory = async (req, res) => {
          p.unit,
          p.description,
          p.image_url,
+         p.is_active,
          p.created_at,
          p.store_id,
          p.category_id,
          c.name  AS category_name,
          s.name  AS store_name,
-         COALESCE(si.quantity, p.stock, 0)::INT AS stock
+         COALESCE(si.quantity, p.stock, 0)::INT AS stock,
+         COALESCE(p.reorder_level, $${params.length + 1})::INT AS reorder_level
        FROM products p
        LEFT JOIN categories      c  ON c.category_id = p.category_id
        LEFT JOIN stores          s  ON s.store_id    = p.store_id
@@ -88,30 +103,41 @@ exports.getInventory = async (req, res) => {
                                    AND si.store_id   = p.store_id
        ${whereClause}
        ORDER BY p.created_at DESC`,
-      params
+      [...params, DEFAULT_LOW_STOCK]
     );
 
-    let rows = result.rows.map((r) => ({ ...r, status: getStatus(r.stock) }));
+    let rows = result.rows.map(r => ({
+      ...r,
+      status: getStatus(r.stock, r.reorder_level),
+    }));
 
-    // client-side status filter (cheaper than adding a sub-query)
-    if (status) {
-      rows = rows.filter((r) => r.status === status);
-    }
+    // status filter (computed field — must filter in app)
+    if (status) rows = rows.filter(r => r.status === status);
 
-    res.json(rows);
+    // paginate after status filter
+    const total      = status ? rows.length : countRes.rows[0].total;
+    const paginated  = rows.slice((page - 1) * limit, page * limit);
+
+    res.json({
+      data:        paginated,
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit),
+    });
   } catch (err) {
     console.error('[INVENTORY] getInventory:', err.message);
     res.status(500).json({ message: 'Server error', detail: err.message });
   }
 };
 
-//  PUT /api/inventory/:productId/adjust 
-// Body: { store_id, quantity, note }   (quantity is the NEW absolute value)
+/* PUT /api/inventory/:productId/adjust
+   Body: { store_id, quantity, note }   (quantity = new absolute value)    */
 exports.adjustStock = async (req, res) => {
   if (!req.shopDB)
     return res.status(500).json({ message: 'Database connection unavailable.' });
 
-  const { productId } = req.params;
+  const { productId }        = req.params;
   const { store_id, quantity } = req.body;
 
   if (quantity === undefined || isNaN(parseInt(quantity)) || parseInt(quantity) < 0)
@@ -119,18 +145,36 @@ exports.adjustStock = async (req, res) => {
   if (!store_id)
     return res.status(400).json({ message: 'store_id is required.' });
 
-  const qty = parseInt(quantity);
+  const qty    = parseInt(quantity);
+  const client = await req.shopDB.connect();
 
   try {
-    // confirm product exists
-    const check = await req.shopDB.query(
-      `SELECT product_id FROM products WHERE product_id = $1`, [productId]
-    );
-    if (!check.rows.length)
-      return res.status(404).json({ message: 'Product not found.' });
+    await client.query('BEGIN');
 
-    // update store_inventory (upsert)
-    await req.shopDB.query(
+    // verify product exists
+    const check = await client.query(
+      `SELECT product_id, COALESCE(reorder_level, $1)::INT AS reorder_level
+       FROM products WHERE product_id = $2`,
+      [DEFAULT_LOW_STOCK, parseInt(productId)]
+    );
+    if (!check.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+
+    // verify store exists
+    const storeChk = await client.query(
+      `SELECT store_id FROM stores WHERE store_id = $1`, [parseInt(store_id)]
+    );
+    if (!storeChk.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Store not found.' });
+    }
+
+    const reorderLevel = check.rows[0].reorder_level;
+
+    // upsert store_inventory
+    await client.query(
       `INSERT INTO store_inventory (store_id, product_id, quantity)
        VALUES ($1, $2, $3)
        ON CONFLICT (store_id, product_id)
@@ -139,26 +183,36 @@ exports.adjustStock = async (req, res) => {
     );
 
     // keep products.stock in sync
-    await req.shopDB.query(
+    await client.query(
       `UPDATE products SET stock = $1, quantity = $1 WHERE product_id = $2`,
       [qty, parseInt(productId)]
     );
 
-    res.json({ message: 'Stock adjusted successfully.', stock: qty, status: getStatus(qty) });
+    await client.query('COMMIT');
+
+    res.json({
+      message:       'Stock adjusted successfully.',
+      stock:         qty,
+      status:        getStatus(qty, reorderLevel),
+      reorder_level: reorderLevel,
+    });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('[INVENTORY] adjustStock:', err.message);
     res.status(500).json({ message: 'Server error', detail: err.message });
+  } finally {
+    client.release();
   }
 };
 
-//  GET /api/inventory/stores 
+/* GET /api/inventory/stores */
 exports.getStores = async (req, res) => {
   if (!req.shopDB)
     return res.status(500).json({ message: 'Database connection unavailable.' });
 
   try {
     const result = await req.shopDB.query(
-      `SELECT store_id, name FROM stores ORDER BY name ASC`
+      `SELECT store_id, name FROM stores WHERE is_active = true ORDER BY name ASC`
     );
     res.json(result.rows);
   } catch (err) {

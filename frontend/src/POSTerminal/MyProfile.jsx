@@ -105,7 +105,6 @@ const MyProfile = () => {
       setCurrentUser(updatedUser);
       setPreviewUrl(null);
       setSelectedImageFile(null);
-      alert('Profile picture updated!');
     } catch (err) {
       alert(err.message || 'Failed to upload picture.');
     } finally {
@@ -143,7 +142,6 @@ const MyProfile = () => {
       setPreviewUrl(null);
       setSelectedImageFile(null);
       setShowUpdateForm(false);
-      alert('Profile updated successfully!');
     } catch (err) {
       alert(err.message || 'Failed to update profile. Please try again.');
     } finally {

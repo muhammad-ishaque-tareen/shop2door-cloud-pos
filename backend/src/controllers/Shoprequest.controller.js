@@ -203,84 +203,118 @@ const sendApprovalEmail = async (toEmail, toName, shopName, shopCode, tempPasswo
     to: toEmail,
     subject: "🎉 Your Shop2Door Account is Approved!",
     html: `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;
-                  padding:32px;background:#f9f9f9;border-radius:12px;">
-        <h2 style="color:#9c27b0;margin-bottom:4px;">Shop2Door</h2>
-        <h3 style="color:#1f2937;margin-top:0;">Congratulations, ${toName}!</h3>
-        <p style="color:#444;font-size:15px;">
-          Your shop <strong>${shopName}</strong> has been approved and is now active.
-          Here are your login credentials:
-        </p>
+      <div style="font-family:'Segoe UI',Arial,sans-serif;background:#f9f9f9;padding:40px 32px;">
+        <div style="max-width:520px;margin:0 auto;">
 
-        <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;
-                    padding:20px;margin:24px 0;">
-          <table style="width:100%;font-size:14px;color:#374151;">
-            <tr>
-              <td style="padding:8px 0;font-weight:600;color:#6b7280;">Login Email</td>
-              <td style="padding:8px 0;">${toEmail}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;font-weight:600;color:#6b7280;">Temporary Password</td>
-              <td style="padding:8px 0;font-family:monospace;font-size:16px;
-                         color:#9c27b0;font-weight:700;">${tempPassword}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;font-weight:600;color:#6b7280;">Shop Code</td>
-              <td style="padding:8px 0;font-family:monospace;font-size:16px;
-                         color:#059669;font-weight:700;">${shopCode}</td>
-            </tr>
-          </table>
+          <div style="margin-bottom:24px;">
+            <span style="font-size:22px;font-weight:700;color:#9c27b0;letter-spacing:-0.5px;">Shop2Door</span>
+          </div>
+
+          <h2 style="color:#1f2937;font-size:20px;font-weight:600;margin:0 0 4px;">Congratulations, ${toName}!</h2>
+          <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">You're officially part of the Shop2Door family.</p>
+
+          <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 8px;">
+            Your shop <strong>${shopName}</strong> has been approved and is now live.
+            Here are your login credentials to get started:
+          </p>
+
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin:20px 0;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:10px 0;color:#9ca3af;font-weight:600;width:42%;">Login Email</td>
+                <td style="padding:10px 0;color:#374151;">${toEmail}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:10px 0;color:#9ca3af;font-weight:600;">Temporary Password</td>
+                <td style="padding:10px 0;font-family:monospace;font-size:15px;color:#9c27b0;font-weight:700;letter-spacing:1px;">${tempPassword}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;color:#9ca3af;font-weight:600;">Shop Code</td>
+                <td style="padding:10px 0;font-family:monospace;font-size:15px;color:#059669;font-weight:700;letter-spacing:1px;">${shopCode}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background:#fef3c7;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:10px 14px;margin-bottom:16px;">
+            <p style="color:#92400e;font-size:13px;font-weight:600;margin:0;">⚠️ Please log in and change your password immediately.</p>
+          </div>
+
+          <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 8px;">
+            Share the <strong style="color:#374151;">Shop Code</strong> with your Store Managers and Cashiers. They need it to log in.
+          </p>
+
+          <p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0 0;">
+            Thank you for choosing <strong style="color:#9c27b0;">Shop2Door</strong> for your business. We're excited to support your growth!
+          </p>
+
+          <div style="border-top:1px solid #e5e7eb;margin-top:28px;padding-top:20px;">
+            <p style="color:#6b7280;font-size:13px;margin:0 0 6px;">Need help? Reach out to our support team:</p>
+            <a href="mailto:info.shop2door@gmail.com"
+               style="display:inline-block;background:#f3e8ff;color:#7e22ce;font-size:13px;
+                      font-weight:600;padding:8px 16px;border-radius:6px;
+                      text-decoration:none;border:1px solid #d8b4fe;">
+              info.shop2door@gmail.com
+            </a>
+            <p style="color:#d1d5db;font-size:11px;margin:16px 0 0;">© 2026 SHOP2DOOR. All rights reserved.</p>
+          </div>
+
         </div>
-
-        <p style="color:#ef4444;font-size:13px;font-weight:600;">
-          ⚠️ Please log in and change your password immediately.
-        </p>
-        <p style="color:#6b7280;font-size:13px;">
-          Share the <strong>Shop Code</strong> with your Store Managers and Cashiers
-          — they need it to log in.
-        </p>
-        <p style="color:#bbb;font-size:12px;margin-top:24px;">
-          If you have any questions, contact Shop2Door support.
-        </p>
       </div>
     `,
   });
 };
 
-//  Helper: send rejection email
 const sendRejectionEmail = async (toEmail, toName, shopName, reason) => {
   await transporter.sendMail({
     from: `"Shop2Door" <${process.env.EMAIL_USER}>`,
     to: toEmail,
     subject: "Shop2Door — Shop Request Update",
     html: `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;
-                  padding:32px;background:#f9f9f9;border-radius:12px;">
-        <h2 style="color:#9c27b0;margin-bottom:4px;">Shop2Door</h2>
-        <h3 style="color:#1f2937;margin-top:0;">Hello, ${toName}</h3>
-        <p style="color:#444;font-size:15px;">
-          We're sorry to inform you that your shop request for
-          <strong>${shopName}</strong> could not be approved at this time.
-        </p>
-        ${reason ? `
-        <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;
-                    border-radius:6px;margin:16px 0;">
-          <p style="color:#dc2626;font-size:14px;margin:0;">
-            <strong>Reason:</strong> ${reason}
+      <div style="font-family:'Segoe UI',Arial,sans-serif;background:#f9f9f9;padding:40px 32px;">
+        <div style="max-width:520px;margin:0 auto;">
+
+          <div style="margin-bottom:24px;">
+            <span style="font-size:22px;font-weight:700;color:#9c27b0;letter-spacing:-0.5px;">Shop2Door</span>
+          </div>
+
+          <h2 style="color:#1f2937;font-size:20px;font-weight:600;margin:0 0 4px;">Hello, ${toName}</h2>
+          <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">An update on your shop request</p>
+
+          <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 16px;">
+            We're sorry to inform you that your shop request for
+            <strong>${shopName}</strong> could not be approved at this time.
           </p>
-        </div>` : ""}
-        <p style="color:#444;font-size:15px;">
-          Please verify your payment details and contact Shop2Door support
-          to resubmit your request.
-        </p>
-        <p style="color:#bbb;font-size:12px;margin-top:24px;">
-          Shop2Door Support Team
-        </p>
+
+          ${reason ? `
+          <div style="background:#fef2f2;border-left:3px solid #ef4444;border-radius:0 6px 6px 0;padding:12px 16px;margin:16px 0;">
+            <p style="color:#dc2626;font-size:13px;font-weight:600;margin:0 0 4px;">Reason for rejection</p>
+            <p style="color:#991b1b;font-size:13px;margin:0;">${reason}</p>
+          </div>` : ""}
+
+          <p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0;">
+            Please verify your payment details and contact our support team to resubmit your request.
+          </p>
+
+          <p style="color:#374151;font-size:14px;line-height:1.6;margin:0;">
+            Thank you for your interest in <strong style="color:#9c27b0;">Shop2Door</strong>. we hope to have you on board soon.
+          </p>
+
+          <div style="border-top:1px solid #e5e7eb;margin-top:28px;padding-top:20px;">
+            <p style="color:#6b7280;font-size:13px;margin:0 0 6px;">Questions? Contact our support team:</p>
+            <a href="mailto:info.shop2door@gmail.com"
+               style="display:inline-block;background:#f3e8ff;color:#7e22ce;font-size:13px;
+                      font-weight:600;padding:8px 16px;border-radius:6px;
+                      text-decoration:none;border:1px solid #d8b4fe;">
+              info.shop2door@gmail.com
+            </a>
+            <p style="color:#d1d5db;font-size:11px;margin:16px 0 0;">© 2026 SHOP2DOOR. All rights reserved.</p>
+          </div>
+
+        </div>
       </div>
     `,
   });
 };
-
 //  GET /api/shop-requests
 //  Returns all pending/payment_submitted requests
 exports.getShopRequests = async (req, res) => {

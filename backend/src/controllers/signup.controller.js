@@ -62,33 +62,76 @@ exports.sendOtp = async (req, res) => {
 
     otpStore.set(cleanEmail, { otp, expiresAt, verified: false });
 
-    await transporter.sendMail({
-      from:    `"Shop2Door" <${process.env.EMAIL_USER}>`,
-      to:      cleanEmail,
-      subject: "Your Shop2Door Verification Code",
-      html: `
-        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:480px;margin:0 auto;
-                    padding:32px;background:#f9f9f9;border-radius:12px;">
-          <h2 style="color:#9c27b0;margin-bottom:8px;">Shop2Door</h2>
-          <p style="color:#444;font-size:15px;">
-            Hello! Use the code below to verify your email address.
+   await transporter.sendMail({
+  from: `"Shop2Door" <${process.env.EMAIL_USER}>`,
+  to: cleanEmail,
+  subject: "Your Shop2Door Verification Code",
+  html: `
+    <div style="font-family:'Segoe UI',Arial,sans-serif;background:#f9f9f9;padding:40px 32px;">
+      <div style="max-width:480px;margin:0 auto;">
+
+        <div style="margin-bottom:20px;">
+          <span style="font-size:22px;font-weight:700;color:#9c27b0;letter-spacing:-0.5px;">Shop2Door</span>
+        </div>
+
+        <h2 style="color:#1f2937;font-size:20px;font-weight:600;margin:0 0 4px;">Verify your email address</h2>
+        <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">
+          Enter the code below to confirm your identity and continue.
+        </p>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;
+                    padding:28px 24px;text-align:center;margin-bottom:20px;">
+          <p style="color:#9ca3af;font-size:12px;font-weight:600;
+                    letter-spacing:1px;text-transform:uppercase;margin:0 0 14px;">
+            Your verification code
           </p>
-          <div style="background:#9c27b0;color:white;font-size:36px;font-weight:800;
-                      letter-spacing:10px;text-align:center;padding:24px 0;
-                      border-radius:10px;margin:24px 0;">
-            ${otp}
+          <div style="display:inline-flex;gap:10px;">
+            ${otp.toString().split("").map(digit => `
+              <span style="display:inline-block;background:#f3e8ff;color:#7e22ce;
+                           font-size:30px;font-weight:800;font-family:monospace;
+                           width:48px;height:56px;line-height:56px;text-align:center;
+                           border-radius:8px;border:1.5px solid #d8b4fe;">
+                ${digit}
+              </span>
+            `).join("")}
           </div>
-          <p style="color:#777;font-size:13px;">
-            This code expires in <strong>5 minutes</strong>. Do not share it with anyone.
-          </p>
-          <p style="color:#bbb;font-size:12px;margin-top:24px;">
-            If you didn't request this, please ignore this email.
+          <p style="color:#9ca3af;font-size:12px;margin:16px 0 0;">
+            Expires in <strong style="color:#374151;">5 minutes</strong>
           </p>
         </div>
-      `,
-    });
 
-    console.log(`[SIGNUP] OTP sent to ${cleanEmail}`);
+        <div style="background:#fef3c7;border-left:3px solid #f59e0b;
+                    border-radius:0 6px 6px 0;padding:10px 14px;margin-bottom:20px;">
+          <p style="color:#92400e;font-size:13px;font-weight:600;margin:0;">
+            🔒 Never share this code with anyone. Shop2Door will never ask for it.
+          </p>
+        </div>
+
+        <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;">
+          If you didn't request this code, you can safely ignore this email.
+          Someone may have entered your address by mistake.
+        </p>
+
+        <div style="border-top:1px solid #e5e7eb;margin-top:28px;padding-top:20px;">
+          <p style="color:#6b7280;font-size:13px;margin:0 0 6px;">
+            Need help? Reach out to our support team:
+          </p>
+          <a href="mailto:info.shop2door@gmail.com"
+             style="display:inline-block;background:#f3e8ff;color:#7e22ce;font-size:13px;
+                    font-weight:600;padding:8px 16px;border-radius:6px;
+                    text-decoration:none;border:1px solid #d8b4fe;">
+            info.shop2door@gmail.com
+          </a>
+          <p style="color:#d1d5db;font-size:11px;margin:16px 0 0;">
+            © 2026 SHOP2DOOR. All rights reserved.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  `,
+});
+
     return res
       .status(200)
       .json({ message: "OTP sent successfully. Please check your inbox." });

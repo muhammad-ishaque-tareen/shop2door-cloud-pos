@@ -5,7 +5,7 @@ const multer = require("multer");
 const masterPool = require("../db/master.pool");
 const getShopPool = require("../db/shop.pool");
 
-// Multer setup 
+//  Multer setup 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../../uploads/users");
@@ -24,30 +24,40 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp/;
-    if (allowed.test(path.extname(file.originalname).toLowerCase())) cb(null, true);
-    else cb(new Error("Only JPEG, PNG and WebP images are allowed"));
+    if (allowed.test(path.extname(file.originalname).toLowerCase()))
+      cb(null, true);
+    else
+      cb(new Error("Only JPEG, PNG and WebP images are allowed"));
   },
 });
 
 exports.uploadProfileImage = upload.single("image");
 
-//GET MY PROFILE 
+//  Helper: resolve the correct pool for the requesting user 
+// Rule:
+//   system_admin  → masterPool  (no db_name needed)
+//   shop_admin    → masterPool  (their record lives in platformDB)
+//   store_manager → shopPool    (their record lives in the shop's own DB)
+//   cashier       → shopPool    (their record lives in the shop's own DB)
+const SHOP_ROLES = ["store_manager", "cashier"];
 
-//
-// GET /api/users/me
+function resolvePool(role, db_name) {
+  if (SHOP_ROLES.includes(role)) {
+    if (!db_name)
+      throw new Error(
+        "db_name is missing from token for role: " + role
+      );
+    return getShopPool(db_name);
+  }
+  return masterPool;
+}
+
+//  GET /api/users/me 
 exports.getMyProfile = async (req, res) => {
-  const userId  = req.user.id;
-  const db_name = req.user.db_name || null;
-  const role    = req.user.role    || null;
+  const { id: userId, role, db_name } = req.user;
 
   try {
-    const isShopUser =
-      !!db_name &&
-      (role === "store_manager" ||
-        role === "cashier" ||
-        !["shop_admin", "system_admin"].includes(role));
-
-    const pool = isShopUser ? getShopPool(db_name) : masterPool;
+    const pool = resolvePool(role, db_name);
 
     const result = await pool.query(
       `SELECT user_id, name, email, phone, role, image_url, created_at
@@ -67,33 +77,30 @@ exports.getMyProfile = async (req, res) => {
   }
 };
 
-// UPDATE PROFILE 
-
-// PUT /api/users/update-profile
+//  PUT /api/users/update-profile 
 exports.updateProfile = async (req, res) => {
   const { name, phone, password } = req.body;
-  const userId  = req.user.id;
-  const db_name = req.user.db_name || null;
-  const role    = req.user.role    || null;
+  const { id: userId, role, db_name } = req.user;
 
   const image_url = req.file
     ? `/uploads/users/${req.file.filename}`
     : undefined;
 
   try {
-    const isShopUser =
-      !!db_name &&
-      (role === "store_manager" ||
-        role === "cashier" ||
-        !["shop_admin", "system_admin"].includes(role));
-
-    const pool = isShopUser ? getShopPool(db_name) : masterPool;
+    const pool = resolvePool(role, db_name);
 
     const setClauses = [];
     const params     = [];
 
-    if (name  !== undefined && name  !== null) { params.push(name);  setClauses.push(`name  = $${params.length}`); }
-    if (phone !== undefined && phone !== null) { params.push(phone); setClauses.push(`phone = $${params.length}`); }
+    if (name  !== undefined && name  !== null) {
+      params.push(name);
+      setClauses.push(`name = $${params.length}`);
+    }
+
+    if (phone !== undefined && phone !== null) {
+      params.push(phone);
+      setClauses.push(`phone = $${params.length}`);
+    }
 
     if (password && password.trim() !== "") {
       const hashed = await bcrypt.hash(password, 10);

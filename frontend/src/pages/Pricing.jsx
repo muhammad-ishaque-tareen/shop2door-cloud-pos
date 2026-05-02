@@ -102,7 +102,7 @@ const Pricing = () => {
                     ))}
                   </ul>
 
-                  <button
+                  <button className='get-started-btn'
                       onClick={() => navigate("/signup", {
                       state: 
                       {

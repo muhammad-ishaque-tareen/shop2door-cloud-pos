@@ -2,7 +2,8 @@ const bcrypt     = require("bcrypt");
 const jwt        = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const masterPool = require("../db/master.pool");
-//  In-Memory OTP Store  (no DB table needed)
+
+//  In-Memory OTP Store
 //  Structure: { email -> { otp, expiresAt, verified } }
 const otpStore = new Map();
 
@@ -18,8 +19,8 @@ setInterval(() => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,         // e.g. yourapp@gmail.com
-    pass: process.env.EMAIL_APP_PASSWORD, // Gmail App Password (not login password)
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD,
   },
 });
 
@@ -33,24 +34,9 @@ const generateOTP = () =>
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-/**
- * Validate password strength:
- *  - Minimum 8 characters
- *  - At least one uppercase letter
- *  - At least one lowercase letter
- *  - At least one digit
- *  - At least one special character (@$!%*?&_#^-)
- */
-const isStrongPassword = (password) =>
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_#^-]).{8,}$/.test(password);
-
 
 //  1. POST /api/signup/send-otp
 //     Body: { email }
-//     - Validates email format
-//     - Checks email is not already registered
-//     - Generates OTP, saves to in-memory store (1 min expiry)
-//     - Sends OTP email
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
 
@@ -61,7 +47,6 @@ exports.sendOtp = async (req, res) => {
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    // Check if email already registered in Platform DB
     const existing = await masterPool.query(
       "SELECT user_id FROM users WHERE email = $1",
       [cleanEmail]
@@ -73,12 +58,10 @@ exports.sendOtp = async (req, res) => {
     }
 
     const otp       = generateOTP();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minute from now
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-    // Overwrite any existing OTP for this email
     otpStore.set(cleanEmail, { otp, expiresAt, verified: false });
 
-    // Send OTP email
     await transporter.sendMail({
       from:    `"Shop2Door" <${process.env.EMAIL_USER}>`,
       to:      cleanEmail,
@@ -96,7 +79,7 @@ exports.sendOtp = async (req, res) => {
             ${otp}
           </div>
           <p style="color:#777;font-size:13px;">
-            This code expires in <strong>5 minute</strong>. Do not share it with anyone.
+            This code expires in <strong>5 minutes</strong>. Do not share it with anyone.
           </p>
           <p style="color:#bbb;font-size:12px;margin-top:24px;">
             If you didn't request this, please ignore this email.
@@ -121,8 +104,6 @@ exports.sendOtp = async (req, res) => {
 
 //  2. POST /api/signup/verify-otp
 //     Body: { email, otp }
-//     - Checks OTP in memory, checks expiry
-//     - Marks verified = true in memory
 exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -139,25 +120,21 @@ exports.verifyOtp = async (req, res) => {
       .json({ message: "No OTP found for this email. Please request a new one." });
   }
 
-  // Already verified
   if (record.verified) {
     return res.status(400).json({ message: "This OTP has already been used." });
   }
 
-  // Expiry check
   if (Date.now() > record.expiresAt) {
-    otpStore.delete(cleanEmail); // clean up expired entry
+    otpStore.delete(cleanEmail);
     return res
       .status(400)
       .json({ message: "OTP has expired. Please request a new one." });
   }
 
-  // OTP match
   if (record.otp !== String(otp).trim()) {
     return res.status(400).json({ message: "Incorrect OTP. Please try again." });
   }
 
-  // Mark verified (keep in store so register() can confirm it)
   otpStore.set(cleanEmail, { ...record, verified: true });
 
   console.log(`[SIGNUP] Email verified: ${cleanEmail}`);
@@ -166,18 +143,13 @@ exports.verifyOtp = async (req, res) => {
 
 
 //  3. POST /api/signup/register
-//     Body: { fullName, email, phone, password }
-//     - Checks email is verified in memory
-//     - Validates strong password
-//     - Hashes password
-//     - Inserts into Platform DB users table
-//     - Clears OTP from memory
-//     - Returns JWT token
+//     Body: { fullName, email, phone }
+//     NOTE: No password required here — a temporary password is generated
+//     and sent to the user by email when their shop request is approved.
 exports.register = async (req, res) => {
-  const { fullName, email, phone, password } = req.body;
+  const { fullName, email, phone } = req.body;
 
-  //  Basic field validation 
-  if (!fullName || !email || !phone || !password) {
+  if (!fullName || !email || !phone) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -185,18 +157,11 @@ exports.register = async (req, res) => {
     return res.status(400).json({ message: "Invalid email format." });
   }
 
-  if (!isStrongPassword(password)) {
-    return res.status(400).json({
-      message:
-        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character (@$!%*?&_#^-).",
-    });
-  }
-
   const cleanEmail = email.toLowerCase().trim();
   const cleanPhone = phone.trim();
   const cleanName  = fullName.trim();
 
-  //  Check email is OTP-verified in memory 
+  //  Check email is OTP-verified in memory
   const record = otpStore.get(cleanEmail);
 
   if (!record || !record.verified) {
@@ -206,7 +171,7 @@ exports.register = async (req, res) => {
   }
 
   try {
-    //  Check for duplicate email (safety guard) 
+    //  Duplicate email check
     const dupEmail = await masterPool.query(
       "SELECT user_id FROM users WHERE email = $1",
       [cleanEmail]
@@ -215,7 +180,7 @@ exports.register = async (req, res) => {
       return res.status(409).json({ message: "This email is already registered." });
     }
 
-    //  Check for duplicate phone 
+    //  Duplicate phone check
     const dupPhone = await masterPool.query(
       "SELECT user_id FROM users WHERE phone = $1",
       [cleanPhone]
@@ -226,24 +191,26 @@ exports.register = async (req, res) => {
         .json({ message: "This phone number is already registered." });
     }
 
-    //  Hash password 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    //  Use a placeholder password — will be replaced by temp password on approval
+    const placeholderHash = await bcrypt.hash(
+      "PENDING_APPROVAL_" + Date.now(),
+      12
+    );
 
-    //  Insert user into Platform DB 
-    // role = 'shop_admin', shop_id = NULL (assigned after admin approval)
+    //  Insert user
     const insertResult = await masterPool.query(
       `INSERT INTO users (name, email, phone, password, role)
        VALUES ($1, $2, $3, $4, 'shop_admin')
        RETURNING user_id, name, email, phone, role, created_at`,
-      [cleanName, cleanEmail, cleanPhone, hashedPassword]
+      [cleanName, cleanEmail, cleanPhone, placeholderHash]
     );
 
     const newUser = insertResult.rows[0];
 
-    //  Clean up OTP from memory 
+    //  Clean up OTP from memory
     otpStore.delete(cleanEmail);
 
-    //  Sign JWT 
+    //  Sign JWT (shop_id and db_name are null until shop is approved)
     const token = jwt.sign(
       {
         id:      newUser.user_id,

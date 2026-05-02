@@ -4,28 +4,9 @@ import "../styles/Signup.css";
 
 const BASE = "http://localhost:5000";
 
-//  Validation helpers (mirror backend rules) 
-const emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const strengthRules = [
-  { label: "At least 8 characters",          test: (p) => p.length >= 8 },
-  { label: "One uppercase letter (A-Z)",      test: (p) => /[A-Z]/.test(p) },
-  { label: "One lowercase letter (a-z)",      test: (p) => /[a-z]/.test(p) },
-  { label: "One number (0-9)",                test: (p) => /\d/.test(p) },
-  { label: "One special character (@$!%*?&)", test: (p) => /[@$!%*?&_#^-]/.test(p) },
-];
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const getStrengthScore = (password) =>
-  strengthRules.filter((r) => r.test(password)).length;
-
-const getStrengthLabel = (score) => {
-  if (score <= 1) return { label: "Very Weak", color: "#e53935" };
-  if (score === 2) return { label: "Weak",      color: "#fb8c00" };
-  if (score === 3) return { label: "Fair",      color: "#fdd835" };
-  if (score === 4) return { label: "Strong",    color: "#43a047" };
-  return               { label: "Very Strong", color: "#1b5e20" };
-};
-
-//  OTP Countdown hook 
+//  OTP Countdown hook
 const useCountdown = (initial = 0) => {
   const [seconds, setSeconds] = useState(initial);
   useEffect(() => {
@@ -37,24 +18,19 @@ const useCountdown = (initial = 0) => {
   return { seconds, start };
 };
 
-
 const Signup = () => {
   const navigate        = useNavigate();
   const location        = useLocation();
   const selectedPackage = location.state;
 
-  // Form fields
+  // Form fields — no password fields
   const [form, setForm] = useState({
     fullName: "",
     email:    "",
     phone:    "",
-    password: "",
-    confirm:  "",
   });
 
   // UI state
-  const [showPass,    setShowPass]    = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
@@ -69,20 +45,12 @@ const Signup = () => {
 
   const { seconds: countdown, start: startCountdown } = useCountdown(0);
 
-  //  Derived 
-  const strengthScore = getStrengthScore(form.password);
-  const strengthInfo  = getStrengthLabel(strengthScore);
-  const passwordsMatch =
-    form.confirm.length > 0 && form.password === form.confirm;
-
-  //  Handlers 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     setError("");
 
-    // Reset OTP state if email changes after OTP sent
     if (name === "email") {
       setOtpSent(false);
       setOtpVerified(false);
@@ -94,26 +62,21 @@ const Signup = () => {
 
   const validateFields = () => {
     const errs = {};
-    if (!form.fullName.trim())             errs.fullName = "Full name is required.";
-    if (!emailRegex.test(form.email))      errs.email    = "Enter a valid email address.";
-    if (!form.phone.trim())                errs.phone    = "Phone number is required.";
-    if (getStrengthScore(form.password) < 5)
-      errs.password = "Password does not meet all requirements.";
-    if (form.password !== form.confirm)    errs.confirm  = "Passwords do not match.";
+    if (!form.fullName.trim())        errs.fullName = "Full name is required.";
+    if (!emailRegex.test(form.email)) errs.email    = "Enter a valid email address.";
+    if (!form.phone.trim())           errs.phone    = "Phone number is required.";
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  //  Send OTP 
+  //  Send OTP
   const handleSendOtp = async () => {
     setOtpError("");
     setOtpSuccess("");
-
     if (!emailRegex.test(form.email)) {
       setOtpError("Enter a valid email address first.");
       return;
     }
-
     setOtpLoading(true);
     try {
       const res  = await fetch(`${BASE}/api/signup/send-otp`, {
@@ -122,11 +85,10 @@ const Signup = () => {
         body:    JSON.stringify({ email: form.email }),
       });
       const data = await res.json();
-
       if (res.ok) {
         setOtpSent(true);
         setOtpSuccess("OTP sent! Check your inbox (and spam folder).");
-        startCountdown(300); // 2-minute resend cooldown
+        startCountdown(300);
       } else {
         setOtpError(data.message || "Failed to send OTP.");
       }
@@ -137,16 +99,14 @@ const Signup = () => {
     }
   };
 
-  //  Verify OTP 
+  //  Verify OTP
   const handleVerifyOtp = async () => {
     setOtpError("");
     setOtpSuccess("");
-
     if (!otpValue || otpValue.trim().length !== 6) {
       setOtpError("Please enter the 6-digit OTP.");
       return;
     }
-
     setOtpLoading(true);
     try {
       const res  = await fetch(`${BASE}/api/signup/verify-otp`, {
@@ -155,7 +115,6 @@ const Signup = () => {
         body:    JSON.stringify({ email: form.email, otp: otpValue }),
       });
       const data = await res.json();
-
       if (res.ok) {
         setOtpVerified(true);
         setOtpSuccess("✓ Email verified successfully!");
@@ -170,7 +129,7 @@ const Signup = () => {
     }
   };
 
-  //  Register 
+  //  Register — no password sent
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -190,7 +149,6 @@ const Signup = () => {
           fullName: form.fullName,
           email:    form.email,
           phone:    form.phone,
-          password: form.password,
         }),
       });
       const data = await res.json();
@@ -250,7 +208,7 @@ const Signup = () => {
           <div className="signup-form-header">
             <h2 className="signup-title">SIGNUP</h2>
             <p className="signup-form-subtitle">
-              Enter your credentials to create your account
+              Enter your details to create your account
             </p>
           </div>
 
@@ -268,7 +226,7 @@ const Signup = () => {
                 placeholder="Enter your full name"
                 value={form.fullName}
                 onChange={handleChange}
-                className={`signup-input ${fieldErrors.fullName ? "input--error" : ""}`}
+                className={`signup-input${fieldErrors.fullName ? " input--error" : ""}`}
                 autoComplete="name"
                 required
               />
@@ -277,20 +235,20 @@ const Signup = () => {
               )}
             </div>
 
-            {/*  Email + OTP send  */}
+            {/*  Email + Send OTP button  */}
             <div className="signup-form-group">
               <label className="signup-label">
                 Email
                 {otpVerified && <span className="verified-badge">✓ Verified</span>}
               </label>
-              <div className="email-otp-row">
+              <div className="input-action-row">
                 <input
                   type="email"
                   name="email"
                   placeholder="Enter your email"
                   value={form.email}
                   onChange={handleChange}
-                  className={`signup-input ${fieldErrors.email ? "input--error" : ""} ${otpVerified ? "input--verified" : ""}`}
+                  className={`signup-input${fieldErrors.email ? " input--error" : ""}${otpVerified ? " input--verified" : ""}`}
                   autoComplete="email"
                   disabled={otpVerified}
                   required
@@ -298,7 +256,7 @@ const Signup = () => {
                 {!otpVerified && (
                   <button
                     type="button"
-                    className="otp-send-btn"
+                    className="input-action-btn"
                     onClick={handleSendOtp}
                     disabled={otpLoading || countdown > 0 || !form.email}
                   >
@@ -317,11 +275,11 @@ const Signup = () => {
               )}
             </div>
 
-            {/*  OTP Input (shown after send)  */}
+            {/*  OTP Input (shown after send, before verify)  */}
             {otpSent && !otpVerified && (
-              <div className="signup-form-group otp-group">
+              <div className="signup-form-group">
                 <label className="signup-label">Enter OTP</label>
-                <div className="otp-verify-row">
+                <div className="input-action-row">
                   <input
                     type="text"
                     inputMode="numeric"
@@ -336,7 +294,7 @@ const Signup = () => {
                   />
                   <button
                     type="button"
-                    className="otp-verify-btn"
+                    className="input-action-btn input-action-btn--verify"
                     onClick={handleVerifyOtp}
                     disabled={otpLoading || otpValue.length !== 6}
                   >
@@ -362,7 +320,7 @@ const Signup = () => {
                 placeholder="e.g. 0300-0000000"
                 value={form.phone}
                 onChange={handleChange}
-                className={`signup-input ${fieldErrors.phone ? "input--error" : ""}`}
+                className={`signup-input${fieldErrors.phone ? " input--error" : ""}`}
                 autoComplete="tel"
                 required
               />
@@ -371,109 +329,13 @@ const Signup = () => {
               )}
             </div>
 
-            {/*  Password  */}
-            <div className="signup-form-group">
-              <label className="signup-label">Password</label>
-              <div className="password-input-wrapper">
-                <input
-                  type={showPass ? "text" : "password"}
-                  name="password"
-                  placeholder="Create a strong password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`signup-input ${fieldErrors.password ? "input--error" : ""}`}
-                  autoComplete="new-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPass(!showPass)}
-                  aria-label={showPass ? "Hide password" : "Show password"}
-                >
-                  {showPass ? "👁️" : "👁️‍🗨️"}
-                </button>
-              </div>
-
-              {/* Strength bar */}
-              {form.password.length > 0 && (
-                <div className="strength-wrapper">
-                  <div className="strength-bar">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="strength-segment"
-                        style={{
-                          background:
-                            i <= strengthScore ? strengthInfo.color : "#e0e0e0",
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <span className="strength-label" style={{ color: strengthInfo.color }}>
-                    {strengthInfo.label}
-                  </span>
-                </div>
-              )}
-
-              {/* Requirement checklist */}
-              {form.password.length > 0 && (
-                <ul className="password-rules">
-                  {strengthRules.map((rule, i) => (
-                    <li
-                      key={i}
-                      className={`password-rule ${rule.test(form.password) ? "rule--pass" : "rule--fail"}`}
-                    >
-                      <span className="rule-icon">
-                        {rule.test(form.password) ? "✓" : "✗"}
-                      </span>
-                      {rule.label}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {fieldErrors.password && (
-                <span className="field-error">{fieldErrors.password}</span>
-              )}
-            </div>
-
-            {/*  Confirm Password  */}
-            <div className="signup-form-group">
-              <label className="signup-label">Confirm Password</label>
-              <div className="password-input-wrapper">
-                <input
-                  type={showConfirm ? "text" : "password"}
-                  name="confirm"
-                  placeholder="Re-enter your password"
-                  value={form.confirm}
-                  onChange={handleChange}
-                  className={`signup-input ${
-                    fieldErrors.confirm
-                      ? "input--error"
-                      : form.confirm.length > 0
-                      ? passwordsMatch
-                        ? "input--verified"
-                        : "input--error"
-                      : ""
-                  }`}
-                  autoComplete="new-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  aria-label={showConfirm ? "Hide password" : "Show password"}
-                >
-                  {showConfirm ? "👁️" : "👁️‍🗨️"}
-                </button>
-              </div>
-              {form.confirm.length > 0 && !passwordsMatch && (
-                <span className="field-error">Passwords do not match.</span>
-              )}
-              {form.confirm.length > 0 && passwordsMatch && (
-                <span className="field-success">✓ Passwords match</span>
-              )}
+            {/*  Info note replacing password fields  */}
+            <div className="signup-info-note">
+              <span className="info-note-icon">🔐</span>
+              <span>
+                Your login password will be sent to your email once your shop
+                request is approved by our team.
+              </span>
             </div>
 
             {/*  Submit  */}

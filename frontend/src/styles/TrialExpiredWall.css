@@ -1,0 +1,451 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Layout ─── */
+.trial-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* ─── Left Panel ─── */
+.trial-left-section {
+  flex: 1;
+  background: linear-gradient(180deg, #9c27b0 0%, #7b1fa2 100%);
+  padding: 60px 80px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  color: white;
+  overflow: hidden;
+}
+
+.trial-dots-pattern {
+  position: absolute;
+  top: 80px;
+  right: 60px;
+  width: 140px;
+  height: 140px;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 2px, transparent 2px);
+  background-size: 20px 20px;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.trial-left-content {
+  max-width: 480px;
+  position: relative;
+  z-index: 2;
+  margin-top: 40px;
+}
+
+.trial-logo {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 60px;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.trial-main-heading {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+.trial-description {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 48px;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* ─── Warning Box (Left) ─── */
+.trial-warning-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 40px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.trial-warning-icon {
+  font-size: 36px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.trial-warning-content {
+  flex: 1;
+}
+
+.trial-warning-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: white;
+}
+
+.trial-warning-text {
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── Grace Period Counter ─── */
+.trial-grace-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trial-grace-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.trial-grace-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd54f;
+  flex-shrink: 0;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ─── Right Panel ─── */
+.trial-right-section {
+  flex: 1;
+  background: #f5f5f5;
+  padding: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.trial-card {
+  background: white;
+  border-radius: 32px;
+  padding: 52px 56px;
+  width: 100%;
+  max-width: 540px;
+  border: 3px solid #9c27b0;
+  box-shadow: 0 8px 32px rgba(156, 39, 176, 0.12);
+  animation: fadeInUp 0.5s ease-out;
+  text-align: center;
+}
+
+/* ─── Icon ─── */
+.trial-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.trial-icon-circle {
+  width: 80px;
+  height: 80px;
+  background: #fef2f2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  border: 2px solid #fecaca;
+}
+
+/* ─── Card Text ─── */
+.trial-card-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #dc2626;
+  margin-bottom: 12px;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
+}
+
+.trial-card-subtitle {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 32px;
+  font-weight: 400;
+}
+
+/* ─── Info Rows ─── */
+.trial-info-box {
+  background: #fafafa;
+  border: 1px solid #e8d5f0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.trial-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.trial-info-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.trial-info-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 3px;
+}
+
+.trial-info-text {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 400;
+}
+
+.trial-info-text strong {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.trial-divider {
+  height: 1px;
+  background: #e8d5f0;
+  margin: 14px 0;
+}
+
+/* ─── Deletion Warning Banner ─── */
+.trial-deletion-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.trial-deletion-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.trial-deletion-text {
+  font-size: 13px;
+  color: #7f1d1d;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 400;
+}
+
+.trial-deletion-text strong {
+  font-weight: 700;
+  color: #dc2626;
+}
+
+/* ─── Buttons ─── */
+.trial-upgrade-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.3);
+  margin-bottom: 12px;
+}
+
+.trial-upgrade-btn:hover {
+  background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+}
+
+.trial-upgrade-btn:active {
+  transform: translateY(0);
+}
+
+.trial-logout-btn {
+  width: 100%;
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 24px;
+}
+
+.trial-logout-btn:hover {
+  border-color: #d1d5db;
+  color: #374151;
+  background: #f9fafb;
+}
+
+/* ─── Support Note ─── */
+.trial-support-note {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.trial-support-note a {
+  color: #9c27b0;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.trial-support-note a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Animation ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.trial-left-content {
+  animation: fadeInUp 0.5s ease-out 0.1s both;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .trial-container {
+    flex-direction: column;
+  }
+
+  .trial-left-section {
+    padding: 50px 40px;
+    min-height: auto;
+  }
+
+  .trial-left-content {
+    max-width: 100%;
+    margin-top: 20px;
+  }
+
+  .trial-main-heading {
+    font-size: 38px;
+  }
+
+  .trial-dots-pattern {
+    display: none;
+  }
+
+  .trial-right-section {
+    padding: 50px 40px;
+  }
+
+  .trial-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .trial-left-section {
+    padding: 40px 25px;
+  }
+
+  .trial-main-heading {
+    font-size: 32px;
+  }
+
+  .trial-description {
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .trial-right-section {
+    padding: 40px 20px;
+  }
+
+  .trial-card {
+    padding: 36px 28px;
+    border-width: 2px;
+    border-radius: 24px;
+  }
+
+  .trial-card-title {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trial-main-heading {
+    font-size: 28px;
+  }
+
+  .trial-card {
+    padding: 28px 20px;
+  }
+
+  .trial-upgrade-btn {
+    font-size: 14px;
+    padding: 14px;
+  }
+
+  .trial-card-title {
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trial-card,
+  .trial-upgrade-btn,
+  .trial-logout-btn,
+  .trial-grace-badge-dot {
+    animation: none;
+    transition: none;
+  }
+
+  .trial-upgrade-btn:hover {
+    transform: none;
+  }
+}

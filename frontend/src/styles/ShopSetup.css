@@ -780,6 +780,24 @@
   .shopsetup-btn-back      { padding: 13px 20px; font-size: 13px; }
 }
 
+/* Free Trial info note on Step 2 review */
+.shopsetup-trial-note {
+  margin-top: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 3px solid #16a34a;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.shopsetup-trial-note p {
+  color: #15803d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.5;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shopsetup-form-container,
   .shopsetup-left-content,

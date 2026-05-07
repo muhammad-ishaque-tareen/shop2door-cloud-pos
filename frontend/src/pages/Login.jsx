@@ -48,9 +48,23 @@ const Login = () => {
         const role = data.user.role;
         if (role === 'system_admin') {
           navigate('/systemadmindashboard');
-        } else if (role === 'shop_admin') {
-          navigate('/shopadmindashboard');
-        } else if (role === 'store_manager' || role === 'cashier') {
+   } else if (role === 'shop_admin') {
+  // Check free trial status before redirecting
+  try {
+    const trialRes = await fetch('http://localhost:5000/api/freetrail/check-status', {
+      headers: { Authorization: `Bearer ${data.token}` }
+    });
+    const trialData = await trialRes.json();
+
+    if (trialData.status === 'trial_expired' || trialData.isDisabled) {
+      navigate('/trial-expired', { state: { trialData } });
+    } else {
+      navigate('/shopadmindashboard');
+    }
+  } catch {
+    navigate('/shopadmindashboard'); // fallback if trial check fails
+  }
+} else if (role === 'store_manager' || role === 'cashier') {
           navigate('/posterminal');
         } 
         

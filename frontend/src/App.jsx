@@ -6,6 +6,7 @@ import Pricing from "./pages/Pricing";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import PendingApproval from "./pages/PendingApproval";
+import TrialExpiredWall from "./pages/TrialExpiredWall";
 
 import PaymentConfirmation from "./pages/PaymentConfirmation";
 import POSTerminal from "./POSTerminal/POSTerminal";
@@ -49,6 +50,7 @@ const App = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/login" element={<Login />} />
       <Route path="/pending" element={<PendingApproval />} />
+      <Route path="/trial-expired" element={<TrialExpiredWall />} />
       
       <Route path="/posterminal" element={<POSTerminal />} />
       <Route path="/myprofile" element={<MyProfile />} />

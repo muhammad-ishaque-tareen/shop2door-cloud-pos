@@ -153,6 +153,8 @@ const ShopRequests = () => {
       payment_submitted: { label: 'Payment Submitted', style: { background: '#dbeafe', color: '#1e40af' } },
       approved:          { label: 'Approved',          style: { background: '#d1fae5', color: '#065f46' } },
       rejected:          { label: 'Rejected',          style: { background: '#fee2e2', color: '#dc2626' } },
+      // Inside getStatusBadge map object, add:
+      free_trial_pending: { label: "Trial Pending",  style: { background: "#f0fdf4", color: "#15803d" } },
     };
     const entry = map[status] || { label: status, style: { background: '#f3f4f6', color: '#374151' } };
     return (
@@ -414,11 +416,21 @@ const ShopRequests = () => {
                         <td>{r.full_name}</td>
                         <td>{r.user_email}</td>
                         <td>{r.user_phone || '—'}</td>
-                        <td>
-                          <span className={`sr-package-badge ${getPackageBadgeClass(r.package_name)}`}>
-                            {r.package_name}
-                          </span>
-                        </td>
+                       <td>
+  {r.package_name?.toLowerCase().includes("free") ? (
+    <span style={{
+      background: "#f0fdf4", color: "#15803d",
+      padding: "3px 10px", borderRadius: 9999,
+      fontSize: "0.72rem", fontWeight: 700, border: "1px solid #bbf7d0"
+    }}>
+      🎁 Free Trial
+    </span>
+  ) : (
+    <span className={`sr-package-badge ${getPackageBadgeClass(r.package_name)}`}>
+      {r.package_name}
+    </span>
+  )}
+</td>
                         <td className="sr-amount-cell">{formatAmount(r.amount)}</td>
                         <td>{r.payment_method || '—'}</td>
                         <td>{r.sender_account || '—'}</td>

@@ -32,7 +32,7 @@ const WelcomePage = () => {
             <button 
               className="buy-shop2door-btn"
                onClick={() => navigate("/pricing")}
-             
+              // onClick={() => navigate("/trial-expired")}
             >
               BUY SHOP2DOOR
             </button>

@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/ShopSetup.css";
+// import "../styles/ShopSetup.css";
+import '../styles/ShopSetup.css'
 
 const BASE = "http://localhost:5000";
 
@@ -29,28 +30,58 @@ const ShopSetup = () => {
   const location        = useLocation();
   const selectedPackage = location.state;
 
+  // Detect free trial: package passed from Pricing page with price = 0
+  // or package_name contains "Free Trial"
+  const isTrial =
+    selectedPackage?.price === 0 ||
+    selectedPackage?.price === "0" ||
+    selectedPackage?.package_name?.toLowerCase().includes("free");
+
   const [step, setStep]               = useState(0);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Step 0  Shop Info
+  // Alert modal state (used to tell user they already used trial)
+  const [alertModal, setAlertModal] = useState({ open: false, message: "" });
+
+  // Step 0
   const [shopName,  setShopName]  = useState("");
   const [shopPhone, setShopPhone] = useState("");
   const [shopEmail, setShopEmail] = useState("");
   const [shopType,  setShopType]  = useState("");
 
-  // Step 1  Location & Hours
+  // Step 1
   const [address, setAddress] = useState("");
   const [city,    setCity]    = useState("");
   const [hours,   setHours]   = useState(defaultHours);
 
-  // Step 2  Logo
+  // Step 2
   const [logo,        setLogo]        = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const fileRef = useRef();
 
-  //  Validators 
+  // On mount: if free trial, check whether this email has already used it
+  useEffect(() => {
+    if (!isTrial) return;
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!user.email) return;
+
+    fetch(`${BASE}/api/freetrail/check-email?email=${encodeURIComponent(user.email)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.alreadyUsed) {
+          setAlertModal({
+            open: true,
+            message:
+              "You have already used your free trial. Please go back and select a paid package to continue.",
+          });
+        }
+      })
+      .catch(() => {});
+  }, [isTrial]);
+
+  //  Validators
   const validateStep = () => {
     const errs = {};
     if (step === 0) {
@@ -69,7 +100,6 @@ const ShopSetup = () => {
   const clearFieldError = (key) =>
     setFieldErrors((prev) => ({ ...prev, [key]: "" }));
 
-  //  Navigation 
   const handleNext = () => {
     if (!validateStep()) return;
     setError("");
@@ -84,7 +114,6 @@ const ShopSetup = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  //  Logo 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -97,19 +126,18 @@ const ShopSetup = () => {
     clearFieldError("logo");
   };
 
-  //  Hours 
   const handleHourChange = (day, field, value) =>
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
 
   const toggleClosed = (day) =>
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], closed: !prev[day].closed } }));
 
-  //  Submit 
+  //  Submit
   const handleSubmit = async () => {
     setError("");
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token    = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("shop_name",     shopName.trim());
       formData.append("phone",         shopPhone.trim());
@@ -119,27 +147,48 @@ const ShopSetup = () => {
       formData.append("city",          city.trim());
       formData.append("opening_hours", JSON.stringify(hours));
       formData.append("package_id",    selectedPackage?.package_id ?? "");
+      formData.append("is_free_trial", isTrial ? "true" : "false");
       if (logo) formData.append("logo", logo);
 
-      const res = await fetch(`${BASE}/api/shopsetup`, {
+      const res  = await fetch(`${BASE}/api/shopsetup`, {
         method:  "POST",
         headers: { Authorization: `Bearer ${token}` },
         body:    formData,
       });
       const data = await res.json();
 
-      if (res.ok) {
-        navigate("/paymentconfirmation", {
-          state: {
-            request_id:   data.request_id,
-            package_id:   selectedPackage?.package_id,
-            package_name: selectedPackage?.package_name,
-            price:        selectedPackage?.price,
-          },
-        });
-      } else {
+      if (!res.ok) {
+        // Backend returns message: "free_trial_already_used" on 403
+        // Show the alert modal instead of inline error banner
+        if (data.message === "free_trial_already_used") {
+          setAlertModal({
+            open:    true,
+            message: data.friendly_message ||
+              "You have already used your free trial. Please select a paid plan to continue.",
+          });
+          return;
+        }
         setError(data.message || "Failed to submit. Please try again.");
+        return;
       }
+
+      // FREE TRIAL → request submitted, admin will approve, go to pending
+      // (shop & DB are not created until admin approves)
+      if (data.is_free_trial) {
+        navigate("/pending");
+        return;
+      }
+
+      // PAID PLAN → go to payment confirmation
+      navigate("/paymentconfirmation", {
+        state: {
+          request_id:   data.request_id,
+          package_id:   selectedPackage?.package_id,
+          package_name: selectedPackage?.package_name,
+          price:        selectedPackage?.price,
+        },
+      });
+
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
@@ -147,9 +196,41 @@ const ShopSetup = () => {
     }
   };
 
-  //  Render 
+  //  Render
   return (
     <div className="shopsetup-container">
+
+      {/* Alert Modal — shown when trial already used */}
+      {alertModal.open && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 14, padding: 36,
+            maxWidth: 440, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ color: "#1f2937", fontSize: "1.1rem", margin: "0 0 12px" }}>
+              Free Trial Already Used
+            </h3>
+            <p style={{ color: "#6b7280", fontSize: "0.9rem", margin: "0 0 24px", lineHeight: 1.6 }}>
+              {alertModal.message}
+            </p>
+            <button
+              onClick={() => navigate("/pricing")}
+              style={{
+                background: "#7e22ce", color: "#fff", border: "none",
+                borderRadius: 8, padding: "12px 28px", fontWeight: 700,
+                fontSize: "0.9rem", cursor: "pointer", width: "100%",
+              }}
+            >
+              View Paid Plans →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/*  Left Panel  */}
       <div className="shopsetup-left-section">
@@ -159,19 +240,26 @@ const ShopSetup = () => {
           <div className="shopsetup-logo">🏪 Shop2Door</div>
 
           <h1 className="shopsetup-main-heading">
-            Launch Your<br />Shop Online
+            {isTrial ? "Start Your\nFree Trial" : "Launch Your\nShop Online"}
           </h1>
           <p className="shopsetup-description">
-            Fill in your shop details and we'll review your request
-            within 24–48 hours. Once approved, your shop goes live instantly.
+            {isTrial
+              ? "Fill in your shop details to activate your 7-day free trial. No payment required."
+              : "Fill in your shop details and we'll review your request within 24–48 hours."}
           </p>
 
           {selectedPackage && (
-            <div className="shopsetup-package-card">
-              <h3>Selected Plan</h3>
+            <div
+              className="shopsetup-package-card"
+              style={isTrial ? { borderColor: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.18)" } : {}}
+            >
+              {/* Keep h3 white on purple panel — no colour override for trial */}
+              <h3>{isTrial ? "🎁 Free Trial Selected" : "Selected Plan"}</h3>
               <p className="shopsetup-package-name">{selectedPackage.package_name}</p>
               <p className="shopsetup-package-price">
-                Rs. {Number(selectedPackage.price).toLocaleString()} / month
+                {isTrial
+                  ? "7 days FREE — No credit card needed"
+                  : `Rs. ${Number(selectedPackage.price).toLocaleString()} / month`}
               </p>
             </div>
           )}
@@ -238,7 +326,7 @@ const ShopSetup = () => {
                   <input
                     className={`shopsetup-input ${fieldErrors.shopName ? "error" : ""}`}
                     type="text"
-                    placeholder=" Tareen's Electronics"
+                    placeholder="Tareen's Electronics"
                     value={shopName}
                     onChange={(e) => { setShopName(e.target.value); clearFieldError("shopName"); }}
                   />
@@ -420,7 +508,9 @@ const ShopSetup = () => {
                       { key: "Address",   val: address ? `${address}, ${city}` : "—" },
                       {
                         key: "Plan",
-                        val: selectedPackage
+                        val: isTrial
+                          ? "Free Trial — 7 days"
+                          : selectedPackage
                           ? `${selectedPackage.package_name} — Rs. ${Number(selectedPackage.price).toLocaleString()}/mo`
                           : "—",
                       },
@@ -431,11 +521,21 @@ const ShopSetup = () => {
                       </div>
                     ))}
                   </div>
+
+                  {/* Accurate note: request goes to pending, not instant activation */}
+                  {isTrial && (
+                    <div className="shopsetup-trial-note">
+                      <p>
+                        ✅ No payment required. Your request will be reviewed and approved shortly.
+                        Your 7-day trial starts from the day of approval.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
 
-          </div>{/* end .shopsetup-form */}
+          </div>
 
           {/* Error Banner */}
           {error && <div className="shopsetup-error-banner">{error}</div>}
@@ -460,13 +560,18 @@ const ShopSetup = () => {
               >
                 {loading
                   ? <><span className="shopsetup-spinner" /> Submitting…</>
+                  : isTrial
+                  ? "Activate Free Trial →"
                   : "Submit Shop Request →"}
               </button>
             )}
           </div>
 
+          {/* Footer note reflects actual flow */}
           <p className="shopsetup-footer-note">
-            Reviewed within 24–48 hours after payment confirmation.
+            {isTrial
+              ? "Reviewed quickly — you'll receive login credentials by email once approved."
+              : "Reviewed within 24–48 hours after payment confirmation."}
           </p>
 
         </div>

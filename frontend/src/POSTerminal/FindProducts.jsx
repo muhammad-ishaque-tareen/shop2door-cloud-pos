@@ -126,9 +126,9 @@ const FindProducts = () => {
           <button className="nav-item" onClick={() => navigate('/mysales')}>
             <BarChart3 size={18} /><span>My Sales</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/settings')}>
+          {/* <button className="nav-item" onClick={() => navigate('/settings')}>
             <Settings size={18} /><span>Settings</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={handleMyProfile}>

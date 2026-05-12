@@ -99,10 +99,10 @@ const handleProfileLogout = () => {
             <BarChart3 size={18} />
             <span>My Sales</span>
           </button>
-          <button className="nav-item"  onClick={()=>navigate('/settingss')}>
+          {/* <button className="nav-item"  onClick={()=>navigate('/settingss')}>
             <Settings size={18} />
             <span>Settings</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/myprofile')}>
@@ -155,7 +155,7 @@ const handleProfileLogout = () => {
           <div className="menu-divider"></div>
 
           <div className="menu-section">
-            <h4 className="menu-section-title">Settings</h4>
+            {/* <h4 className="menu-section-title">Settings</h4>
             <button className="menu-item" onClick={toggleDarkMode}>
               {isDarkMode ? '☀️' : '🌙'}
               <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
@@ -163,7 +163,7 @@ const handleProfileLogout = () => {
             <button className="menu-item"  onClick={()=>navigate('/settings')}>
               <Settings size={18} />
               <span>Settings</span>
-            </button>
+            </button> */}
           </div>
         </div>
       )}

@@ -197,7 +197,7 @@ const MyProfile = () => {
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/mysales')}><BarChart3 size={18} /><span>My Sales</span></button>
-          <button className="nav-item" onClick={() => navigate('/settings')}><Settings size={18} /><span>Settings</span></button>
+          {/* <button className="nav-item" onClick={() => navigate('/settings')}><Settings size={18} /><span>Settings</span></button> */}
 
           <div className="nav-divider" />
           <button className="nav-item active"><User size={18} /><span>My Profile</span></button>
@@ -225,11 +225,11 @@ const MyProfile = () => {
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}><BarChart3 size={18} /><span>My Sales</span></button>
                   </div>
                   <div className="menu-divider"></div>
-                  <div className="menu-section">
+                  {/* <div className="menu-section">
                     <h4 className="menu-section-title">Settings</h4>
                     <button className="menu-item" onClick={toggleDarkMode}>{isDarkMode ? '\u2600\ufe0f' : '\ud83c\udf19'}<span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span></button>
                     <button className="menu-item" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>

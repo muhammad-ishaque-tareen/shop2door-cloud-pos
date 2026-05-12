@@ -272,6 +272,12 @@ exports.upgradePlan = async (req, res) => {
       [package_id, shopId]
     );
 
+    //  5b. Re-enable the user account (was disabled by the trial-expiry cron) 
+    await client.query(
+      `UPDATE users SET is_disabled = false WHERE shop_id = $1 AND role = 'shop_admin'`,
+      [shopId]
+    );
+
     //  6. Record the payment 
     await client.query(
       `INSERT INTO payments

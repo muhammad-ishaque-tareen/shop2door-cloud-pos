@@ -65,7 +65,7 @@
 .sap-avatar-large {
   width: 110px;
   height: 110px;
-  border-radius: 16px;
+  border-radius: 50%;
   background: #f3e8ff;
   display: flex;
   align-items: center;
@@ -80,8 +80,8 @@
 
 .sap-camera-overlay {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
+  bottom: 8px;
+  right: 8px;
   background: #9333ea;
   border-radius: 50%;
   width: 26px;

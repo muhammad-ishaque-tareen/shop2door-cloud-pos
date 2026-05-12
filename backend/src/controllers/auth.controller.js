@@ -10,7 +10,7 @@ exports.login = async (req, res) => {
     //  PATH 1: system_admin / shop_admin (platformDB) 
     const platformResult = await masterPool.query(
       `SELECT u.user_id, u.name, u.email, u.phone, u.password, u.role,
-              u.shop_id, u.image_url,
+              u.shop_id, u.image_url, u.is_disabled,
               s.name          AS shop_name,
               s.db_name,
               s.logo_url      AS shop_logo,
@@ -30,11 +30,18 @@ exports.login = async (req, res) => {
       if (!isMatch)
         return res.status(401).json({ message: "Invalid credentials" });
 
-      // ✅ role is now included in the token
+      // Block disabled accounts (trial expired and not yet upgraded)
+      if (user.is_disabled) {
+        return res.status(403).json({
+          message: "Your free trial has expired. Please upgrade your plan to continue.",
+          trialExpired: true,
+        });
+      }
+
       const token = jwt.sign(
         {
           id:      user.user_id,
-          role:    user.role,          // <── FIXED
+          role:    user.role,
           shop_id: user.shop_id,
           db_name: user.db_name || null,
         },
@@ -92,7 +99,6 @@ exports.login = async (req, res) => {
 
     const shop = shopResult.rows[0];
 
-    // Guard: db_name must exist
     if (!shop.db_name)
       return res
         .status(500)
@@ -121,11 +127,10 @@ exports.login = async (req, res) => {
         .status(403)
         .json({ message: "Unauthorized role for this login path." });
 
-    // ✅ role is now included in the token
     const token = jwt.sign(
       {
         id:       shopUser.user_id,
-        role:     shopUser.role,        // <── FIXED
+        role:     shopUser.role,
         shop_id:  shop.shop_id,
         store_id: shopUser.store_id,
         db_name:  shop.db_name,

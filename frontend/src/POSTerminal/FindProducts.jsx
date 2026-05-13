@@ -110,9 +110,9 @@ const FindProducts = () => {
           <button className="nav-item" onClick={() => navigate('/posterminal')}>
             <User size={18} /><span>POS Terminal</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/shiftreport')}>
+          {/* <button className="nav-item" onClick={() => navigate('/shiftreport')}>
             <FileText size={18} /><span>Shift Report</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
           <button className="nav-item active">
@@ -163,9 +163,9 @@ const FindProducts = () => {
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/findproducts'); }}>
                       <Search size={18} /><span>Find Products</span>
                     </button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
+                    {/* <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
                       <FileText size={18} /><span>Shift Report</span>
-                    </button>
+                    </button> */}
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}>
                       <BarChart3 size={18} /><span>My Sales</span>
                     </button>
@@ -179,9 +179,9 @@ const FindProducts = () => {
                       {isDarkMode ? '☀️' : '🌙'}
                       <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
-                    <button className="menu-item" onClick={() => navigate('/settings')}>
+                    {/* <button className="menu-item" onClick={() => navigate('/settings')}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}
@@ -248,9 +248,9 @@ const FindProducts = () => {
                     <button className="profile-action-btn" onClick={handleMyProfile}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settings')}>
+                    {/* <button className="profile-action-btn" onClick={() => navigate('/settings')}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>

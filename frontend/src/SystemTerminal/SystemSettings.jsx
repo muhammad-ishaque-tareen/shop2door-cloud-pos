@@ -118,9 +118,9 @@ const SystemSettings = () => {
 
           <div className="ss-nav-divider" />
 
-          <button className="ss-nav-item active">
+          {/* <button className="ss-nav-item active">
             <Settings size={18} /><span>Settings</span>
-          </button>
+          </button> */}
           <button className="ss-nav-item" onClick={() => navigate('/systemadminprofile')}>
             <User size={18} /><span>My Profile</span>
           </button>
@@ -162,9 +162,9 @@ const SystemSettings = () => {
                     <button className="ss-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/subscriptions'); }}>
                       <DollarSign size={18} /><span>Subscriptions</span>
                     </button>
-                    <button className="ss-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
+                    {/* <button className="ss-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}
@@ -206,9 +206,9 @@ const SystemSettings = () => {
                     <button className="ss-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="ss-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
+                    {/* <button className="ss-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="ss-profile-action-btn ss-logout-btn" onClick={handleLogOut}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>

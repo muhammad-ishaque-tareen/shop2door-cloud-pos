@@ -178,9 +178,9 @@ const Subscriptions = () => {
 
           <div className="sys-nav-divider" />
 
-          <button className="sys-nav-item" onClick={() => navigate('/systemsettings')}>
+          {/* <button className="sys-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
-          </button>
+          </button> */}
           <button className="sys-nav-item" onClick={() => navigate('/systemadminprofile')}>
             <User size={18} /><span>My Profile</span>
           </button>
@@ -227,9 +227,9 @@ const Subscriptions = () => {
                     <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/packages'); }}>
                       <Package size={18} /><span>Packages</span>
                     </button>
-                    <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
+                    {/* <button className="sys-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}
@@ -274,9 +274,9 @@ const Subscriptions = () => {
                     <button className="sys-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="sys-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
+                    {/* <button className="sys-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/settings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="sys-profile-action-btn sys-logout-btn" onClick={handleLogOut}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>

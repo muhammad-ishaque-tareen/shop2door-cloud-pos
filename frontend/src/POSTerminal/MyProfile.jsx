@@ -189,7 +189,7 @@ const MyProfile = () => {
         <nav className="sidebar-nav">
           <button 
           className="nav-item" onClick={() => navigate('/posterminal')}><User size={18} /><span>POS Terminal</span></button>
-          <button className="nav-item" onClick={() => navigate('/shiftreport')}><FileText size={18} /><span>Shift Report</span></button>
+          {/* <button className="nav-item" onClick={() => navigate('/shiftreport')}><FileText size={18} /><span>Shift Report</span></button> */}
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}><Search size={18} /><span>Find Products</span></button>
@@ -221,7 +221,7 @@ const MyProfile = () => {
                     <h4 className="menu-section-title">Quick Actions</h4>
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/posterminal'); }}><ShoppingCart size={18} /><span>New Sale</span></button>
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/findproducts'); }}><Search size={18} /><span>Find Products</span></button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}><FileText size={18} /><span>Shift Report</span></button>
+                    {/* <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}><FileText size={18} /><span>Shift Report</span></button> */}
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}><BarChart3 size={18} /><span>My Sales</span></button>
                   </div>
                   <div className="menu-divider"></div>
@@ -252,13 +252,13 @@ const MyProfile = () => {
                   </div>
                   <div className="profile-divider"></div>
                   <div className="profile-details">
-                    <div className="profile-detail-item"><span className="detail-icon">\ud83d\udce7</span><span className="detail-text">{currentUser.email || 'N/A'}</span></div>
-                    <div className="profile-detail-item"><span className="detail-icon">\ud83d\udcf1</span><span className="detail-text">{currentUser.phone || 'N/A'}</span></div>
+                    <div className="profile-detail-item"><span className="detail-icon">📧</span><span className="detail-text">{currentUser.email || 'N/A'}</span></div>
+                    <div className="profile-detail-item"><span className="detail-icon">📱</span><span className="detail-text">{currentUser.phone || 'N/A'}</span></div>
                   </div>
                   <div className="profile-divider"></div>
                   <div className="profile-actions">
                     <button className="profile-action-btn" onClick={() => navigate('/myprofile')}><User size={18} /><span>My Profile</span></button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button>
+                    {/* <button className="profile-action-btn" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button> */}
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}><LogOut size={18} /><span>Logout</span></button>
                   </div>
                 </div>

@@ -8,52 +8,52 @@ const ServicesPage = () => {
 
   const coreModules = [
     {
-      icon: "🔐",
+      // icon: "🔐",
       title: "User Authentication Module",
       description: "Secure login system with role-based access control for administrators, managers, and staff"
     },
     {
-      icon: "🏪",
+      // icon: "🏪",
       title: "Store Management Module",
       description: "Complete store profile management including business details, operating hours, and settings"
     },
     {
-      icon: "🏢",
+      // icon: "🏢",
       title: "Multi-Store Management",
       description: "Manage multiple store locations from a single dashboard with centralized control"
     },
     {
-      icon: "📦",
+      // icon: "📦",
       title: "Product/Inventory Management",
       description: "Real-time inventory tracking with automatic stock updates, low stock alerts, and batch management"
     },
     {
-      icon: "🤝",
+      // icon: "🤝",
       title: "Supplier Management",
       description: "Maintain supplier records, track orders, and manage vendor relationships efficiently"
     },
     {
-      icon: "💰",
+      // icon: "💰",
       title: "Sales and Billing Module",
       description: "Fast checkout with barcode scanning, multiple payment methods, and instant receipt generation"
     },
     {
-      icon: "📊",
+      // icon: "📊",
       title: "Reporting and Analytics",
       description: "Comprehensive sales reports, profit analysis, and business insights to drive decision-making"
     },
     {
-      icon: "↩️",
+      // icon: "↩️",
       title: "Returns Module",
       description: "Streamlined product return processing with automatic inventory adjustments"
     },
     {
-      icon: "📴",
+      // icon: "📴",
       title: "Offline Mode",
       description: "Continue operations during internet outages with automatic sync when connection is restored"
     },
     {
-      icon: "💾",
+      // icon: "💾",
       title: "Backup & Restore Module",
       description: "Automated data backup and easy restoration to protect your business information"
     }
@@ -61,42 +61,42 @@ const ServicesPage = () => {
 
   const optionalModules = [
     {
-      icon: "🌐",
+      // icon: "🌐",
       title: "Customer Web Interface",
       description: "Allow customers to browse products and check availability online before visiting your store"
     },
     {
-      icon: "📱",
+      // icon: "📱",
       title: "Customer Mobile App",
       description: "Mobile application for customers to view products, check prices, and track their purchase history"
     },
     {
-      icon: "💳",
+      // icon: "💳",
       title: "Payment Processing",
       description: "Integrated payment gateway supporting credit cards, digital wallets, and online payments"
     },
     {
-      icon: "🔔",
+      // icon: "🔔",
       title: "Notification Module (SMS/Email)",
       description: "Automated notifications for order confirmations, promotions, and important updates"
     },
     {
-      icon: "⭐",
+      // icon: "⭐",
       title: "Feedback & Review Module",
       description: "Collect customer feedback and reviews to improve service quality"
     },
     {
-      icon: "👥",
+      // icon: "👥",
       title: "Employee Management",
       description: "Track employee hours, performance, commissions, and manage staff schedules"
     },
     {
-      icon: "🤝",
+      // icon: "🤝",
       title: "Trusted Customer & Loan Purchase",
       description: "Manage credit sales and track outstanding payments for trusted customers"
     },
     {
-      icon: "🤖",
+      // icon: "🤖",
       title: "AI Chatbot Module",
       description: "Intelligent chatbot to assist customers with queries and product recommendations"
     }
@@ -104,32 +104,32 @@ const ServicesPage = () => {
 
   const benefits = [
     {
-      icon: "✅",
+      // icon: "✅",
       title: "Reduce Errors",
       description: "Eliminate manual billing mistakes with automated calculations"
     },
     {
-      icon: "⚡",
+      // icon: "⚡",
       title: "Speed Up Checkout",
       description: "Process transactions faster with barcode scanning and quick billing"
     },
     {
-      icon: "📈",
+      // icon: "📈",
       title: "Track Everything",
       description: "Monitor sales, inventory, and business performance in real-time"
     },
     {
-      icon: "💡",
+      // icon: "💡",
       title: "Make Smart Decisions",
       description: "Use detailed reports and analytics to optimize your business"
     },
     {
-      icon: "😊",
+      // icon: "😊",
       title: "Improve Customer Experience",
       description: "Provide faster service and accurate receipts to satisfy customers"
     },
     {
-      icon: "🌍",
+      // icon: "🌍",
       title: "Access Anywhere",
       description: "Cloud-based system allows you to manage your business from anywhere"
     }

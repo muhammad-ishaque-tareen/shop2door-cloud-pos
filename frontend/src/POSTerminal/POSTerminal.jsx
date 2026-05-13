@@ -371,10 +371,10 @@ const handleLogOut = () => {
             <User size={18} />
             <span>POS Terminal</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/shiftreport')}>
+          {/* <button className="nav-item" onClick={() => navigate('/shiftreport')}>
             <FileText size={18} />
             <span>Shift Report</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}>
@@ -435,10 +435,10 @@ const handleLogOut = () => {
                       <Search size={18} />
                       <span>Find Products</span>
                     </button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
+                    {/* <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
                       <FileText size={18} />
                       <span>Shift Report</span>
-                    </button>
+                    </button> */}
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}>
                       <BarChart3 size={18} />
                       <span>My Sales</span>
@@ -505,10 +505,10 @@ const handleLogOut = () => {
                       <User size={18} />
                       <span>My Profile</span>
                     </button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
+                    {/* <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
                       <Settings size={18} />
                       <span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
                       <LogOut size={18} />
                       <span>Logout</span>
@@ -790,84 +790,129 @@ const handleLogOut = () => {
       {showReceiptModal && receiptData && (
         <div className="modal-overlay" onClick={closeReceiptModal}>
           <div className="modal receipt-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Receipt</h3>
+            <div className="modal-header no-print">
+              <h2 className="modal-title">Shop2Door</h2>
               <button className="modal-close" onClick={closeReceiptModal}>&times;</button>
             </div>
-            <div className="modal-body" style={{ background: '#fff' }}>
-              <div className="receipt">
+            <div className="modal-body receipt-modal-body">
+              {/*  Thermal Receipt  */}
+              <div className="receipt" id="thermal-receipt">
+
+                {/*  HEADER  */}
                 <div className="receipt-header">
-                  {/* Shop name — large & bold */}
-                  <h3 className="receipt-shop-name">
-                    {user.shop_name?.toUpperCase() || 'SHOP2DOOR'}
-                  </h3>
-                  {/* Store / branch name — smaller line below shop name */}
+                  <p className="rct-shop-name">{user.shop_name?.toUpperCase() || 'SHOP2DOOR'}</p>
                   {(storeInfo?.name || user.store_name) && (
-                    <p className="receipt-store-name">
-                      {storeInfo?.name || user.store_name}
-                    </p>
+                    <p className="rct-store-name">{storeInfo?.name || user.store_name}</p>
                   )}
-                  {/* Dynamic address & phone from the store record */}
                   {(storeInfo?.address || user.store_address) && (
-                    <p>{storeInfo?.address || user.store_address}</p>
+                    <p className="rct-meta">{storeInfo?.address || user.store_address}</p>
                   )}
                   {(storeInfo?.phone || user.store_phone) && (
-                    <p>Tel: {storeInfo?.phone || user.store_phone}</p>
+                    <p className="rct-meta">Tel: {storeInfo?.phone || user.store_phone}</p>
                   )}
-                  <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
-                  <p><strong>Receipt #: {receiptData.receiptNumber}</strong></p>
-                  <p>Date: {receiptData.date}</p>
-                  <p>Cashier: {receiptData.cashier}</p>
                 </div>
-                <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
-                <div className="receipt-items">
+
+                <div className="rct-divider">{'- '.repeat(24)}</div>
+
+                {/*  SALE INFO  */}
+                <div className="rct-info-block">
+                  <div className="rct-row">
+                    <span>Receipt #</span>
+                    <span>{receiptData.receiptNumber}</span>
+                  </div>
+                  <div className="rct-row">
+                    <span>Date</span>
+                    <span>{receiptData.date}</span>
+                  </div>
+                  <div className="rct-row">
+                    <span>Cashier</span>
+                    <span>{receiptData.cashier}</span>
+                  </div>
+                  <div className="rct-row">
+                    <span>Payment</span>
+                    <span>{receiptData.paymentMethod}</span>
+                  </div>
+                </div>
+
+                <div className="rct-divider">{'= '.repeat(25)}</div>
+
+                {/*  COLUMN HEADER  */}
+                <div className="rct-col-header">
+                  <span className="rct-col-desc">Description</span>
+                  <span className="rct-col-qty">Qty</span>
+                  <span className="rct-col-price">Price</span>
+                  <span className="rct-col-total">Total</span>
+                </div>
+
+                <div className="rct-divider rct-divider-thin">{'- '.repeat(24)}</div>
+
+                {/*  ITEMS  */}
+                <div className="rct-items">
                   {receiptData.items.map(item => (
-                    <div key={item.product_id} className="receipt-item">
-                      <span>{item.name} x{item.quantity}</span>
-                      <span>Rs.{(item.price * item.quantity).toFixed(2)}</span>
+                    <div key={item.product_id} className="rct-item-block">
+                      <div className="rct-item-row">
+                        <span className="rct-col-desc rct-item-name">{item.name}</span>
+                        <span className="rct-col-qty">{item.quantity}</span>
+                        <span className="rct-col-price">Rs.{item.price.toFixed(2)}</span>
+                        <span className="rct-col-total">Rs.{(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
-                <div className="receipt-totals">
-                  <div className="receipt-item">
-                    <span>Subtotal:</span>
+
+                <div className="rct-divider">{'= '.repeat(24)}</div>
+
+                {/*  TOTALS  */}
+                <div className="rct-totals">
+                  <div className="rct-total-row">
+                    <span>Subtotal</span>
                     <span>Rs.{receiptData.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="receipt-item">
-                    <span>Tax ({customTaxRate}%):</span>
+                  <div className="rct-total-row">
+                    <span>Tax ({customTaxRate}%)</span>
                     <span>Rs.{receiptData.tax.toFixed(2)}</span>
                   </div>
                   {receiptData.discount > 0 && (
-                    <div className="receipt-item">
-                      <span>Discount:</span>
+                    <div className="rct-total-row rct-discount">
+                      <span>Discount{discountReason ? ` (${discountReason})` : ''}</span>
                       <span>-Rs.{receiptData.discount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="receipt-item">
-                    <strong>TOTAL:</strong>
-                    <strong>Rs.{receiptData.total.toFixed(2)}</strong>
+
+                  <div className="rct-divider rct-divider-thin">{'- '.repeat(24)}</div>
+
+                  <div className="rct-total-row rct-grand-total">
+                    <span>TOTAL</span>
+                    <span>Rs.{receiptData.total.toFixed(2)}</span>
                   </div>
-                  <hr style={{ borderStyle: 'dashed', margin: '10px 0' }} />
-                  <div className="receipt-item">
-                    <span>{receiptData.paymentMethod}:</span>
+
+                  <div className="rct-divider rct-divider-thin">{'- '.repeat(24)}</div>
+
+                  <div className="rct-total-row">
+                    <span>{receiptData.paymentMethod} Paid</span>
                     <span>Rs.{receiptData.amountPaid.toFixed(2)}</span>
                   </div>
                   {receiptData.paymentMethod === 'Cash' && (
-                    <div className="receipt-item">
-                      <span>Change:</span>
+                    <div className="rct-total-row rct-change">
+                      <span>Change Due</span>
                       <span>Rs.{(receiptData.amountPaid - receiptData.total).toFixed(2)}</span>
                     </div>
                   )}
                 </div>
+
+                <div className="rct-divider">{'* '.repeat(24)}</div>
+
+                {/* ══ FOOTER ══ */}
                 <div className="receipt-footer">
-                  <p>Thank you for shopping with us!</p>
-                  <p>Returns within 7 days with receipt are acceptable only.</p>
+                  <p>*** Thank You For Shopping With Us! ***</p>
+                  <p>Returns accepted within 7 days with receipt</p>
                   <p>www.shop2door.com</p>
+                  <p className="rct-item-count">{receiptData.items.reduce((s, i) => s + i.quantity, 0)} item(s) sold</p>
                 </div>
-              </div>
+
+              </div>{/* /receipt */}
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer no-print">
               <button className="btn btn-outline" onClick={closeReceiptModal}>Close</button>
               <button className="btn btn-primary" onClick={handlePrintReceipt}>🖨️ Print</button>
             </div>

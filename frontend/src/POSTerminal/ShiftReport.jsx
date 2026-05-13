@@ -142,10 +142,10 @@ const handleProfileLogout = () => {
               <Search size={18} />
               <span>Find Products</span>
             </button>
-            <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
+            {/* <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
               <FileText size={18} />
               <span>Shift Report</span>
-            </button>
+            </button> */}
             <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}>
               <BarChart3 size={18} />
               <span>My Sales</span>
@@ -238,10 +238,10 @@ const handleProfileLogout = () => {
               <User size={18} />
               <span>My Profile</span>
             </button>
-            <button className="profile-action-btn"  onClick={()=>navigate('/settingss')}>
+            {/* <button className="profile-action-btn"  onClick={()=>navigate('/settingss')}>
               <Settings size={18} />
               <span>Settings</span>
-            </button>
+            </button> */}
             <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
               <LogOut size={18} />
               <span>Logout</span>

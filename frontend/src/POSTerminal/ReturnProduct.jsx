@@ -174,9 +174,9 @@ const ReturnProduct = () => {
           <button className="nav-item" onClick={() => navigate('/posterminal')}>
             <User size={18} /><span>POS Terminal</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/shiftreport')}>
+          {/* <button className="nav-item" onClick={() => navigate('/shiftreport')}>
             <FileText size={18} /><span>Shift Report</span>
-          </button>
+          </button> */}
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}>
@@ -228,9 +228,9 @@ const ReturnProduct = () => {
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/findproducts'); }}>
                       <Search size={18} /><span>Find Products</span>
                     </button>
-                    <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
+                    {/* <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/shiftreport'); }}>
                       <FileText size={18} /><span>Shift Report</span>
-                    </button>
+                    </button> */}
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}>
                       <BarChart3 size={18} /><span>My Sales</span>
                     </button>
@@ -290,9 +290,9 @@ const ReturnProduct = () => {
                     <button className="profile-action-btn" onClick={() => navigate('/myprofile')}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
+                    {/* <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>

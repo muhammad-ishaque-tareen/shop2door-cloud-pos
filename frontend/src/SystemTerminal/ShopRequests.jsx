@@ -267,9 +267,9 @@ const ShopRequests = () => {
             <DollarSign size={18} /><span>Subscriptions</span>
           </button>
           <div className="sr-nav-divider" />
-          <button className="sr-nav-item" onClick={() => navigate('/systemsettings')}>
+          {/* <button className="sr-nav-item" onClick={() => navigate('/systemsettings')}>
             <Settings size={18} /><span>Settings</span>
-          </button>
+          </button> */}
           <button className="sr-nav-item" onClick={() => navigate('/systemadminprofile')}>
             <User size={18} /><span>My Profile</span>
           </button>
@@ -313,9 +313,9 @@ const ShopRequests = () => {
                     <button className="sr-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/subscriptions'); }}>
                       <DollarSign size={18} /><span>Subscriptions</span>
                     </button>
-                    <button className="sr-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
+                    {/* <button className="sr-menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}
@@ -353,9 +353,9 @@ const ShopRequests = () => {
                     <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemadminprofile'); }}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
+                    {/* <button className="sr-profile-action-btn" onClick={() => { setShowProfileDropdown(false); navigate('/systemsettings'); }}>
                       <Settings size={18} /><span>Settings</span>
-                    </button>
+                    </button> */}
                     <button className="sr-profile-action-btn sr-logout-btn" onClick={handleLogOut}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>

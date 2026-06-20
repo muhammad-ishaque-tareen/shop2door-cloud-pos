@@ -254,7 +254,8 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  background: linear-gradient(135deg, #9c27b0 0%);
+  /* background: linear-gradient(135deg, #9c27b0 0%); */
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
   color: white;
   border: none;
   border-radius: 12px;

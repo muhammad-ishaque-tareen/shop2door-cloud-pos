@@ -21,6 +21,12 @@ app.use(express.json());
 const uploadsPath = path.join(__dirname, "..", "uploads");
 app.use("/uploads", express.static(uploadsPath));
 
+// Health check — used by the frontend's offline-sync heartbeat to confirm
+// the server is actually reachable, not just that the network adapter is up.
+// No auth required: it must respond even if the client's token is missing
+// or expired, since that's exactly the kind of state we're checking for.
+app.get("/api/health", (req, res) => res.sendStatus(200));
+
 // Core routes
 app.use("/api/auth",     authRoutes);
 app.use("/api/products", productRoutes);

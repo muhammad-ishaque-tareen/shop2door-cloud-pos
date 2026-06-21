@@ -144,6 +144,7 @@ const buildShopTablesSql = () => `
     total          DECIMAL(10,2),
     payment_method VARCHAR(20),
     status         VARCHAR(20) DEFAULT 'completed',
+    client_sale_id UUID UNIQUE,
     created_at     TIMESTAMP DEFAULT NOW()
   );
 

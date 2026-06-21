@@ -2,15 +2,36 @@
 
 //  CREATE SALE 
 exports.createSale = async (req, res) => {
-  const { items, subtotal, tax, discount, total, payment_method } = req.body;
+  const { client_sale_id, items, subtotal, tax, discount, total, payment_method } = req.body;
 
   if (!items || !items.length)
     return res.status(400).json({ error: 'No items provided' });
+
+  if (!client_sale_id)
+    return res.status(400).json({ error: 'client_sale_id is required' });
 
   const userId  = req.user.id;
   const storeId = req.user.store_id || null;   // cashier/manager carry store_id in JWT
 
   try {
+    // Idempotency check — this exact sale may have already been committed
+    // by an earlier attempt whose response never reached the browser
+    // (e.g. connection dropped right after COMMIT). Same client_sale_id
+    // means same real-world transaction: return what already exists
+    // instead of inserting a duplicate sale and double-deducting stock.
+    const existing = await req.shopDB.query(
+      `SELECT * FROM sales WHERE client_sale_id = $1`,
+      [client_sale_id]
+    );
+    if (existing.rows.length > 0) {
+      return res.json({
+        success: true,
+        receipt_no: existing.rows[0].receipt_no,
+        sale: existing.rows[0],
+        already_existed: true,
+      });
+    }
+
     await req.shopDB.query('BEGIN');
 
     // Generate unique receipt number
@@ -19,10 +40,10 @@ exports.createSale = async (req, res) => {
     // Insert sale header
     const saleResult = await req.shopDB.query(
       `INSERT INTO sales
-         (receipt_no, store_id, user_id, subtotal, tax, discount, total, payment_method)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         (receipt_no, store_id, user_id, subtotal, tax, discount, total, payment_method, client_sale_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [receiptNo, storeId, userId, subtotal, tax, discount, total, payment_method]
+      [receiptNo, storeId, userId, subtotal, tax, discount, total, payment_method, client_sale_id]
     );
 
     const sale = saleResult.rows[0];

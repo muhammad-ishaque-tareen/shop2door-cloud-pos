@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productAPI, salesAPI } from '../services/api';
+import { queueOrSendSale, initOfflineSync, subscribeToSyncStatus } from '../services/offlineSync';
 import './POSTerminalstyles/POSTerminal.css';
 
 const POSTerminal = () => {
@@ -35,6 +36,7 @@ const POSTerminal = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [storeInfo, setStoreInfo] = useState(null); // fetched store details for receipt
   const [selectedProduct, setSelectedProduct] = useState(null); // for product detail modal
+  const [syncStatus, setSyncStatus] = useState({ isOnline: navigator.onLine, isSyncing: false, pendingCount: 0 });
 
   const menuDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
@@ -46,6 +48,10 @@ const POSTerminal = () => {
   useEffect(() => {
     loadProducts();
     loadStoreInfo();
+
+    initOfflineSync();
+    const unsubscribe = subscribeToSyncStatus(setSyncStatus);
+    return unsubscribe;
   }, []);
 
   // Fetch the current user's store so receipt shows correct name / address / phone
@@ -235,7 +241,7 @@ const handleLogOut = () => {
         payment_method: paymentMethod.toLowerCase()
       };
 
-      const result = await salesAPI.create(saleData);
+      const result = await queueOrSendSale(saleData);
       const receiptNumber = result.receipt_no;
       const currentDate = new Date().toLocaleString('en-US', {
         month: 'short',
@@ -365,6 +371,39 @@ const handleLogOut = () => {
             )}
           </div>
         </div>
+
+        {(!syncStatus.isOnline || syncStatus.pendingCount > 0) && (
+          <div
+            className="sync-status-badge"
+            style={{
+              margin: '0 16px 12px',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: !syncStatus.isOnline ? '#fef3c7' : '#dbeafe',
+              color: !syncStatus.isOnline ? '#92400e' : '#1e40af',
+            }}
+          >
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: !syncStatus.isOnline ? '#f59e0b' : '#3b82f6',
+                flexShrink: 0,
+              }}
+            />
+            {!syncStatus.isOnline
+              ? `Offline${syncStatus.pendingCount > 0 ? `:- ${syncStatus.pendingCount} sale${syncStatus.pendingCount > 1 ? 's' : ''} queued` : ''}`
+              : syncStatus.isSyncing
+              ? `Syncing ${syncStatus.pendingCount} sale${syncStatus.pendingCount > 1 ? 's' : ''}...`
+              : `${syncStatus.pendingCount} sale${syncStatus.pendingCount > 1 ? 's' : ''} pending sync`}
+          </div>
+        )}
         
         <nav className="sidebar-nav">
           <button className="nav-item active">

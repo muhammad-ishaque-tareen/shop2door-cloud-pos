@@ -50,7 +50,8 @@ app.use("/api/reportsandanalytics",  require("./routes/reportsandanalytics.route
 app.use("/api/suppliers",            require("./routes/suppliers.routes"));
 app.use("/api/signup",               require("./routes/signup.routes"));
 app.use("/api/shopsetup",            require("./routes/shopsetup.routes"));
-app.use("/api/freetrail",            require("./routes/freetrail.routes"));  
+app.use("/api/freetrail",            require("./routes/freetrail.routes")); 
+app.use("/api/forgot-password", require("./routes/forgotpassword.routes")); 
 
 // Start cron jobs
 startFreeTrailCron();   

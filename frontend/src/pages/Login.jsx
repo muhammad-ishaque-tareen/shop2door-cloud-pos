@@ -205,7 +205,7 @@ const Login = () => {
             </div>
 
             <div className="login-forgot-password">
-              <a href="#" className="login-forgot-link">Forgot password?</a>
+              <a href="forgot-password" className="login-forgot-link">Forgot password?</a>
             </div>
 
             <button type="submit" className="login-button" disabled={loading}>

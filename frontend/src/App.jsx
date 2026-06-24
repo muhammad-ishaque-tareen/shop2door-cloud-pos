@@ -7,7 +7,8 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import PendingApproval from "./pages/PendingApproval";
 import TrialExpiredWall from "./pages/TrialExpiredWall";
-import ForgotPassword from './pages/ForgotPassword';
+import ForgotPassword from "./pages/ForgotPassword"
+
 
 import PaymentConfirmation from "./pages/PaymentConfirmation";
 import POSTerminal from "./POSTerminal/POSTerminal";

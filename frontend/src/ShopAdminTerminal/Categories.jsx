@@ -6,7 +6,7 @@ import {
   Edit3, Save, Search, Trash2, Tag, Grid, List,FileBarChart,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
+// import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Categories.css';
 
 const API = 'http://localhost:5000';

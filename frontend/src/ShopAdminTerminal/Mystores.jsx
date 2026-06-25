@@ -9,7 +9,7 @@ import {
   Save, CheckCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
+import './ShopAdminTerminalStyles/Mystores.css';
 
 const MyStores = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);

@@ -5,7 +5,7 @@ import {
   Moon, Settings, Edit2, X, Camera, CheckCircle, AlertCircle, Save, Boxes,TrendingUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyProfile.css';
+import './ShopAdminTerminalStyles/Myprofile.css';
 
 const Myprofile = () => {
   const navigate = useNavigate();

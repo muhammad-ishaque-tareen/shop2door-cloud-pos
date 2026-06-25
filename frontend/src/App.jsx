@@ -25,6 +25,7 @@ import ManageShops from "./SystemTerminal/ManageShops";
 import Packages from "./SystemTerminal/Packages";
 import Subscriptions from "./SystemTerminal/Subscriptions"
 import SystemAdminProfile from "./SystemTerminal/SystemAdminProfile";
+// import SystemSettings from "./SystemTerminal/SystemSettings";
 import SystemSettings from "./SystemTerminal/SystemSettings";
 
 

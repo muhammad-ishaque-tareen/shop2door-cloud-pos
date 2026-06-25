@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/Signup.css";
+import "../styles/SignUp.css";
 
 const BASE = "http://localhost:5000";
 

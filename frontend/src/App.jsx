@@ -35,7 +35,7 @@ import ShopProfile from "./ShopAdminTerminal/ShopProfile";
 import Subscription from "./ShopAdminTerminal/Subscription";
 import Myprofile from "./ShopAdminTerminal/Myprofile";
 import MyStores from "./ShopAdminTerminal/Mystores";
-import MyUsers from "./ShopAdminTerminal/Myusers";
+import MyUsers from "./ShopAdminTerminal/MyUsers";
 import Products from "./ShopAdminTerminal/Products";
 import Categories from "./ShopAdminTerminal/Categories";
 import Inventory from "./ShopAdminTerminal/Inventory";

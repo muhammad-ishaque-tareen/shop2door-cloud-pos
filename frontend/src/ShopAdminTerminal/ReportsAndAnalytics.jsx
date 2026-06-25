@@ -9,7 +9,6 @@ import {
   ArrowDownRight, Minus, TrendingDown, Activity, Zap,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/ReportsAndAnalytics.css';
 
 const API = 'http://localhost:5000';

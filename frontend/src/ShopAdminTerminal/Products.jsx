@@ -7,7 +7,6 @@ import {
   ChevronLeft, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Products.css';
 
 const ITEMS_PER_PAGE = 9;

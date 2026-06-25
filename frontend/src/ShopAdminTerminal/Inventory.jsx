@@ -8,8 +8,6 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
-import './ShopAdminTerminalStyles/Products.css';
 import './ShopAdminTerminalStyles/Inventory.css';
 
 const ITEMS_PER_PAGE = 20;

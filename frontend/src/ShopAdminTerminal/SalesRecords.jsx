@@ -7,7 +7,6 @@ import {
   DollarSign, ShoppingBag, BarChart2, Percent,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/SalesRecords.css';
 
 const API            = 'http://localhost:5000';

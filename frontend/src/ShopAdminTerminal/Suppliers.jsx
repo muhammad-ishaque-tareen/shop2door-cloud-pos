@@ -9,7 +9,6 @@ import {
   RefreshCw, CheckSquare, XCircle, Clock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Suppliers.css';
 
 const API          = 'http://localhost:5000';

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import '../styles/Pricing.css';
+import { API_BASE_URL } from '../config';
 
-const BASE = 'http://localhost:5000';
+const BASE = API_BASE_URL;
 
 const Pricing = () => {
   const navigate = useNavigate();

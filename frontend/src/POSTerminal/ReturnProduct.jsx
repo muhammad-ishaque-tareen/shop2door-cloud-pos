@@ -6,6 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { salesAPI } from '../services/api';
 import './POSTerminalstyles/ReturnProduct.css';
+import { API_BASE_URL } from '../config';
 
 const ReturnProduct = () => {
   const navigate = useNavigate();
@@ -256,7 +257,7 @@ const ReturnProduct = () => {
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
               <button className="profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                 {user.image_url
-                  ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+                  ? <img src={`${API_BASE_URL}${user.image_url}`} alt="Profile"
                       style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                   : <span className="profile-initials">{user.name?.substring(0, 2).toUpperCase() || 'AM'}</span>}
               </button>
@@ -265,7 +266,7 @@ const ReturnProduct = () => {
                   <div className="profile-dropdown-header">
                     <div className="profile-dropdown-avatar">
                       {user.image_url
-                        ? <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+                        ? <img src={`${API_BASE_URL}${user.image_url}`} alt="Profile"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                         : <span className="avatar-initials">{user.name?.substring(0, 2).toUpperCase() || 'AM'}</span>}
                     </div>

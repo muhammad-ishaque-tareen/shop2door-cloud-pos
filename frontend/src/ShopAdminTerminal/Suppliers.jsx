@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Suppliers.css';
+import { API_BASE_URL } from '../config';
 
-const API          = 'http://localhost:5000';
+const API = API_BASE_URL;
 const ITEMS_PER_PAGE = 20;
 
 const fmt   = (n)  => `Rs. ${parseFloat(n || 0).toLocaleString()}`;

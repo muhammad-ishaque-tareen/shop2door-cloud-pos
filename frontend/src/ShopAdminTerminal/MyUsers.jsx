@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/MyUsers.css';
+import { API_BASE_URL } from '../config';
 
 const ROLES = [
   { value: 'store_manager',   label: 'Store Manager' },
@@ -126,7 +127,7 @@ const MyUsers = () => {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch('http://localhost:5000/api/shopusers', {
+      const res = await fetch(`${API_BASE_URL}/api/shopusers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) setUsers(await res.json());
@@ -140,7 +141,7 @@ const MyUsers = () => {
 
   const fetchStores = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/stores', {
+      const res = await fetch(`${API_BASE_URL}/api/stores`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) setStores(await res.json());
@@ -167,7 +168,7 @@ const MyUsers = () => {
   };
 
   //Render helpers 
-  const shopLogoUrl = user.shop_logo ? `http://localhost:5000${user.shop_logo}` : null;
+  const shopLogoUrl = user.shop_logo ? `${API_BASE_URL}${user.shop_logo}` : null;
 
   const renderShopLogo = () => {
     if (shopLogoUrl) {
@@ -184,7 +185,7 @@ const MyUsers = () => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
     if (user.image_url) {
       return (
-        <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+        <img src={`${API_BASE_URL}${user.image_url}`} alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
       );
     }
@@ -206,7 +207,7 @@ const MyUsers = () => {
 
     setAddLoading(true); setAddError(''); setAddSuccess('');
     try {
-      const res = await fetch('http://localhost:5000/api/shopusers', {
+      const res = await fetch(`${API_BASE_URL}/api/shopusers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(newUser)
@@ -254,7 +255,7 @@ const MyUsers = () => {
 
     setEditLoading(true); setEditError(''); setEditSuccess('');
     try {
-      const res = await fetch(`http://localhost:5000/api/shopusers/${editUser.user_id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/shopusers/${editUser.user_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ role: editUser.role, store_id: editUser.store_id || null })
@@ -281,7 +282,7 @@ const MyUsers = () => {
   const handleDelete = async () => {
     setDeleteLoading(true); setDeleteError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/shopusers/${deleteTarget.user_id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/shopusers/${deleteTarget.user_id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -542,7 +543,7 @@ const MyUsers = () => {
                         <div className="mu-user-cell">
                           <div className="mu-avatar" style={{ background: '#f3e8ff', color: '#9333ea' }}>
                             {u.image_url
-                              ? <img src={`http://localhost:5000${u.image_url}`} alt={u.name}
+                              ? <img src={`${API_BASE_URL}${u.image_url}`} alt={u.name}
                                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                                   onError={e => { e.target.style.display = 'none'; }} />
                               : getInitials(u.name)
@@ -696,7 +697,7 @@ const MyUsers = () => {
               <div className="mu-edit-user-card">
                 <div className="mu-edit-avatar">
                   {editUser.image_url
-                    ? <img src={`http://localhost:5000${editUser.image_url}`} alt={editUser.name}
+                    ? <img src={`${API_BASE_URL}${editUser.image_url}`} alt={editUser.name}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                         onError={e => { e.target.style.display = 'none'; }} />
                     : getInitials(editUser.name)

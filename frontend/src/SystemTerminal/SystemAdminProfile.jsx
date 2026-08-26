@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/SystemAdminProfile.css';
+import { API_BASE_URL } from '../config';
 
 const SystemAdminProfile = () => {
   const [showMenuDropdown, setShowMenuDropdown]     = useState(false);
@@ -84,7 +85,7 @@ const SystemAdminProfile = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />
@@ -100,7 +101,7 @@ const SystemAdminProfile = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
         />
@@ -124,7 +125,7 @@ const SystemAdminProfile = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />
@@ -158,7 +159,7 @@ const SystemAdminProfile = () => {
       if (editPassword.trim()) formData.append('password', editPassword.trim());
       if (selectedFile)        formData.append('image', selectedFile);
 
-      const res = await fetch('http://localhost:5000/api/users/update-profile', {
+      const res = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -387,7 +388,7 @@ const SystemAdminProfile = () => {
                         const fd = new FormData();
                         fd.append('name', user.name);
                         fd.append('image', selectedFile);
-                        const res = await fetch('http://localhost:5000/api/users/update-profile', {
+                        const res = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
                           method: 'PUT',
                           headers: { Authorization: `Bearer ${token}` },
                           body: fd,

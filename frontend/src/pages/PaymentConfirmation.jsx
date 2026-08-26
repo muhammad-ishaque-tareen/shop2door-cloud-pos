@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import '../styles/PaymentConfirmation.css';
+import { API_BASE_URL } from '../config';
 
-const BASE = "http://localhost:5000";
+const BASE = API_BASE_URL;
 
 const PaymentConfirmation = () => {
   const navigate  = useNavigate();

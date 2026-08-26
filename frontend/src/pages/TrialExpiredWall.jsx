@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import "../styles/TrialExpiredWall.css";
+import { API_BASE_URL } from '../config';
 
 /* ── helper: pick an icon per plan tier ── */
 const getPlanIcon = (name = "") => {
@@ -64,7 +65,7 @@ const TrialExpiredWall = () => {
     setSelectedPlan(null);
     setPlansLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/shop/available-plans", {
+      const res = await fetch(`${API_BASE_URL}/api/shop/available-plans`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -86,7 +87,7 @@ const TrialExpiredWall = () => {
     setPurchasing(true);
     setPurchaseError("");
     try {
-      const res = await fetch("http://localhost:5000/api/shop/upgrade-plan", {
+      const res = await fetch(`${API_BASE_URL}/api/shop/upgrade-plan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

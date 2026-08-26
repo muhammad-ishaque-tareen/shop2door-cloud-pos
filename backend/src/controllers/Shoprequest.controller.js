@@ -485,7 +485,11 @@ exports.approveShopRequest = async (req, res) => {
     committed = true;
 
     // Phase 2: CREATE DATABASE
-    const adminPool   = createPool("postgres");
+    // NOTE: connects to MASTER_DB_NAME, not "postgres" — Neon (and some other
+    // managed Postgres hosts) reserve the literal "postgres" database for
+    // internal use and refuse user connections to it. CREATE DATABASE works
+    // fine issued from any database as long as the role has CREATEDB.
+    const adminPool   = createPool(process.env.MASTER_DB_NAME);
     const adminClient = await adminPool.connect();
     try {
       await adminClient.query(`CREATE DATABASE "${dbName}"`);

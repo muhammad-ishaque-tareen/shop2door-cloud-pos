@@ -8,8 +8,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 // import './ShopAdminTerminalStyles/MyStores.css';
 import './ShopAdminTerminalStyles/Categories.css';
+import { API_BASE_URL } from '../config';
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const CAT_COLORS = [
   { bg: '#dbeafe', color: '#1d4ed8', icon: '📦' },

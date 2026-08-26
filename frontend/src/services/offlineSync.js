@@ -7,6 +7,7 @@
 //     badges without polling
 
 import { salesAPI } from './api';
+import { API_BASE_URL } from '../config';
 import {
   savePendingSale,
   getAllPendingSales,
@@ -16,7 +17,7 @@ import {
   decrementCachedStock,
 } from './offlineDB';
 
-const HEALTH_CHECK_URL = 'http://localhost:5000/api/health';
+const HEALTH_CHECK_URL = `${API_BASE_URL}/api/health`;
 const HEALTH_CHECK_INTERVAL_MS = 20000; // 20s heartbeat
 const HEALTH_CHECK_TIMEOUT_MS = 4000;   // don't let a hung request block forever
 const MAX_RETRY_COUNT = 5;

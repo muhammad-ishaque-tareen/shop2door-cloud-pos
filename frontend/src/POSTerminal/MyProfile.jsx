@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './POSTerminalstyles/MyProfile.css';
+import { API_BASE_URL } from '../config';
 
 const MyProfile = () => {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ const MyProfile = () => {
 
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
-    if (currentUser.image_url) return `http://localhost:5000${currentUser.image_url}`;
+    if (currentUser.image_url) return `${API_BASE_URL}${currentUser.image_url}`;
     return null;
   };
 
@@ -93,7 +94,7 @@ const MyProfile = () => {
       const token = localStorage.getItem('token');
       const fd    = new FormData();
       fd.append('image', selectedImageFile);
-      const response = await fetch('http://localhost:5000/api/users/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
         method : 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body   : fd,
@@ -123,7 +124,7 @@ const MyProfile = () => {
       if (formData.newPassword.trim()) fd.append('password', formData.newPassword.trim());
       if (selectedImageFile)           fd.append('image', selectedImageFile);
 
-      const response = await fetch('http://localhost:5000/api/users/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
         method : 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body   : fd,

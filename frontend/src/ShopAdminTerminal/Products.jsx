@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Products.css';
+import { API_BASE_URL } from '../config';
 
 const ITEMS_PER_PAGE = 9;
 const LOW_STOCK_THRESHOLD = 15;
@@ -29,7 +30,7 @@ const stockLabel = (qty) => {
   return 'In Stock';
 };
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const emptyProduct = {
   name: '', barcode: '', category_id: '', store_id: '',

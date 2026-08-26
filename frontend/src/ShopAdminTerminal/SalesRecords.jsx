@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/SalesRecords.css';
+import { API_BASE_URL } from '../config';
 
-const API            = 'http://localhost:5000';
+const API = API_BASE_URL;
 const ITEMS_PER_PAGE = 15;
 
 const fmtCurrency = (val) =>

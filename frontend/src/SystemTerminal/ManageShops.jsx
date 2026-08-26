@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/ManageShops.css';
+import { API_BASE_URL } from '../config';
 
 const ManageShops = () => {
   const [showMenuDropdown,    setShowMenuDropdown]    = useState(false);
@@ -66,7 +67,7 @@ const ManageShops = () => {
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/manage-shops', {
+      const res = await fetch(`${API_BASE_URL}/api/manage-shops`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -122,7 +123,7 @@ const ManageShops = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />
@@ -136,7 +137,7 @@ const ManageShops = () => {
   const renderShopLogo = (shop) =>
     shop.logo_url ? (
       <img
-        src={`http://localhost:5000${shop.logo_url}`}
+        src={`${API_BASE_URL}${shop.logo_url}`}
         alt={shop.name}
         className="ms-shop-logo-img"
         onError={(e) => { e.target.style.display = 'none'; }}
@@ -479,7 +480,7 @@ const ManageShops = () => {
                 <div className="ms-view-icon">
                   {viewShop.logo_url ? (
                     <img
-                      src={`http://localhost:5000${viewShop.logo_url}`}
+                      src={`${API_BASE_URL}${viewShop.logo_url}`}
                       alt={viewShop.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                       onError={(e) => { e.target.style.display = 'none'; }}

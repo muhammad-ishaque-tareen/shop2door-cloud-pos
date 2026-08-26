@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Mystores.css';
+import { API_BASE_URL } from '../config';
 
 const MyStores = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
@@ -46,7 +47,7 @@ const MyStores = () => {
   const fetchStores = async () => {
     setLoadingStores(true);
     try {
-      const response = await fetch('http://localhost:5000/api/stores', {
+      const response = await fetch(`${API_BASE_URL}/api/stores`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -80,7 +81,7 @@ const MyStores = () => {
     navigate('/');
   };
 
-  const shopLogoUrl = user.shop_logo ? `http://localhost:5000${user.shop_logo}` : null;
+  const shopLogoUrl = user.shop_logo ? `${API_BASE_URL}${user.shop_logo}` : null;
 
   const renderShopLogo = () => {
     if (shopLogoUrl) {
@@ -97,7 +98,7 @@ const MyStores = () => {
     const initials = user.name?.substring(0, 2).toUpperCase() || 'AD';
     if (user.image_url) {
       return (
-        <img src={`http://localhost:5000${user.image_url}`} alt="Profile"
+        <img src={`${API_BASE_URL}${user.image_url}`} alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
       );
     }
@@ -114,7 +115,7 @@ const MyStores = () => {
     if (!newStore.name.trim()) { setAddError('Store name is required.'); return; }
     setAddLoading(true); setAddError(''); setAddSuccess('');
     try {
-      const response = await fetch('http://localhost:5000/api/stores', {
+      const response = await fetch(`${API_BASE_URL}/api/stores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(newStore)
@@ -161,7 +162,7 @@ const MyStores = () => {
     if (!editStore.name.trim()) { setEditError('Store name is required.'); return; }
     setEditLoading(true); setEditError(''); setEditSuccess('');
     try {
-      const response = await fetch(`http://localhost:5000/api/stores/${editStore.store_id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/stores/${editStore.store_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(editStore)

@@ -9,9 +9,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Inventory.css';
+import { API_BASE_URL } from '../config';
 
 const ITEMS_PER_PAGE = 20;
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const CATEGORY_COLORS = [
   'prod-cat-0','prod-cat-1','prod-cat-2','prod-cat-3',

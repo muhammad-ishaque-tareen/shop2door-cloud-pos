@@ -6,9 +6,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/Packages.css';
+import { API_BASE_URL } from '../config';
 
 /*  tiny helpers */
-const BASE = 'http://localhost:5000';
+const BASE = API_BASE_URL;
 
 const emptyForm = {
   name: '', description: '', price: '',

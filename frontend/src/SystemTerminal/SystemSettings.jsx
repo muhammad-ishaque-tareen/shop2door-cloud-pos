@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/SystemSettings.css';
+import { API_BASE_URL } from '../config';
 
 const SystemSettings = () => {
   const [showMenuDropdown, setShowMenuDropdown]       = useState(false);
@@ -49,7 +50,7 @@ const SystemSettings = () => {
   const fetchSystemInfo = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/system-settings', {
+      const res = await fetch(`${API_BASE_URL}/api/system-settings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -75,7 +76,7 @@ const SystemSettings = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />

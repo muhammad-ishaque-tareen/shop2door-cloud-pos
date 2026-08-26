@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/SystemAdminDashboard.css';
+import { API_BASE_URL } from '../config';
 
 const SystemAdminDashboard = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
@@ -39,7 +40,7 @@ const SystemAdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/system/stats', {
+        const res = await fetch(`${API_BASE_URL}/api/system/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -59,7 +60,7 @@ const SystemAdminDashboard = () => {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/system/packages', {
+        const res = await fetch(`${API_BASE_URL}/api/system/packages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -99,7 +100,7 @@ const SystemAdminDashboard = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />

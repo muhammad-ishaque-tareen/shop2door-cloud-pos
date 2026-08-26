@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/ShopProfile.css';
+import { API_BASE_URL } from '../config';
 
 const ShopProfile = () => {
   const [shopData, setShopData] = useState(null);
@@ -29,7 +30,7 @@ const ShopProfile = () => {
   useEffect(() => {
     const fetchShopProfile = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/shop/profile', {
+        const response = await fetch(`${API_BASE_URL}/api/shop/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -52,7 +53,7 @@ const ShopProfile = () => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stores', {
+        const response = await fetch(`${API_BASE_URL}/api/stores`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -87,7 +88,7 @@ const ShopProfile = () => {
   };
 
   const shopLogoUrl = user.shop_logo
-    ? `http://localhost:5000${user.shop_logo}`
+    ? `${API_BASE_URL}${user.shop_logo}`
     : null;
 
   const renderShopLogo = () => {
@@ -109,7 +110,7 @@ const ShopProfile = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{
             width: '100%', height: '100%',
@@ -307,7 +308,7 @@ const ShopProfile = () => {
                 <div className="sp-hero-logo-wrap">
                   {shopData.logo_url ? (
                     <img
-                      src={`http://localhost:5000${shopData.logo_url}`}
+                      src={`${API_BASE_URL}${shopData.logo_url}`}
                       alt={shopData.name}
                       className="sp-hero-logo"
                       onError={(e) => {

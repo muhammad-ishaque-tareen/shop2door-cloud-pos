@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Myprofile.css';
+import { API_BASE_URL } from '../config';
 
 const Myprofile = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const Myprofile = () => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/stores', {
+        const res = await fetch(`${API_BASE_URL}/api/stores`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setStores(await res.json());
@@ -90,7 +91,7 @@ const Myprofile = () => {
 
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
-    if (currentUser.image_url) return `http://localhost:5000${currentUser.image_url}`;
+    if (currentUser.image_url) return `${API_BASE_URL}${currentUser.image_url}`;
     return null;
   };
 
@@ -113,7 +114,7 @@ const Myprofile = () => {
   };
 
   // Shop logo
-  const shopLogoUrl = currentUser.shop_logo ? `http://localhost:5000${currentUser.shop_logo}` : null;
+  const shopLogoUrl = currentUser.shop_logo ? `${API_BASE_URL}${currentUser.shop_logo}` : null;
   const renderShopLogo = () => {
     if (shopLogoUrl) {
       return (
@@ -145,7 +146,7 @@ const Myprofile = () => {
       const fd = new FormData();
       fd.append('image', selectedImageFile);
 
-      const response = await fetch('http://localhost:5000/api/users/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
@@ -179,7 +180,7 @@ const Myprofile = () => {
       if (formData.newPassword.trim()) fd.append('password', formData.newPassword.trim());
       if (selectedImageFile)           fd.append('image', selectedImageFile);
 
-      const response = await fetch('http://localhost:5000/api/users/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/update-profile`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,

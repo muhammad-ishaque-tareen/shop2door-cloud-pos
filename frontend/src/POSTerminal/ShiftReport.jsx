@@ -3,6 +3,7 @@ import { ShoppingCart, FileText, Search, Package, BarChart3, Settings, User, Log
 import { useNavigate } from 'react-router-dom';
 import './POSTerminalstyles/ShiftReport.css';
 import { productAPI } from '../services/api';
+import { API_BASE_URL } from '../config';
 const ShiftReport = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -179,7 +180,7 @@ const handleProfileLogout = () => {
     >
           {user.image_url ? (
             <img 
-              src={`http://localhost:5000${user.image_url}`} 
+              src={`${API_BASE_URL}${user.image_url}`} 
               alt="Profile"
               style={{
                 width: '100%',
@@ -199,7 +200,7 @@ const handleProfileLogout = () => {
             <div className="profile-dropdown-avatar">
                 {user.image_url ? (
                   <img 
-                    src={`http://localhost:5000${user.image_url}`} 
+                    src={`${API_BASE_URL}${user.image_url}`} 
                     alt="Profile"
                     style={{
                       width: '100%',

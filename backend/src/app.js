@@ -11,8 +11,21 @@ const shopRoutes    = require("./routes/shop.routes");
 
 const app = express();
 
+// FRONTEND_URL can be a comma-separated list, e.g.
+// "http://localhost:5173,https://shop2door.vercel.app"
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim());
+
 app.use(cors({
-  origin:      "http://localhost:5173",
+  origin: function (origin, callback) {
+    // allow requests with no origin (curl, mobile apps, health checks)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
   credentials: true,
 }));
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ForgotPassword.css";
+import { API_BASE_URL } from '../config';
 
-const BASE        = "http://localhost:5000";
+const BASE = API_BASE_URL;
 const emailRegex  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 //  Countdown hook (same pattern as SignUp) 

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SystemTerminalStyles/ShopRequests.css';
+import { API_BASE_URL } from '../config';
 
 const ShopRequests = () => {
   const [showMenuDropdown,    setShowMenuDropdown]    = useState(false);
@@ -48,7 +49,7 @@ const ShopRequests = () => {
   const fetchShopRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/shop-requests', {
+      const res = await fetch(`${API_BASE_URL}/api/shop-requests`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -68,7 +69,7 @@ const ShopRequests = () => {
     try {
       setActionLoading(true);
       const res = await fetch(
-        `http://localhost:5000/api/shop-requests/${requestId}/approve`,
+        `${API_BASE_URL}/api/shop-requests/${requestId}/approve`,
         { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
       );
       const data = await res.json();
@@ -96,7 +97,7 @@ const ShopRequests = () => {
     try {
       setActionLoading(true);
       const res = await fetch(
-        `http://localhost:5000/api/shop-requests/${rejectModal.requestId}/reject`,
+        `${API_BASE_URL}/api/shop-requests/${rejectModal.requestId}/reject`,
         {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -129,7 +130,7 @@ const ShopRequests = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />

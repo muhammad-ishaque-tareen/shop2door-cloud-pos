@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { productAPI, salesAPI } from '../services/api';
 import { queueOrSendSale, initOfflineSync, subscribeToSyncStatus } from '../services/offlineSync';
 import './POSTerminalstyles/POSTerminal.css';
+import { API_BASE_URL } from '../config';
 
 const POSTerminal = () => {
   const [products, setProducts] = useState([]);
@@ -59,7 +60,7 @@ const POSTerminal = () => {
     const storeId = user.store_id;
     if (!storeId) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/stores/${storeId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/stores/${storeId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setStoreInfo(await res.json());
@@ -122,7 +123,7 @@ const POSTerminal = () => {
       
       if (normalizedProducts.length > 0) {
         console.log('Sample product:', normalizedProducts[0]);
-        console.log('Image URL will be:', `http://localhost:5000${normalizedProducts[0].image_url}`);
+        console.log('Image URL will be:', `${API_BASE_URL}${normalizedProducts[0].image_url}`);
       }
       
       setProducts(normalizedProducts);
@@ -304,7 +305,7 @@ const handleLogOut = () => {
 
   const renderProfileImage = (size = 'default') => {
     const imageProps = {
-      src: `http://localhost:5000${user.image_url}`,
+      src: `${API_BASE_URL}${user.image_url}`,
       alt: "Profile",
       style: {
         width: '100%',
@@ -324,7 +325,7 @@ const handleLogOut = () => {
     if (product.image_url) {
       return (
         <img 
-          src={`http://localhost:5000${product.image_url}`} 
+          src={`${API_BASE_URL}${product.image_url}`} 
           alt={product.name}
           className="product-image"
         />
@@ -337,7 +338,7 @@ const handleLogOut = () => {
     if (item.image_url) {
       return (
         <img 
-          src={`http://localhost:5000${item.image_url}`} 
+          src={`${API_BASE_URL}${item.image_url}`} 
           alt={item.name}
           className="item-image"
         />
@@ -797,7 +798,7 @@ const handleLogOut = () => {
             <div className="modal-body product-detail-body">
               <div className="product-detail-image-wrap">
                 {selectedProduct.image_url
-                  ? <img src={`http://localhost:5000${selectedProduct.image_url}`} alt={selectedProduct.name} className="product-detail-img" />
+                  ? <img src={`${API_BASE_URL}${selectedProduct.image_url}`} alt={selectedProduct.name} className="product-detail-img" />
                   : <div className="product-detail-emoji">{selectedProduct.emoji || '📦'}</div>
                 }
               </div>

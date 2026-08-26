@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/ShopAdminDashboard.css';
+import { API_BASE_URL } from '../config';
 
 const ShopAdminDashboard = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
@@ -36,7 +37,7 @@ const ShopAdminDashboard = () => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stores', {
+        const response = await fetch(`${API_BASE_URL}/api/stores`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -56,7 +57,7 @@ const ShopAdminDashboard = () => {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/shop/usage', {
+        const response = await fetch(`${API_BASE_URL}/api/shop/usage`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -92,7 +93,7 @@ const ShopAdminDashboard = () => {
 
   // Shop logo from DB via login response
   const shopLogoUrl = user.shop_logo
-    ? `http://localhost:5000${user.shop_logo}`
+    ? `${API_BASE_URL}${user.shop_logo}`
     : null;
 
   const renderShopLogo = () => {
@@ -114,7 +115,7 @@ const ShopAdminDashboard = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{
             width: '100%', height: '100%',

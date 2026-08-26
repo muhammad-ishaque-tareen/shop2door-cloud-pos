@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ShopAdminTerminalStyles/Subscription.css';
+import { API_BASE_URL } from '../config';
 
 const Subscription = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
@@ -62,13 +63,13 @@ const Subscription = () => {
     setLoading(true);
     try {
       const [subRes, usageRes, billingRes] = await Promise.all([
-        fetch('http://localhost:5000/api/shop/subscription', {
+        fetch(`${API_BASE_URL}/api/shop/subscription`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/shop/usage', {
+        fetch(`${API_BASE_URL}/api/shop/usage`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/shop/billing-history', {
+        fetch(`${API_BASE_URL}/api/shop/billing-history`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -113,7 +114,7 @@ const Subscription = () => {
     setSelectedPlan(null);
     setPlansLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/shop/available-plans', {
+      const res = await fetch(`${API_BASE_URL}/api/shop/available-plans`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -135,7 +136,7 @@ const Subscription = () => {
     setPurchasing(true);
     setPurchaseError('');
     try {
-      const res = await fetch('http://localhost:5000/api/shop/upgrade-plan', {
+      const res = await fetch(`${API_BASE_URL}/api/shop/upgrade-plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +173,7 @@ const Subscription = () => {
   };
 
   const shopLogoUrl = user.shop_logo
-    ? `http://localhost:5000${user.shop_logo}`
+    ? `${API_BASE_URL}${user.shop_logo}`
     : null;
 
   const renderShopLogo = () => {
@@ -194,7 +195,7 @@ const Subscription = () => {
     if (user.image_url) {
       return (
         <img
-          src={`http://localhost:5000${user.image_url}`}
+          src={`${API_BASE_URL}${user.image_url}`}
           alt="Profile"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />

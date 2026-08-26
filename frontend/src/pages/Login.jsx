@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
+import { API_BASE_URL } from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -51,7 +52,7 @@ const Login = () => {
    } else if (role === 'shop_admin') {
   // Check free trial status before redirecting
   try {
-    const trialRes = await fetch('http://localhost:5000/api/freetrail/check-status', {
+    const trialRes = await fetch(`${API_BASE_URL}/api/freetrail/check-status`, {
       headers: { Authorization: `Bearer ${data.token}` }
     });
     const trialData = await trialRes.json();

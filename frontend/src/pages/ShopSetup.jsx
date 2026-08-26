@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 // import "../styles/ShopSetup.css";
 import '../styles/ShopSetup.css'
+import { API_BASE_URL } from '../config';
 
-const BASE = "http://localhost:5000";
+const BASE = API_BASE_URL;
 
 const STEPS = ["Shop Info", "Location & Hours", "Logo & Review"];
 

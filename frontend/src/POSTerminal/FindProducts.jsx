@@ -3,6 +3,7 @@ import { ShoppingCart, Search, User, LogOut, BarChart3, FileText, Settings, Pack
 import './POSTerminalstyles/FindProducts.css';
 import { useNavigate } from 'react-router-dom';
 import { productAPI } from '../services/api';
+import { API_BASE_URL } from '../config';
 
 const FindProducts = () => {
   const [searchQuery, setSearchQuery]           = useState('');
@@ -198,7 +199,7 @@ const FindProducts = () => {
               >
                 {user.image_url ? (
                   <img
-                    src={`http://localhost:5000${user.image_url}`}
+                    src={`${API_BASE_URL}${user.image_url}`}
                     alt="Profile"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                   />
@@ -215,7 +216,7 @@ const FindProducts = () => {
                     <div className="profile-dropdown-avatar">
                       {user.image_url ? (
                         <img
-                          src={`http://localhost:5000${user.image_url}`}
+                          src={`${API_BASE_URL}${user.image_url}`}
                           alt="Profile"
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                         />
@@ -344,7 +345,7 @@ const FindProducts = () => {
                       <div className="product-list-emoji">
                         {product.image_url ? (
                           <img
-                            src={`http://localhost:5000${product.image_url}`}
+                            src={`${API_BASE_URL}${product.image_url}`}
                             alt={product.name}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                           />
@@ -394,7 +395,7 @@ const FindProducts = () => {
                 <div className="product-detail-emoji">
                   {selectedProduct.image_url ? (
                     <img
-                      src={`http://localhost:5000${selectedProduct.image_url}`}
+                      src={`${API_BASE_URL}${selectedProduct.image_url}`}
                       alt={selectedProduct.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                     />

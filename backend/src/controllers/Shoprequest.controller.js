@@ -160,11 +160,12 @@ const buildShopTablesSql = () => `
 
   -- 11. Returns
   CREATE TABLE IF NOT EXISTS returns (
-    return_id  SERIAL PRIMARY KEY,
-    sale_id    INT REFERENCES sales(sale_id),
-    user_id    INT REFERENCES users(user_id),
-    reason     TEXT,
-    created_at TIMESTAMP DEFAULT NOW()
+    return_id         SERIAL PRIMARY KEY,
+    sale_id           INT REFERENCES sales(sale_id),
+    user_id           INT REFERENCES users(user_id),
+    reason            TEXT,
+    client_return_id  UUID UNIQUE,
+    created_at        TIMESTAMP DEFAULT NOW()
   );
 
   -- 12. Return Items
@@ -177,6 +178,10 @@ const buildShopTablesSql = () => `
     unit_price     DECIMAL(10,2),
     subtotal       DECIMAL(10,2)
   );
+
+  -- Offline-return sync support: idempotency lookup + product_id resolution
+  CREATE INDEX IF NOT EXISTS idx_returns_client_return_id ON returns (client_return_id);
+  CREATE INDEX IF NOT EXISTS idx_sale_items_sale_product ON sale_items (sale_id, product_id);
 `;
 
 const createPool = (database) =>

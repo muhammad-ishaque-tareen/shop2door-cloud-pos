@@ -168,10 +168,7 @@ const ShopAdminDashboard = () => {
             <PackageIcon size={18} />
             <span>Suppliers</span>
           </button>
-          {/* <button className="shop-nav-item" onClick={() => navigate('/adduser')}>
-            <Plus size={18} />
-            <span>Add User</span>
-          </button> */}
+         
 
           <div className="nav-divider" />
 
@@ -258,9 +255,6 @@ const ShopAdminDashboard = () => {
                 </div>
               )}
             </div>
-
-            <div className="shop-icon-circle moon"><Moon size={16} /></div>
-            <div className="shop-icon-circle bell"><Bell size={16} /></div>
 
             {/* Profile dropdown */}
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>

@@ -5,6 +5,17 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { salesAPI } from '../services/api';
+import {
+  initOfflineSync,
+  subscribeToSyncStatus,
+  queueOrSendReturn,
+} from '../services/offlineSync';
+import {
+  getCachedSaleByReceipt,
+  cacheSyncedSale,
+  getAllPendingSales,
+  getQueuedReturnedQtyByProduct,
+} from '../services/offlineDB';
 import './POSTerminalstyles/ReturnProduct.css';
 import { API_BASE_URL } from '../config';
 
@@ -22,6 +33,13 @@ const ReturnProduct = () => {
   const [processingReturn,   setProcessingReturn]   = useState(false);
   const [currentSale,        setCurrentSale]        = useState(null);
   const [items,              setItems]              = useState([]);
+  const [syncStatus,         setSyncStatus]         = useState({ isOnline: navigator.onLine, isSyncing: false, pendingCount: 0, pendingReturnsCount: 0 });
+
+  // saleSource carries what a return against the currently-loaded sale needs
+  // to send: either a real sale_id (sale already synced) or a client_sale_id
+  // (sale still queued/unsynced — return will be queued too, and resolved
+  // once that sale syncs). isSynced drives a few UI messages below.
+  const [saleSource, setSaleSource] = useState(null);
 
   //  Refs & user 
   const menuDropdownRef    = useRef(null);
@@ -40,46 +58,157 @@ const ReturnProduct = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  //  Offline sync status 
+  useEffect(() => {
+    initOfflineSync();
+    const unsubscribe = subscribeToSyncStatus(setSyncStatus);
+    return unsubscribe;
+  }, []);
+
+  //  Build the common `items` shape from any of the three sources, folding
+  //  in quantities already queued (but not yet synced) for return so the
+  //  UI can't let the same units be returned twice before the next sync.
+  const buildItemsState = async (rawItems, alreadyReturnedBase, ref) => {
+    const queuedMap = await getQueuedReturnedQtyByProduct(ref);
+
+    return rawItems.map((item, idx) => {
+      const alreadyReturned =
+        (parseFloat(alreadyReturnedBase(item)) || 0) + (queuedMap[item.product_id] || 0);
+      const qtySold    = parseFloat(item.quantity);
+      const returnable = qtySold - alreadyReturned;
+
+      return {
+        id:             idx,
+        sale_item_id:   item.sale_item_id || null, // may be unknown — backend resolves via product_id when absent
+        product_id:     item.product_id,
+        name:           item.name || item.product_name,
+        qtySold,
+        alreadyReturned,
+        returnable,
+        unitPrice:      parseFloat(item.price),
+        lineTotal:      qtySold * parseFloat(item.price),
+        returnQty:      returnable > 0 ? returnable : 0,
+        fullyReturned:  returnable <= 0,
+      };
+    });
+  };
+
+  const resetSaleState = () => {
+    setCurrentSale(null);
+    setItems([]);
+    setSelectedItems([]);
+    setSaleSource(null);
+  };
+
   //  Search receipt 
+  // Three lookup paths, tried in order:
+  //   1. An offline-queued sale not yet synced (receipt looks like OFFLINE-XXXXXXXX)
+  //   2. A live server lookup, when online
+  //   3. A locally cached copy of a previously-seen synced sale (offline fallback,
+  //      or the live lookup above failed on a genuine network drop)
   const handleSearch = async () => {
     const query = searchQuery.trim();
     if (!query) return alert('Please enter a Receipt Number.');
 
+    setLoadingSale(true);
+    resetSaleState();
+
     try {
-      setLoadingSale(true);
-      setCurrentSale(null);
-      setItems([]);
-      setSelectedItems([]);
+      // 1. Offline-queued (not yet synced) sale, made on this device
+      if (query.toUpperCase().startsWith('OFFLINE-')) {
+        const pending = await getAllPendingSales();
+        const match = pending.find(
+          (p) => `OFFLINE-${p.client_sale_id.slice(0, 8).toUpperCase()}` === query.toUpperCase()
+        );
+        if (!match) {
+          alert('This offline sale was not found on this device. If it has already synced since, search using the real receipt number instead.');
+          return;
+        }
 
-      const sale = await salesAPI.getByReceipt(query);
+        const builtItems = await buildItemsState(
+          match.saleData.items,
+          () => 0, // nothing returned yet — this sale hasn't even reached the server
+          { client_sale_id: match.client_sale_id }
+        );
 
-      // Block if sale is already fully returned
-      if (sale.status === 'returned') {
-        alert('This sale has already been fully returned.');
+        setCurrentSale({ receipt_no: query, status: 'active', unsynced: true });
+        setItems(builtItems);
+        setSaleSource({ sale_id: null, client_sale_id: match.client_sale_id });
         return;
       }
 
-      setCurrentSale(sale);
+      // 2. Live server lookup when online
+      if (syncStatus.isOnline) {
+        try {
+          const sale = await salesAPI.getByReceipt(query);
 
-      // Map items — compute returnable qty per line
-      const saleItems = Array.isArray(sale.items) ? sale.items : [];
-      setItems(saleItems.map((item, idx) => {
-        const alreadyReturned = parseFloat(item.already_returned_qty) || 0;
-        const returnable      = parseFloat(item.quantity) - alreadyReturned;
-        return {
-          id:             idx,
-          sale_item_id:   item.sale_item_id,  // required by backend validation
-          product_id:     item.product_id,
-          name:           item.product_name,
-          qtySold:        parseFloat(item.quantity),
-          alreadyReturned,
-          returnable,
-          unitPrice:      parseFloat(item.price),
-          lineTotal:      parseFloat(item.total),
-          returnQty:      returnable > 0 ? returnable : 0,
-          fullyReturned:  returnable <= 0,
-        };
-      }));
+          if (sale.status === 'returned') {
+            alert('This sale has already been fully returned.');
+            return;
+          }
+
+          // Cache it so the same receipt is searchable offline afterward.
+          await cacheSyncedSale({
+            receipt_no: sale.receipt_no,
+            sale_id: sale.sale_id,
+            store_id: sale.store_id,
+            status: sale.status,
+            items: (sale.items || []).map((i) => ({
+              sale_item_id: i.sale_item_id,
+              product_id: i.product_id,
+              name: i.product_name,
+              quantity: parseFloat(i.quantity),
+              price: parseFloat(i.price),
+              already_returned_qty: parseFloat(i.already_returned_qty) || 0,
+            })),
+            subtotal: sale.subtotal,
+            tax: sale.tax,
+            discount: sale.discount,
+            total: sale.total,
+            created_at: Date.now(),
+          });
+
+          const builtItems = await buildItemsState(
+            sale.items || [],
+            (i) => i.already_returned_qty,
+            { sale_id: sale.sale_id }
+          );
+
+          setCurrentSale(sale);
+          setItems(builtItems);
+          setSaleSource({ sale_id: sale.sale_id, client_sale_id: null });
+          return;
+        } catch (err) {
+          // Could be a genuine 404 or a network blip — fall through to the
+          // offline cache below rather than assuming either one.
+        }
+      }
+
+      // 3. Offline cache of a previously-seen synced sale
+      const cached = await getCachedSaleByReceipt(query);
+      if (cached) {
+        if (cached.status === 'returned') {
+          alert('This sale has already been fully returned.');
+          return;
+        }
+
+        const builtItems = await buildItemsState(
+          cached.items,
+          (i) => i.already_returned_qty,
+          { sale_id: cached.sale_id }
+        );
+
+        setCurrentSale({ receipt_no: cached.receipt_no, sale_id: cached.sale_id, status: cached.status });
+        setItems(builtItems);
+        setSaleSource({ sale_id: cached.sale_id, client_sale_id: null });
+        return;
+      }
+
+      alert(
+        syncStatus.isOnline
+          ? 'Sale not found.'
+          : "Sale not found in this device's offline records. If it was made on another terminal, you'll need to be online to look it up."
+      );
     } catch (error) {
       alert(error.message || 'Sale not found.');
     } finally {
@@ -128,21 +257,31 @@ const ReturnProduct = () => {
 
     try {
       setProcessingReturn(true);
-      await salesAPI.processReturn({
-        sale_id: currentSale.sale_id,
-        items: selectedItemsData.map(i => ({
-          sale_item_id: i.sale_item_id,  // backend uses this to validate + track double-returns
-          product_id:   i.product_id,
-          quantity:     i.returnQty,
-          unit_price:   i.unitPrice,
-        })),
+
+      const result = await queueOrSendReturn({
+        sale_id: saleSource?.sale_id || null,
+        client_sale_id: saleSource?.client_sale_id || null,
+        receipt_no: currentSale.receipt_no,
         reason: returnReason,
+        items: selectedItemsData.map(i => ({
+          ...(i.sale_item_id ? { sale_item_id: i.sale_item_id } : {}),
+          product_id: i.product_id,
+          quantity:   i.returnQty,
+          unit_price: i.unitPrice,
+        })),
       });
 
-      alert(`Return processed! Refund amount: Rs.${refundAmount.toFixed(2)}`);
-      setCurrentSale(null);
-      setItems([]);
-      setSelectedItems([]);
+      if (result.queued) {
+        alert(
+          saleSource?.client_sale_id
+            ? `Return saved. It'll sync automatically once its original sale finishes syncing. Estimated refund: Rs.${refundAmount.toFixed(2)}`
+            : `Return saved offline and will sync automatically once you're back online. Estimated refund: Rs.${refundAmount.toFixed(2)}`
+        );
+      } else {
+        alert(`Return processed! Refund amount: Rs.${refundAmount.toFixed(2)}`);
+      }
+
+      resetSaleState();
       setSearchQuery('');
     } catch (error) {
       alert(error.message || 'Failed to process return.');
@@ -171,6 +310,42 @@ const ReturnProduct = () => {
           <ShoppingCart className="brand-icon" size={24} />
           <h1 className="brand-title">{user.shop_name || 'Shop2Door'}</h1>
         </div>
+
+        {(!syncStatus.isOnline || syncStatus.pendingCount > 0 || syncStatus.pendingReturnsCount > 0) && (
+          <div
+            className="sync-status-badge"
+            style={{
+              margin: '0 16px 12px',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: !syncStatus.isOnline ? '#fef3c7' : '#dbeafe',
+              color: !syncStatus.isOnline ? '#92400e' : '#1e40af',
+            }}
+          >
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: !syncStatus.isOnline ? '#f59e0b' : '#3b82f6',
+                flexShrink: 0,
+              }}
+            />
+            <span>
+              {!syncStatus.isOnline
+                ? `Offline — ${syncStatus.pendingCount} sale(s), ${syncStatus.pendingReturnsCount} return(s) queued`
+                : syncStatus.isSyncing
+                  ? 'Syncing…'
+                  : `${syncStatus.pendingCount + syncStatus.pendingReturnsCount} item(s) waiting to sync`}
+            </span>
+          </div>
+        )}
+
         <nav className="sidebar-nav">
           <button className="nav-item" onClick={() => navigate('/posterminal')}>
             <User size={18} /><span>POS Terminal</span>
@@ -212,7 +387,6 @@ const ReturnProduct = () => {
         <header className="main-header">
           <div className="breadcrumb">POS &gt; Return Product</div>
           <div className="header-actions">
-            <button className="btn-shift-active">Shift Active</button>
 
             {/* Menu dropdown */}
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
@@ -238,20 +412,10 @@ const ReturnProduct = () => {
                   </div>
                   <div className="menu-divider" />
                   <div className="menu-section">
-                    {/* <h4 className="menu-section-title">Settings</h4>
-                    <button className="menu-item" onClick={toggleDarkMode}>
-                      {isDarkMode ? '☀️' : '🌙'}<span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                    </button>
-                    <button className="menu-item" onClick={() => navigate('/settingss')}>
-                      <Settings size={18} /><span>Settings</span>
-                    </button> */}
                   </div>
                 </div>
               )}
             </div>
-
-            <div className="icon-circle moon">🌙</div>
-            <div className="icon-circle calculator">🧮</div>
 
             {/* Profile dropdown */}
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
@@ -291,9 +455,6 @@ const ReturnProduct = () => {
                     <button className="profile-action-btn" onClick={() => navigate('/myprofile')}>
                       <User size={18} /><span>My Profile</span>
                     </button>
-                    {/* <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
-                      <Settings size={18} /><span>Settings</span>
-                    </button> */}
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
                       <LogOut size={18} /><span>Logout</span>
                     </button>
@@ -313,7 +474,7 @@ const ReturnProduct = () => {
               <Search className="search-icon-return" size={20} />
               <input
                 type="text"
-                placeholder="Enter Receipt Number (e.g. RCP-1234567890)..."
+                placeholder="Enter Receipt Number (e.g. RCP-1234567890 or OFFLINE-XXXXXXXX)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -329,7 +490,14 @@ const ReturnProduct = () => {
           {currentSale && (
             <div className="order-id-section">
               <label className="order-id-label">Order ID / Receipt Number</label>
-              <div className="order-id-value">{currentSale.receipt_no}</div>
+              <div className="order-id-value">
+                {currentSale.receipt_no}
+                {currentSale.unsynced && (
+                  <span style={{ marginLeft: '10px', fontSize: '0.75rem', fontWeight: 600, color: '#92400e' }}>
+                    Not yet synced — return will sync once this sale does
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
@@ -412,7 +580,7 @@ const ReturnProduct = () => {
                                 />
                                 {item.alreadyReturned > 0 && (
                                   <span style={{ fontSize: '0.75rem', color: '#f59e0b', display: 'block' }}>
-                                    {item.alreadyReturned} already returned
+                                    {item.alreadyReturned} already returned{item.alreadyReturned > 0 ? ' (incl. pending)' : ''}
                                   </span>
                                 )}
                               </>
@@ -478,9 +646,7 @@ const ReturnProduct = () => {
                   <button
                     className="btn-cancel"
                     onClick={() => {
-                      setCurrentSale(null);
-                      setItems([]);
-                      setSelectedItems([]);
+                      resetSaleState();
                       setSearchQuery('');
                     }}
                   >

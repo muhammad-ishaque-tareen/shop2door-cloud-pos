@@ -146,7 +146,6 @@ const FindProducts = () => {
         <header className="main-header">
           <div className="breadcrumb">POS &gt; Dashboard</div>
           <div className="header-actions">
-            <button className="btn-shift-active">Shift Active</button>
 
             {/* Menu dropdown */}
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
@@ -188,8 +187,6 @@ const FindProducts = () => {
               )}
             </div>
 
-            <div className="icon-circle moon">🌙</div>
-            <div className="icon-circle calculator">🧮</div>
 
             {/* Profile dropdown */}
             <div className="profile-dropdown-container" ref={profileDropdownRef}>

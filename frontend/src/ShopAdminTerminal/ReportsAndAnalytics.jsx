@@ -1285,8 +1285,6 @@ const ReportsAndAnalytics = () => {
                 </div>
               )}
             </div>
-            <div className="shop-icon-circle moon"><Moon size={16}/></div>
-            <div className="shop-icon-circle bell"><Bell size={16}/></div>
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>
               <button className="shop-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                 {renderProfileImage()}

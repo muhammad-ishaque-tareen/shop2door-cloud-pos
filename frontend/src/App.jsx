@@ -17,15 +17,12 @@ import ShiftReport from "./POSTerminal/ShiftReport";
 import ReturnProduct from "./POSTerminal/ReturnProduct";
 import MySales from "./POSTerminal/MySales";
 import FindProducts from "./POSTerminal/FindProducts";
-import Settingss from "./POSTerminal/Settingss";
-
 import SystemAdminDashboard from "./SystemTerminal/SystemAdminDashboard";
 import ShopRequests from "./SystemTerminal/ShopRequests";
 import ManageShops from "./SystemTerminal/ManageShops";
 import Packages from "./SystemTerminal/Packages";
 import Subscriptions from "./SystemTerminal/Subscriptions"
 import SystemAdminProfile from "./SystemTerminal/SystemAdminProfile";
-// import SystemSettings from "./SystemTerminal/SystemSettings";
 import SystemSettings from "./SystemTerminal/SystemSettings";
 
 
@@ -62,8 +59,6 @@ const App = () => {
       <Route path="/returnproduct" element={<ReturnProduct />} />
       <Route path="/mysales" element={<MySales />} />
       <Route path="/findproducts" element={<FindProducts />} />
-      <Route path="/settingss" element={<Settingss />} />
-
       <Route path="/systemadmindashboard" element={<SystemAdminDashboard/>} />
       <Route path="/shoprequests" element={<ShopRequests/>} />
       <Route path="/manageshops" element={<ManageShops/>} />

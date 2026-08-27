@@ -289,9 +289,6 @@ const SystemAdminProfile = () => {
               )}
             </div>
 
-            <div className="sys-icon-circle moon"><Moon size={16} /></div>
-            <div className="sys-icon-circle bell"><Bell size={16} /></div>
-
             {/* Profile dropdown */}
             <div className="sys-profile-dropdown-container" ref={profileDropdownRef}>
               <button className="sys-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>

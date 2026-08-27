@@ -137,19 +137,7 @@
 
 .sys-dropdown-arrow { font-size: 0.75rem; }
 
-.sys-icon-circle {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.sys-icon-circle:hover { transform: scale(1.05); }
-.sys-icon-circle.moon { background: #9333ea; color: white; }
-.sys-icon-circle.bell { background: #9333ea; color: white; }
+
 
 .sys-profile-circle-btn {
   width: 2.75rem;

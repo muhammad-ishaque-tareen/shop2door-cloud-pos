@@ -250,10 +250,6 @@ const Packages = () => {
                 </div>
               )}
             </div>
-
-            <div className="pk-icon-circle moon"><Moon size={16} /></div>
-            <div className="pk-icon-circle bell"><Bell size={16} /></div>
-
             {/* Profile dropdown */}
             <div className="pk-profile-dropdown-container" ref={profileRef}>
               <button className="pk-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>

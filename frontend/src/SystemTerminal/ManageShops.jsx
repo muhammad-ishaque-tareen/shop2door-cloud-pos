@@ -227,10 +227,6 @@ const ManageShops = () => {
                 </div>
               )}
             </div>
-
-            <div className="ms-icon-circle moon"><Moon size={16} /></div>
-            <div className="ms-icon-circle bell"><Bell size={16} /></div>
-
             {/* Profile dropdown */}
             <div className="ms-profile-dropdown-container" ref={profileDropdownRef}>
               <button className="ms-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>

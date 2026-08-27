@@ -322,9 +322,6 @@ const ShopRequests = () => {
               )}
             </div>
 
-            <div className="sr-icon-circle moon"><Moon size={16} /></div>
-            <div className="sr-icon-circle bell"><Bell size={16} /></div>
-
             <div className="sr-profile-dropdown-container" ref={profileDropdownRef}>
               <button className="sr-profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                 {renderProfileImage()}

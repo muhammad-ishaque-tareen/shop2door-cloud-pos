@@ -1,8 +1,11 @@
 // Orchestrates everything offline-related:
 //   - real connectivity detection (navigator.onLine is necessary but not
 //     sufficient — a dead wifi-with-no-internet still reports online)
-//   - queueing a sale when offline or when an online attempt fails mid-flight
-//   - replaying the queue in order once connectivity is confirmed
+//   - queueing a sale (or return) when offline or when an online attempt
+//     fails mid-flight
+//   - replaying the sale queue, then the return queue, in order once
+//     connectivity is confirmed — returns sync AFTER sales so a return
+//     against a sale that was itself unsynced has something to resolve to
 //   - a tiny pub/sub so React components can show "Offline" / "Syncing"
 //     badges without polling
 
@@ -15,6 +18,16 @@ import {
   updatePendingSaleStatus,
   deletePendingSale,
   decrementCachedStock,
+  incrementCachedStock,
+  saveSaleIdMapping,
+  getSaleIdMapping,
+  cacheSyncedSale,
+  updateCachedSaleReturnedQty,
+  savePendingReturn,
+  getAllPendingReturns,
+  getPendingReturnsCount,
+  updatePendingReturnStatus,
+  deletePendingReturn,
 } from './offlineDB';
 
 const HEALTH_CHECK_URL = `${API_BASE_URL}/api/health`;
@@ -33,7 +46,8 @@ export const subscribeToSyncStatus = (fn) => {
 let currentState = {
   isOnline: navigator.onLine,
   isSyncing: false,
-  pendingCount: 0,
+  pendingCount: 0,        // pending sales
+  pendingReturnsCount: 0, // pending returns
 };
 
 const setState = (patch) => {
@@ -69,7 +83,7 @@ const startHeartbeat = () => {
     if (reachable && !currentState.isOnline) {
       // We were marked offline but the server just answered — recovered.
       setState({ isOnline: true });
-      syncPendingSales();
+      syncAll();
     } else if (!reachable && currentState.isOnline) {
       // navigator.onLine still says true, but the server isn't answering.
       setState({ isOnline: false });
@@ -77,28 +91,41 @@ const startHeartbeat = () => {
   }, HEALTH_CHECK_INTERVAL_MS);
 };
 
+// initOfflineSync gets called from every POS-area screen that mounts
+// (POSTerminal, ReturnProduct, ...). Without this guard, every mount would
+// register another pair of window 'online'/'offline' listeners, and each
+// recovery would fire syncAll() once per mounted screen ever visited this
+// session. syncInFlight/returnSyncInFlight already make concurrent syncs
+// safe, but there's no reason to do the redundant work — one set of
+// listeners for the whole app lifetime is correct.
+let initialized = false;
+
 export const initOfflineSync = async () => {
-  // Initial pending count, in case the app was closed mid-queue.
-  const count = await getPendingSalesCount();
-  setState({ pendingCount: count, isOnline: navigator.onLine });
+  const salesCount = await getPendingSalesCount();
+  const returnsCount = await getPendingReturnsCount();
+  setState({ pendingCount: salesCount, pendingReturnsCount: returnsCount, isOnline: navigator.onLine });
 
-  window.addEventListener('online', async () => {
-    // navigator says online — confirm with a real ping before trusting it.
-    const reachable = await pingServer();
-    setState({ isOnline: reachable });
-    if (reachable) syncPendingSales();
-  });
+  if (!initialized) {
+    initialized = true;
 
-  window.addEventListener('offline', () => {
-    setState({ isOnline: false });
-  });
+    window.addEventListener('online', async () => {
+      // navigator says online — confirm with a real ping before trusting it.
+      const reachable = await pingServer();
+      setState({ isOnline: reachable });
+      if (reachable) syncAll();
+    });
 
-  startHeartbeat();
+    window.addEventListener('offline', () => {
+      setState({ isOnline: false });
+    });
+
+    startHeartbeat();
+  }
 
   // If we're already online at boot and there's a leftover queue
   // (e.g. app was closed before syncing finished), sync immediately.
-  if (navigator.onLine && count > 0) {
-    syncPendingSales();
+  if (navigator.onLine && (salesCount > 0 || returnsCount > 0)) {
+    syncAll();
   }
 };
 
@@ -117,6 +144,7 @@ export const queueOrSendSale = async (saleData) => {
   const client_sale_id = crypto.randomUUID();
   const payload = { ...saleData, client_sale_id };
   const shortId = client_sale_id.slice(0, 8).toUpperCase();
+  const offlineReceiptNo = `OFFLINE-${shortId}`;
 
   const enqueue = async () => {
     await savePendingSale({
@@ -133,7 +161,7 @@ export const queueOrSendSale = async (saleData) => {
     return {
       success: true,
       queued: true,
-      receipt_no: `OFFLINE-${shortId}`,
+      receipt_no: offlineReceiptNo,
       client_sale_id,
     };
   };
@@ -144,6 +172,7 @@ export const queueOrSendSale = async (saleData) => {
 
   try {
     const result = await salesAPI.create(payload);
+    await onSaleSynced(client_sale_id, result.sale, saleData);
     return { ...result, queued: false };
   } catch (err) {
     // Could be a real network drop (window B above) or a genuine business
@@ -157,7 +186,43 @@ export const queueOrSendSale = async (saleData) => {
   }
 };
 
-/*  SYNC-BACK */
+// Called the moment ANY sale gets a real server sale_id — whether that
+// happened instantly (online) or later (synced from the pending_sales
+// queue). Writes the client_sale_id -> sale_id bridge and refreshes the
+// offline-searchable sales cache, so:
+//   - a return can be processed against this sale immediately, even offline
+//   - a return that was queued earlier against this (then-unsynced) sale
+//     can resolve and sync on the next pass
+const onSaleSynced = async (client_sale_id, sale, saleData) => {
+  if (!sale || !sale.sale_id) return;
+
+  await saveSaleIdMapping({
+    client_sale_id,
+    sale_id: sale.sale_id,
+    receipt_no: sale.receipt_no,
+  });
+
+  await cacheSyncedSale({
+    receipt_no: sale.receipt_no,
+    sale_id: sale.sale_id,
+    store_id: sale.store_id ?? null,
+    status: 'active',
+    items: saleData.items.map((i) => ({
+      product_id: i.product_id,
+      name: i.name,
+      quantity: parseFloat(i.quantity),
+      price: parseFloat(i.price),
+      already_returned_qty: 0,
+    })),
+    subtotal: saleData.subtotal,
+    tax: saleData.tax,
+    discount: saleData.discount,
+    total: saleData.total,
+    created_at: Date.now(),
+  });
+};
+
+/*  SALE SYNC-BACK */
 
 let syncInFlight = false;
 
@@ -174,7 +239,8 @@ export const syncPendingSales = async () => {
         // Same client_sale_id every retry -> server-side idempotency check
         // returns the original sale instead of double-inserting if this
         // exact request already succeeded once before a dropped response.
-        await salesAPI.create(record.saleData);
+        const result = await salesAPI.create(record.saleData);
+        await onSaleSynced(record.client_sale_id, result.sale, record.saleData);
         await deletePendingSale(record.client_sale_id);
         setState({ pendingCount: await getPendingSalesCount() });
       } catch (err) {
@@ -211,5 +277,138 @@ export const getFailedSales = async () => {
 // reviewed it and wants to try again (stock may have been restocked since).
 export const retryFailedSale = async (client_sale_id) => {
   await updatePendingSaleStatus(client_sale_id, 'pending', 0);
-  syncPendingSales();
+  syncAll();
+};
+
+/*  QUEUEING A RETURN    */
+
+// Called from ReturnProduct.jsx instead of calling salesAPI.processReturn()
+// directly. `sale_id` is the real server sale_id if the sale this return is
+// against has already synced; `client_sale_id` is set instead when the sale
+// is still sitting in (or waiting behind) the pending_sales queue — in that
+// case there is no real sale_id yet, so the return is ALWAYS queued,
+// online or not, and resolved once the sale itself finishes syncing.
+export const queueOrSendReturn = async ({ sale_id, client_sale_id, receipt_no, reason, items }) => {
+  const client_return_id = crypto.randomUUID();
+
+  const enqueue = async () => {
+    await savePendingReturn({
+      client_return_id,
+      sale_id: sale_id || null,
+      client_sale_id: client_sale_id || null,
+      receipt_no,
+      reason,
+      items,
+      created_at: Date.now(),
+      sync_status: 'pending',
+      retry_count: 0,
+    });
+    // Reflect the return in cached stock and cached sale record immediately,
+    // so the POS screen and any re-search of this receipt (still offline)
+    // both see the correct, up-to-date picture.
+    await incrementCachedStock(items);
+    await updateCachedSaleReturnedQty(receipt_no, items);
+    setState({ pendingReturnsCount: await getPendingReturnsCount() });
+    return { success: true, queued: true, client_return_id };
+  };
+
+  // The sale this return belongs to hasn't synced yet — there's no real
+  // sale_id to send to the server, so this always goes to the queue and
+  // waits for syncPendingReturns() to resolve it via sale_id_map.
+  if (!sale_id) {
+    return enqueue();
+  }
+
+  if (!currentState.isOnline) {
+    return enqueue();
+  }
+
+  try {
+    const result = await salesAPI.processReturn({ client_return_id, sale_id, reason, items });
+    await updateCachedSaleReturnedQty(receipt_no, items);
+    return { ...result, queued: false };
+  } catch (err) {
+    setState({ isOnline: false });
+    return enqueue();
+  }
+};
+
+/*  RETURN SYNC-BACK */
+
+let returnSyncInFlight = false;
+
+export const syncPendingReturns = async () => {
+  if (returnSyncInFlight) return;
+  returnSyncInFlight = true;
+  setState({ isSyncing: true });
+
+  try {
+    const pending = await getAllPendingReturns();
+
+    for (const record of pending) {
+      let resolvedSaleId = record.sale_id;
+
+      if (!resolvedSaleId && record.client_sale_id) {
+        const mapping = await getSaleIdMapping(record.client_sale_id);
+        if (!mapping) {
+          // The underlying sale hasn't synced yet — this isn't a failure,
+          // it's just not ready. Skip it this pass (don't burn a retry,
+          // don't stop the loop for unrelated returns) and try again on
+          // the next sync pass, by which point syncPendingSales() should
+          // have run first and may have resolved it.
+          continue;
+        }
+        resolvedSaleId = mapping.sale_id;
+      }
+
+      if (!resolvedSaleId) continue; // still nothing to resolve to
+
+      try {
+        await salesAPI.processReturn({
+          client_return_id: record.client_return_id,
+          sale_id: resolvedSaleId,
+          reason: record.reason,
+          items: record.items,
+        });
+        await deletePendingReturn(record.client_return_id);
+        setState({ pendingReturnsCount: await getPendingReturnsCount() });
+      } catch (err) {
+        const nextRetryCount = record.retry_count + 1;
+
+        if (nextRetryCount >= MAX_RETRY_COUNT) {
+          await updatePendingReturnStatus(record.client_return_id, 'failed', nextRetryCount);
+        } else {
+          await updatePendingReturnStatus(record.client_return_id, 'pending', nextRetryCount);
+        }
+
+        // Same ordering guarantee as sales: stop on first real failure.
+        setState({ isOnline: false });
+        break;
+      }
+    }
+  } finally {
+    returnSyncInFlight = false;
+    setState({ isSyncing: false });
+  }
+};
+
+export const getFailedReturns = async () => {
+  const pending = await getAllPendingReturns();
+  return pending.filter((r) => r.sync_status === 'failed');
+};
+
+export const retryFailedReturn = async (client_return_id) => {
+  await updatePendingReturnStatus(client_return_id, 'pending', 0);
+  syncAll();
+};
+
+/*  COMBINED SYNC — sales first, then returns    */
+// Returns against a sale that was itself unsynced can only resolve AFTER
+// that sale has synced and written its sale_id_map entry, so every
+// automatic trigger (connectivity recovery, heartbeat, boot) must run
+// sales before returns. Call this instead of the two functions separately
+// unless you specifically need just one (e.g. a scoped manual retry).
+export const syncAll = async () => {
+  await syncPendingSales();
+  await syncPendingReturns();
 };

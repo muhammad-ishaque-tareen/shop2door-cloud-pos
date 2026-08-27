@@ -242,8 +242,6 @@ const ShopProfile = () => {
               )}
             </div>
 
-            <div className="shop-icon-circle moon"><Moon size={16} /></div>
-            <div className="shop-icon-circle bell"><Bell size={16} /></div>
 
             {/* Profile dropdown */}
             <div className="shop-profile-dropdown-container" ref={profileDropdownRef}>

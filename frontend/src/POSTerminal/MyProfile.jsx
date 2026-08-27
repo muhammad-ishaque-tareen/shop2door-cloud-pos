@@ -210,7 +210,6 @@ const MyProfile = () => {
         <header className="main-header">
           <div className="breadcrumb">POS &gt; My Profile</div>
           <div className="header-actions">
-            <button className="btn-shift-active">Shift Active</button>
 
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
               <button className="btn-menu" onClick={() => setShowMenuDropdown(!showMenuDropdown)}>
@@ -226,17 +225,9 @@ const MyProfile = () => {
                     <button className="menu-item" onClick={() => { setShowMenuDropdown(false); navigate('/mysales'); }}><BarChart3 size={18} /><span>My Sales</span></button>
                   </div>
                   <div className="menu-divider"></div>
-                  {/* <div className="menu-section">
-                    <h4 className="menu-section-title">Settings</h4>
-                    <button className="menu-item" onClick={toggleDarkMode}>{isDarkMode ? '\u2600\ufe0f' : '\ud83c\udf19'}<span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span></button>
-                    <button className="menu-item" onClick={() => navigate('/settingss')}><Settings size={18} /><span>Settings</span></button>
-                  </div> */}
                 </div>
               )}
             </div>
-
-            {/* <div className="icon-circle moon"></div>
-            <div className="icon-circle calculator"></div> */}
 
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
               <button className="profile-circle-btn" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>

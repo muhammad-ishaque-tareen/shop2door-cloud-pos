@@ -235,14 +235,50 @@ exports.getSaleByReceipt = async (req, res) => {
 };
 
 //  PROCESS RETURN 
+//
+// Body: {
+//   client_return_id,   // required for idempotency (same retry-safety as createSale)
+//   sale_id,            // real server sale_id — always required here; if the
+//                        // underlying sale hasn't synced yet, offlineSync.js
+//                        // holds the return in its own queue and does not
+//                        // call this endpoint until sale_id is resolved
+//   items: [{
+//     sale_item_id,      // OPTIONAL — omit when the client never fetched a
+//                        // sale_item_id (e.g. returning against a sale that
+//                        // was queued offline and only just synced). When
+//                        // omitted, resolved server-side via product_id.
+//     product_id,
+//     quantity,
+//     unit_price
+//   }],
+//   reason
+// }
 exports.processReturn = async (req, res) => {
-  const { sale_id, items, reason } = req.body;
+  const { client_return_id, sale_id, items, reason } = req.body;
   const userId = req.user.id;
 
   if (!sale_id || !items || !items.length)
     return res.status(400).json({ error: 'sale_id and items are required' });
 
   try {
+    // Idempotency check — mirrors createSale. A retried sync (dropped
+    // response after commit, cashier double-tapping while a queued return
+    // is mid-flight, etc.) must not create a second return for the same
+    // client_return_id.
+    if (client_return_id) {
+      const existingReturn = await req.shopDB.query(
+        `SELECT * FROM returns WHERE client_return_id = $1`,
+        [client_return_id]
+      );
+      if (existingReturn.rows.length > 0) {
+        return res.json({
+          success: true,
+          return: existingReturn.rows[0],
+          already_existed: true,
+        });
+      }
+    }
+
     await req.shopDB.query('BEGIN');
 
     // 1. Verify sale exists and get store_id + status
@@ -261,8 +297,34 @@ exports.processReturn = async (req, res) => {
       return res.status(409).json({ error: 'This sale has already been fully returned.' });
     }
 
-    // 2. Validate each item against actual sale_items and already-returned qty
+    // 2. Resolve each item to a real sale_item_id, then validate against
+    //    actual sale_items and already-returned qty.
+    //    - If the client sent sale_item_id, use it directly (fast path,
+    //      matches the original online flow exactly).
+    //    - If not (return queued against a sale that was itself unsynced
+    //      at the time), resolve it here via (sale_id, product_id). This
+    //      assumes at most one sale_item row per product per sale, which
+    //      holds for this POS since the cart merges repeat scans of the
+    //      same product into a single line before checkout.
+    const resolvedItems = [];
+
     for (const item of items) {
+      let saleItemId = item.sale_item_id || null;
+
+      if (!saleItemId) {
+        const lookup = await req.shopDB.query(
+          `SELECT sale_item_id FROM sale_items WHERE sale_id = $1 AND product_id = $2`,
+          [sale_id, item.product_id]
+        );
+        if (lookup.rows.length === 0) {
+          await req.shopDB.query('ROLLBACK');
+          return res.status(400).json({
+            error: `Product ID ${item.product_id} was not found on this sale.`
+          });
+        }
+        saleItemId = lookup.rows[0].sale_item_id;
+      }
+
       const saleItemCheck = await req.shopDB.query(
         `SELECT
            si.sale_item_id,
@@ -272,13 +334,13 @@ exports.processReturn = async (req, res) => {
          LEFT JOIN return_items ri ON ri.sale_item_id = si.sale_item_id
          WHERE si.sale_item_id = $1 AND si.sale_id = $2
          GROUP BY si.sale_item_id, si.quantity`,
-        [item.sale_item_id, sale_id]
+        [saleItemId, sale_id]
       );
 
       if (saleItemCheck.rows.length === 0) {
         await req.shopDB.query('ROLLBACK');
         return res.status(400).json({
-          error: `Item with sale_item_id ${item.sale_item_id} does not belong to this sale.`
+          error: `Item with sale_item_id ${saleItemId} does not belong to this sale.`
         });
       }
 
@@ -288,22 +350,24 @@ exports.processReturn = async (req, res) => {
       if (parseFloat(item.quantity) > returnable) {
         await req.shopDB.query('ROLLBACK');
         return res.status(400).json({
-          error: `Return quantity (${item.quantity}) exceeds returnable quantity (${returnable}) for sale_item_id ${item.sale_item_id}.`
+          error: `Return quantity (${item.quantity}) exceeds returnable quantity (${returnable}) for product ID ${item.product_id}.`
         });
       }
+
+      resolvedItems.push({ ...item, sale_item_id: saleItemId });
     }
 
     // 3. Insert return header
     const returnResult = await req.shopDB.query(
-      `INSERT INTO returns (sale_id, user_id, reason)
-       VALUES ($1, $2, $3)
+      `INSERT INTO returns (sale_id, user_id, reason, client_return_id)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [sale_id, userId, reason || null]
+      [sale_id, userId, reason || null, client_return_id || null]
     );
     const ret = returnResult.rows[0];
 
     // 4. Insert return line items and restore stock
-    for (const item of items) {
+    for (const item of resolvedItems) {
       const subtotal = parseFloat(item.unit_price) * parseFloat(item.quantity);
 
       // Link return_item to the exact sale_item so double-return is trackable
@@ -356,6 +420,25 @@ exports.processReturn = async (req, res) => {
 
   } catch (error) {
     await req.shopDB.query('ROLLBACK');
+
+    // Unique violation on client_return_id — a concurrent retry beat us to
+    // it between the idempotency check above and the INSERT. Treat it the
+    // same as the idempotency check finding it: fetch and return what's
+    // already there instead of surfacing a 500.
+    if (error.code === '23505' && client_return_id) {
+      try {
+        const existingReturn = await req.shopDB.query(
+          `SELECT * FROM returns WHERE client_return_id = $1`,
+          [client_return_id]
+        );
+        if (existingReturn.rows.length > 0) {
+          return res.json({ success: true, return: existingReturn.rows[0], already_existed: true });
+        }
+      } catch (lookupErr) {
+        console.error('[RETURN] post-conflict lookup failed:', lookupErr.message);
+      }
+    }
+
     console.error('[RETURN] processReturn error:', error.message);
     res.status(500).json({ error: error.message });
   }

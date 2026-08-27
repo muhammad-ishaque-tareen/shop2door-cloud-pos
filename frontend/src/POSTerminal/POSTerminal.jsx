@@ -453,7 +453,6 @@ const handleLogOut = () => {
         <header className="main-header">
           <div className="breadcrumb">POS &gt; Dashboard</div>
           <div className="header-actions">
-            <button className="btn-shift-active">Shift Active</button>
             
             <div className="menu-dropdown-container" ref={menuDropdownRef}>
               <button 
@@ -501,9 +500,6 @@ const handleLogOut = () => {
                 </div>
               )}
             </div>
-
-            <div className="icon-circle moon">🌙</div>
-            <div className="icon-circle calculator">🧮</div>
             
             <div className="profile-dropdown-container" ref={profileDropdownRef}>
               <button 
@@ -545,10 +541,7 @@ const handleLogOut = () => {
                       <User size={18} />
                       <span>My Profile</span>
                     </button>
-                    {/* <button className="profile-action-btn" onClick={() => navigate('/settingss')}>
-                      <Settings size={18} />
-                      <span>Settings</span>
-                    </button> */}
+                  
                     <button className="profile-action-btn logout-btn" onClick={handleProfileLogout}>
                       <LogOut size={18} />
                       <span>Logout</span>

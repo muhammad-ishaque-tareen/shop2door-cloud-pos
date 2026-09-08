@@ -11,22 +11,23 @@ import './ShopAdminTerminalStyles/Products.css';
 import { API_BASE_URL } from '../config';
 
 const ITEMS_PER_PAGE = 9;
-const LOW_STOCK_THRESHOLD = 15;
+const DEFAULT_LOW_STOCK_THRESHOLD = 10; // matches the DB column's default (reorder_level)
 
 const CATEGORY_COLORS = [
   'prod-cat-0','prod-cat-1','prod-cat-2','prod-cat-3',
   'prod-cat-4','prod-cat-5','prod-cat-6','prod-cat-7'
 ];
 
-const stockStatus = (qty) => {
+// threshold now comes from the product itself (reorder_level), set per-product in the Add/Edit form
+const stockStatus = (qty, threshold = DEFAULT_LOW_STOCK_THRESHOLD) => {
   if (qty === 0) return 'out';
-  if (qty <= LOW_STOCK_THRESHOLD) return 'low';
+  if (qty <= threshold) return 'low';
   return 'instock';
 };
 
-const stockLabel = (qty) => {
+const stockLabel = (qty, threshold = DEFAULT_LOW_STOCK_THRESHOLD) => {
   if (qty === 0) return 'Out of Stock';
-  if (qty <= LOW_STOCK_THRESHOLD) return 'Low Stock';
+  if (qty <= threshold) return 'Low Stock';
   return 'In Stock';
 };
 
@@ -34,7 +35,8 @@ const API = API_BASE_URL;
 
 const emptyProduct = {
   name: '', barcode: '', category_id: '', store_id: '',
-  price: '', stock: '', unit: 'pcs', description: '', image_url: ''
+  price: '', stock: '', unit: 'pcs', description: '', image_url: '',
+  reorder_level: String(DEFAULT_LOW_STOCK_THRESHOLD)
 };
 
 const Products = () => {
@@ -132,9 +134,9 @@ const Products = () => {
   // Computed stats 
   const stats = {
     total:   products.length,
-    instock: products.filter(p => stockStatus(p.stock) === 'instock').length,
-    low:     products.filter(p => stockStatus(p.stock) === 'low').length,
-    out:     products.filter(p => stockStatus(p.stock) === 'out').length
+    instock: products.filter(p => stockStatus(p.stock, p.reorder_level) === 'instock').length,
+    low:     products.filter(p => stockStatus(p.stock, p.reorder_level) === 'low').length,
+    out:     products.filter(p => stockStatus(p.stock, p.reorder_level) === 'out').length
   };
 
   // Filtered products 
@@ -144,7 +146,7 @@ const Products = () => {
       (p.barcode || '').toLowerCase().includes(search.toLowerCase());
     const matchCat    = !filterCat    || String(p.category_id) === filterCat;
     const matchStore  = !filterStore  || String(p.store_id)    === filterStore;
-    const matchStatus = !filterStatus || stockStatus(p.stock)  === filterStatus;
+    const matchStatus = !filterStatus || stockStatus(p.stock, p.reorder_level) === filterStatus;
     return matchSearch && matchCat && matchStore && matchStatus;
   });
 
@@ -204,6 +206,9 @@ const Products = () => {
       unit:        product.unit        || 'pcs',
       description: product.description || '',
       image_url:   product.image_url   || '',
+      reorder_level: product.reorder_level !== undefined && product.reorder_level !== null
+                       ? String(product.reorder_level)
+                       : String(DEFAULT_LOW_STOCK_THRESHOLD),
       product_id:  product.product_id
     });
     setImageFile(null);
@@ -227,6 +232,9 @@ const Products = () => {
     if (parseFloat(formData.price) > 9999999999.99)
       return setFormError('Price is too large. Please enter a realistic value.');
     if (!formData.store_id)    return setFormError('Store is required.');
+    if (formData.reorder_level !== '' &&
+        (isNaN(parseInt(formData.reorder_level)) || parseInt(formData.reorder_level) < 0))
+      return setFormError('Low stock threshold must be a non-negative number.');
     setFormLoading(true); setFormError(''); setFormSuccess('');
     try {
       const fd = new FormData();
@@ -261,6 +269,9 @@ const Products = () => {
       return setFormError('Please enter a valid price.');
     if (parseFloat(formData.price) > 9999999999.99)
       return setFormError('Price is too large. Please enter a realistic value.');
+    if (formData.reorder_level !== '' &&
+        (isNaN(parseInt(formData.reorder_level)) || parseInt(formData.reorder_level) < 0))
+      return setFormError('Low stock threshold must be a non-negative number.');
     setFormLoading(true); setFormError(''); setFormSuccess('');
     try {
       const fd = new FormData();
@@ -358,7 +369,7 @@ const Products = () => {
       ['Name','Barcode','Category','Store','Price','Stock','Status'],
       ...filtered.map(p => [
         p.name, p.barcode || '', p.category_name || '', p.store_name || '',
-        p.price, p.stock, stockLabel(p.stock)
+        p.price, p.stock, stockLabel(p.stock, p.reorder_level)
       ])
     ];
     const csv = rows.map(r => r.join(',')).join('\n');
@@ -446,14 +457,22 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="ms-form-group">
-        <label className="ms-form-label">Unit</label>
-        <select className="ms-form-select" value={formData.unit}
-          onChange={e => setFormData(f => ({ ...f, unit: e.target.value }))}>
-          {['pcs','kg','ltr','g','ml','box','pack','dozen'].map(u => (
-            <option key={u} value={u}>{u}</option>
-          ))}
-        </select>
+      <div className="prod-form-grid-2">
+        <div className="ms-form-group">
+          <label className="ms-form-label">Unit</label>
+          <select className="ms-form-select" value={formData.unit}
+            onChange={e => setFormData(f => ({ ...f, unit: e.target.value }))}>
+            {['pcs','kg','ltr','g','ml','box','pack','dozen'].map(u => (
+              <option key={u} value={u}>{u}</option>
+            ))}
+          </select>
+        </div>
+        <div className="ms-form-group">
+          <label className="ms-form-label">Low Stock Threshold</label>
+          <input className="ms-form-input" type="number" min="0" placeholder="e.g. 10"
+            value={formData.reorder_level}
+            onChange={e => setFormData(f => ({ ...f, reorder_level: e.target.value }))} />
+        </div>
       </div>
 
       <div className="ms-form-group">
@@ -719,7 +738,7 @@ const Products = () => {
                     </thead>
                     <tbody>
                       {paginated.map(p => {
-                        const status = stockStatus(p.stock);
+                        const status = stockStatus(p.stock, p.reorder_level);
                         const catIdx = categories.findIndex(c => c.category_id === p.category_id);
                         const colorClass = catIdx >= 0
                           ? CATEGORY_COLORS[catIdx % CATEGORY_COLORS.length]
@@ -757,7 +776,7 @@ const Products = () => {
                             <td>
                               <span className={`prod-status-badge ${status}`}>
                                 <span className="prod-status-dot"/>
-                                {stockLabel(p.stock)}
+                                {stockLabel(p.stock, p.reorder_level)}
                               </span>
                             </td>
                             <td>
@@ -885,7 +904,15 @@ const Products = () => {
                 </div>
                 <div className="prod-view-detail-card">
                   <p className="prod-view-detail-label">Status</p>
-                  <p className="prod-view-detail-val">{stockLabel(viewProduct.stock)}</p>
+                  <p className="prod-view-detail-val">{stockLabel(viewProduct.stock, viewProduct.reorder_level)}</p>
+                </div>
+                <div className="prod-view-detail-card">
+                  <p className="prod-view-detail-label">Low Stock Threshold</p>
+                  <p className="prod-view-detail-val">
+                    {viewProduct.reorder_level !== undefined && viewProduct.reorder_level !== null
+                      ? viewProduct.reorder_level
+                      : DEFAULT_LOW_STOCK_THRESHOLD}
+                  </p>
                 </div>
                 <div className="prod-view-detail-card">
                   <p className="prod-view-detail-label">Added</p>

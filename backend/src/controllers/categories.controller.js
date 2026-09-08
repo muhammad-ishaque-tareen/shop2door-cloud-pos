@@ -141,10 +141,18 @@ exports.deleteCategory = async (req, res) => {
     if (!existing.rows.length)
       return res.status(404).json({ message: 'Category not found.' });
 
-    // Unlink products before deleting the category
-    await req.shopDB.query(
-      `UPDATE products SET category_id = NULL WHERE category_id = $1`, [id]
+    // Block deletion if products are still assigned to this category
+    const countRes = await req.shopDB.query(
+      `SELECT COUNT(product_id)::INT AS product_count FROM products WHERE category_id = $1`,
+      [id]
     );
+    const productCount = countRes.rows[0].product_count;
+    if (productCount > 0) {
+      return res.status(409).json({
+        message: 'Products exist in this category. Remove or reassign them before deleting it.',
+        product_count: productCount,
+      });
+    }
 
     await req.shopDB.query(
       `DELETE FROM categories WHERE category_id = $1`, [id]

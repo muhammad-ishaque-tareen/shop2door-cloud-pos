@@ -211,7 +211,12 @@ const Categories = () => {
         setShowDeleteModal(false); setDeleteCat(null);
       } else {
         const d = await res.json();
-        alert(d.message || 'Failed to delete category.');
+        if (res.status === 409) {
+          // Category has products — switch the modal into its blocking-warning state
+          setDeleteCat(prev => prev ? { ...prev, product_count: d.product_count ?? prev.product_count } : prev);
+        } else {
+          alert(d.message || 'Failed to delete category.');
+        }
       }
     } catch {
       alert('Network error.');
@@ -619,28 +624,49 @@ const Categories = () => {
         </div>
       )}
 
-      {/*  DELETE CONFIRM MODAL  */}
+      {/*  DELETE CONFIRM / BLOCKED MODAL  */}
       {showDeleteModal && deleteCat && (
         <div className="ms-modal-overlay" onClick={() => setShowDeleteModal(false)}>
           <div className="ms-modal cat-delete-modal" onClick={e => e.stopPropagation()}>
-            <div className="cat-delete-icon-wrap">
-              <Trash2 size={32} color="#dc2626"/>
-            </div>
-            <h2 className="cat-delete-title">Delete Category</h2>
-            <p className="cat-delete-body">
-              Are you sure you want to delete <strong>"{deleteCat.name}"</strong>?
-              {deleteCat.product_count > 0 && (
-                <span className="cat-delete-warning">
-                  <AlertCircle size={14}/> {deleteCat.product_count} product(s) will be unlinked from this category.
-                </span>
-              )}
-            </p>
-            <div className="cat-delete-actions">
-              <button className="ms-btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button className="cat-btn-confirm-delete" onClick={handleDeleteConfirm} disabled={deleteLoading}>
-                <Trash2 size={14}/> {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
-              </button>
-            </div>
+            {deleteCat.product_count > 0 ? (
+              <>
+                {/* Blocked: category still has products — no delete option offered */}
+                <div className="cat-delete-icon-wrap">
+                  <AlertCircle size={32} color="#b45309"/>
+                </div>
+                <h2 className="cat-delete-title">Can't Delete Category</h2>
+                <p className="cat-delete-body">
+                  <strong>"{deleteCat.name}"</strong> still has{' '}
+                  <strong>{deleteCat.product_count}</strong>{' '}
+                  {deleteCat.product_count === 1 ? 'product' : 'products'} assigned to it.
+                  <span className="cat-delete-warning">
+                    <AlertCircle size={14}/> Products exist in this category. Move or delete them first.
+                  </span>
+                </p>
+                <div className="cat-delete-actions">
+                  <button className="ms-btn-cancel" onClick={() => { setShowDeleteModal(false); setDeleteCat(null); }}>
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Empty category — deletes cleanly, no warning needed */}
+                <div className="cat-delete-icon-wrap">
+                  <Trash2 size={32} color="#dc2626"/>
+                </div>
+                <h2 className="cat-delete-title">Delete Category</h2>
+                <p className="cat-delete-body">
+                  Are you sure you want to delete <strong>"{deleteCat.name}"</strong>?
+                </p>
+                <div className="cat-delete-actions">
+                  <button className="ms-btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                  <button className="cat-btn-confirm-delete" onClick={handleDeleteConfirm} disabled={deleteLoading}>
+                    <Trash2 size={14}/> {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

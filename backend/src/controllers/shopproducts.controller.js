@@ -145,6 +145,7 @@ exports.getProducts = async (req, res) => {
          p.product_id, p.name, p.barcode, p.price, p.unit,
          p.description, p.image_url, p.created_at,
          p.store_id, p.category_id,
+         COALESCE(p.reorder_level, 10) AS reorder_level,
          c.name   AS category_name,
          s.name   AS store_name,
          COALESCE(si.quantity, p.stock, 0)::INT AS stock
@@ -170,6 +171,7 @@ exports.getProductById = async (req, res) => {
     const result = await req.shopDB.query(
       `SELECT
          p.*,
+         COALESCE(p.reorder_level, 10) AS reorder_level,
          c.name   AS category_name,
          s.name   AS store_name,
          COALESCE(si.quantity, p.stock, 0)::INT AS stock
@@ -194,7 +196,7 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const shop_id = req.user.shop_id;
 
-  const { name, barcode, category_id, store_id, price, stock, unit, description } = req.body;
+  const { name, barcode, category_id, store_id, price, stock, unit, description, reorder_level } = req.body;
 
   if (!name || !name.trim())
     return res.status(400).json({ message: 'Product name is required.' });
@@ -204,8 +206,14 @@ exports.createProduct = async (req, res) => {
     return res.status(400).json({ message: 'Price is too large. Maximum allowed is 9,999,999,999.99.' });
   if (!store_id)
     return res.status(400).json({ message: 'Store is required.' });
+  if (reorder_level !== undefined && reorder_level !== '' &&
+      (isNaN(parseInt(reorder_level)) || parseInt(reorder_level) < 0))
+    return res.status(400).json({ message: 'Low stock threshold must be a non-negative number.' });
 
   const qty = parseInt(stock) || 0;
+  const reorderLevel = (reorder_level !== undefined && reorder_level !== '')
+    ? parseInt(reorder_level)
+    : 10;
 
   try {
     // Limit check
@@ -249,9 +257,9 @@ exports.createProduct = async (req, res) => {
 
     const productResult = await req.shopDB.query(
       `INSERT INTO products
-         (name, barcode, price, stock, quantity, unit, description, category_id, store_id, image_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING *`,
+         (name, barcode, price, stock, quantity, unit, description, category_id, store_id, image_url, reorder_level)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       RETURNING *, COALESCE(reorder_level, 10) AS reorder_level`,
       [
         name.trim(),
         barcode?.trim() || null,
@@ -263,6 +271,7 @@ exports.createProduct = async (req, res) => {
         category_id ? parseInt(category_id) : null,
         parseInt(store_id),
         img_url,
+        reorderLevel,
       ]
     );
 
@@ -296,7 +305,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
 
-  const { name, barcode, category_id, store_id, price, stock, unit, description } = req.body;
+  const { name, barcode, category_id, store_id, price, stock, unit, description, reorder_level } = req.body;
 
   if (!name || !name.trim())
     return res.status(400).json({ message: 'Product name is required.' });
@@ -304,6 +313,9 @@ exports.updateProduct = async (req, res) => {
     return res.status(400).json({ message: 'Valid price is required.' });
   if (parseFloat(price) > 9999999999.99)
     return res.status(400).json({ message: 'Price is too large. Maximum allowed is 9,999,999,999.99.' });
+  if (reorder_level !== undefined && reorder_level !== '' &&
+      (isNaN(parseInt(reorder_level)) || parseInt(reorder_level) < 0))
+    return res.status(400).json({ message: 'Low stock threshold must be a non-negative number.' });
 
   const qty = parseInt(stock) || 0;
 
@@ -315,6 +327,9 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found.' });
 
     const old = existing.rows[0];
+    const reorderLevel = (reorder_level !== undefined && reorder_level !== '')
+      ? parseInt(reorder_level)
+      : (old.reorder_level ?? 10);
 
     if (barcode && barcode.trim()) {
       const barcodeCheck = await req.shopDB.query(
@@ -335,18 +350,19 @@ exports.updateProduct = async (req, res) => {
 
     const result = await req.shopDB.query(
       `UPDATE products
-       SET name        = $1,
-           barcode     = $2,
-           price       = $3,
-           stock       = $4,
-           quantity    = $5,
-           unit        = $6,
-           description = $7,
-           category_id = $8,
-           store_id    = $9,
-           image_url   = $10
-       WHERE product_id = $11
-       RETURNING *`,
+       SET name          = $1,
+           barcode       = $2,
+           price         = $3,
+           stock         = $4,
+           quantity      = $5,
+           unit          = $6,
+           description   = $7,
+           category_id   = $8,
+           store_id      = $9,
+           image_url     = $10,
+           reorder_level = $11
+       WHERE product_id = $12
+       RETURNING *, COALESCE(reorder_level, 10) AS reorder_level`,
       [
         name.trim(),
         barcode?.trim() || null,
@@ -358,6 +374,7 @@ exports.updateProduct = async (req, res) => {
         category_id ? parseInt(category_id) : null,
         store_id    ? parseInt(store_id)    : old.store_id,
         img_url,
+        reorderLevel,
         id,
       ]
     );

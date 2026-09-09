@@ -41,11 +41,20 @@
 }
 
 .pending-logo {
-  font-size: 20px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
   margin-bottom: 60px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.pending-logo svg {
+  height: 36px;
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .pending-logo svg {
+    height: 30px;
+  }
 }
 
 .pending-main-heading {

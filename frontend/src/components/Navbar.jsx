@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Navbar.css';
 import { useNavigate } from 'react-router-dom';
+import Logo from './Logo';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,8 +35,8 @@ const Navbar = () => {
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="navbar-container">
-        <div className="navbar-logo">
-          <span className="logo-text">SHOP2DOOR LOGO</span>
+        <div className="navbar-logo" onClick={() => navigate('/')}>
+          <Logo height={34} />
         </div>
 
         <ul className={`navbar-links ${isMenuOpen ? 'active' : ''}`}>

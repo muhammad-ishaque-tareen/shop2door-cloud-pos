@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import '../styles/PaymentConfirmation.css';
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const BASE = API_BASE_URL;
 
@@ -79,7 +80,9 @@ const PaymentConfirmation = () => {
     <div className="payment-container">
       <div className="payment-left-section">
         <div className="payment-left-content">
-          <h1 className="payment-logo">Shop2Door LOGO</h1>
+          <div className="payment-logo">
+            <Logo height={36} variant="light" />
+          </div>
 
           <h2 className="payment-main-heading">
             Secure Payment<br />Confirmation

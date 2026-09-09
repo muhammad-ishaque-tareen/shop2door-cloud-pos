@@ -46,11 +46,20 @@
 }
 
 .trial-logo {
-  font-size: 20px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
   margin-bottom: 60px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.trial-logo svg {
+  height: 36px;
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .trial-logo svg {
+    height: 30px;
+  }
 }
 
 .trial-main-heading {

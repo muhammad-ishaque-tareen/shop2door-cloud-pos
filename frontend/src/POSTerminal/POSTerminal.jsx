@@ -16,6 +16,107 @@ import { queueOrSendSale, initOfflineSync, subscribeToSyncStatus } from '../serv
 import './POSTerminalstyles/POSTerminal.css';
 import { API_BASE_URL } from '../config';
 
+// Shop2Door wordmark, inlined so the receipt has no dependency on Logo.jsx.
+// Same paths/gradients as the brand logo used in the Navbar, kept small
+// and fixed-size so it doesn't grow the printed receipt.
+const ReceiptLogo = ({ height = 20 }) => (
+  <svg
+    height={height}
+    viewBox="0 0 620 120"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="rct-logo"
+    style={{ display: 'block', maxHeight: '100%', width: 'auto' }}
+    role="img"
+    aria-label="Shop2Door"
+  >
+    <defs>
+      <linearGradient id="rctPinkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#EC4899" />
+        <stop offset="100%" stopColor="#E91E63" />
+      </linearGradient>
+      <linearGradient id="rctPurpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#A855F7" />
+        <stop offset="100%" stopColor="#7B1FA2" />
+      </linearGradient>
+      <linearGradient id="rctCyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#22D3EE" />
+        <stop offset="100%" stopColor="#06B6D4" />
+      </linearGradient>
+    </defs>
+
+    <g transform="translate(10, 10)">
+      {/* --- S & H INTERTWINED --- */}
+      <path
+        d="M 65 32 C 60 18 42 12 28 18 C 12 24 8 40 22 48 C 38 56 50 62 44 76 C 38 90 18 88 10 76 M 10 76 C 5 68 8 58 14 54"
+        stroke="url(#rctPinkGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M 52 20 L 52 85 M 52 52 L 95 52 M 95 20 L 95 85"
+        stroke="url(#rctPurpleGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* --- O & P INTERTWINED --- */}
+      <circle cx="135" cy="52.5" r="32" stroke="url(#rctPurpleGradient)" strokeWidth="16" fill="none" />
+      <path
+        d="M 160 20 L 160 85 M 160 20 L 190 20 C 210 20 210 52 190 52 L 160 52"
+        stroke="url(#rctPurpleGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* --- NUMBER 2 --- */}
+      <path
+        d="M 225 32 C 225 18 255 14 258 32 C 260 50 225 62 225 85 L 265 85"
+        stroke="url(#rctPurpleGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* --- LETTER D --- */}
+      <path
+        d="M 285 20 L 285 85 M 285 20 L 305 20 C 335 20 335 85 305 85 L 285 85"
+        stroke="url(#rctPinkGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* --- LINKED OO CHAIN --- */}
+      <rect x="345" y="20" width="75" height="65" rx="32.5" fill="none" stroke="url(#rctPinkGradient)" strokeWidth="15" />
+      <rect x="395" y="20" width="75" height="65" rx="32.5" fill="none" stroke="url(#rctCyanGradient)" strokeWidth="15" />
+      <path
+        d="M 395 52.5 A 32.5 32.5 0 0 1 427.5 20 L 430 20"
+        fill="none"
+        stroke="url(#rctPinkGradient)"
+        strokeWidth="15"
+        strokeLinecap="round"
+      />
+
+      {/* --- LETTER R --- */}
+      <path
+        d="M 495 20 L 495 85 M 495 20 L 520 20 C 538 20 538 50 520 50 L 495 50 M 518 50 L 540 85"
+        stroke="url(#rctPinkGradient)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </g>
+  </svg>
+);
+
 const POSTerminal = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(['All']);
@@ -824,7 +925,7 @@ const handleLogOut = () => {
         <div className="modal-overlay" onClick={closeReceiptModal}>
           <div className="modal receipt-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header no-print">
-              <h2 className="modal-title">Shop2Door</h2>
+              <ReceiptLogo height={26} />
               <button className="modal-close" onClick={closeReceiptModal}>&times;</button>
             </div>
             <div className="modal-body receipt-modal-body">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import Navbar from '../components/Navbar';
 import '../styles/Pricing.css';
 import { API_BASE_URL } from '../config';
 
@@ -47,6 +48,7 @@ const Pricing = () => {
 
   return (
     <div className="pricing-page">
+      <Navbar />
       <div className="decorative-circle circle-left"></div>
       <div className="decorative-circle circle-right"></div>
       <div className="decorative-dot dot-top"></div>

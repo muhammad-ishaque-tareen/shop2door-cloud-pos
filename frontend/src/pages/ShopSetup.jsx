@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 // import "../styles/ShopSetup.css";
 import '../styles/ShopSetup.css'
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const BASE = API_BASE_URL;
 
@@ -238,7 +239,9 @@ const ShopSetup = () => {
         <div className="shopsetup-dots-pattern" />
         <div className="shopsetup-left-content">
 
-          <div className="shopsetup-logo">🏪 Shop2Door</div>
+          <div className="shopsetup-logo">
+            <Logo height={36} variant="light" />
+          </div>
 
           <h1 className="shopsetup-main-heading">
             {isTrial ? "Start Your\nFree Trial" : "Launch Your\nShop Online"}

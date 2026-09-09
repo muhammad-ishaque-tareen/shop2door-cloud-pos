@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ForgotPassword.css";
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const BASE = API_BASE_URL;
 const emailRegex  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -201,7 +202,9 @@ const ForgotPassword = () => {
       {/* Left Panel */}
       <div className="fp-left-section">
         <div className="fp-left-content">
-          <h1 className="fp-logo">Shop2Door LOGO</h1>
+          <div className="fp-logo">
+            <Logo height={36} variant="light" />
+          </div>
           <h2 className="fp-main-heading">
             Reset your<br />password
           </h2>

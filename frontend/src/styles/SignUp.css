@@ -26,11 +26,14 @@
 }
 
 .signup-logo {
-  font-size: 20px;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
   margin-bottom: 80px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.signup-logo svg {
+  height: 36px;
+  width: auto;
 }
 
 
@@ -388,8 +391,11 @@
   }
 
   .signup-logo {
-    font-size: 18px;
     margin-bottom: 40px;
+  }
+
+  .signup-logo svg {
+    height: 30px;
   }
 
   .signup-main-heading {

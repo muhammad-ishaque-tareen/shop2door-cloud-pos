@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import "../styles/TrialExpiredWall.css";
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 /* ── helper: pick an icon per plan tier ── */
 const getPlanIcon = (name = "") => {
@@ -133,7 +134,9 @@ const TrialExpiredWall = () => {
       <div className="trial-left-section">
         <div className="trial-dots-pattern" />
         <div className="trial-left-content">
-          <div className="trial-logo">🏪 Shop2Door</div>
+          <div className="trial-logo">
+            <Logo height={36} variant="light" />
+          </div>
 
           <h1 className="trial-main-heading">
             Your Trial

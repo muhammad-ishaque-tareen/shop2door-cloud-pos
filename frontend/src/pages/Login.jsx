@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -96,7 +96,9 @@ const Login = () => {
       {/*  Left Panel  */}
       <div className="login-left-section">
         <div className="login-left-content">
-          <h1 className="login-logo">Shop2Door LOGO</h1>
+          <div className="login-logo">
+            <Logo height={36} variant="light" />
+          </div>
 
           <h2 className="login-main-heading">
             Start your<br />

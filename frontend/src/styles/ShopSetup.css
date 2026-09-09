@@ -29,11 +29,14 @@
 }
 
 .shopsetup-logo {
-  font-size: 20px;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
   margin-bottom: 80px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.shopsetup-logo svg {
+  height: 36px;
+  width: auto;
 }
 
 .shopsetup-main-heading {
@@ -757,6 +760,7 @@
 @media (max-width: 768px) {
   .shopsetup-left-section  { padding: 40px 25px; }
   .shopsetup-logo          { margin-bottom: 40px; }
+  .shopsetup-logo svg      { height: 30px; }
   .shopsetup-main-heading  { font-size: 30px; }
   .shopsetup-right-section { padding: 40px 20px; }
   .shopsetup-form-container{

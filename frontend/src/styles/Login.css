@@ -27,11 +27,14 @@
 }
 
 .login-logo {
-  font-size: 20px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
   margin-bottom: 80px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.login-logo svg {
+  height: 36px;
+  width: auto;
 }
 
 .login-main-heading {
@@ -392,8 +395,11 @@
   }
 
   .login-logo {
-    font-size: 18px;
     margin-bottom: 40px;
+  }
+
+  .login-logo svg {
+    height: 30px;
   }
 
   .login-main-heading {

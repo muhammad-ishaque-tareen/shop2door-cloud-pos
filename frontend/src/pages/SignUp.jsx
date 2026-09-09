@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/SignUp.css";
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const BASE = API_BASE_URL;
 
@@ -179,7 +180,9 @@ const Signup = () => {
       {/*  Left Panel  */}
       <div className="signup-left-section">
         <div className="signup-left-content">
-          <h1 className="signup-logo">Shop2Door LOGO</h1>
+          <div className="signup-logo">
+            <Logo height={36} variant="light" />
+          </div>
           <h2 className="signup-main-heading">
             Start your<br />journey with us
           </h2>

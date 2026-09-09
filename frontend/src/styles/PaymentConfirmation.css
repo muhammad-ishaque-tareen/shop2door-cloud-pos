@@ -28,11 +28,14 @@
 }
 
 .payment-logo {
-  font-size: 20px;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
   margin-bottom: 80px;
-  letter-spacing: 0.5px;
-  color: white;
+}
+
+.payment-logo svg {
+  height: 36px;
+  width: auto;
 }
 
 .payment-main-heading {
@@ -402,8 +405,11 @@
   }
 
   .payment-logo {
-    font-size: 18px;
     margin-bottom: 40px;
+  }
+
+  .payment-logo svg {
+    height: 30px;
   }
 
   .payment-main-heading {

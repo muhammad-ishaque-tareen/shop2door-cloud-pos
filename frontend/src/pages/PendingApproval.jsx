@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PendingApproval.css";
+import Logo from '../components/Logo';
 
 const PendingApproval = () => {
   const navigate = useNavigate();
@@ -13,7 +14,9 @@ const PendingApproval = () => {
         <div className="pending-dots-pattern" />
         <div className="pending-left-content">
 
-          <div className="pending-logo">🏪 Shop2Door</div>
+          <div className="pending-logo">
+            <Logo height={36} variant="light" />
+          </div>
 
           <h1 className="pending-main-heading">
             You're Almost<br />There!

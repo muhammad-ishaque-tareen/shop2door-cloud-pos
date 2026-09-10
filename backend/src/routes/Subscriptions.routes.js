@@ -1,6 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const auth    = require("../middlewares/auth.middleware");
+const authorizeRoles = require("../middlewares/role.middleware");
 
 const {
   // System-admin facing (management)
@@ -18,9 +19,9 @@ const {
 //       available-plans, upgrade-plan) are handled in shop.routes.js so that the
 //       frontend's calls to /api/shop/* work correctly.
 
-router.get("/",              auth, getSubscriptions);
-router.get("/:id",           auth, getSubscriptionById);
-router.put("/:id",           auth, updateSubscription);
-router.patch("/:id/status",  auth, toggleSubscriptionStatus);
+router.get("/",              auth, authorizeRoles("system_admin"), getSubscriptions);
+router.get("/:id",           auth, authorizeRoles("system_admin"), getSubscriptionById);
+router.put("/:id",           auth, authorizeRoles("system_admin"), updateSubscription);
+router.patch("/:id/status",  auth, authorizeRoles("system_admin"), toggleSubscriptionStatus);
 
 module.exports = router;

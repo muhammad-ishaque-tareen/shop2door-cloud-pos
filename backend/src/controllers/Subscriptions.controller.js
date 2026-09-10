@@ -197,19 +197,23 @@ exports.getAvailablePlans = async (req, res) => {
 
 // POST /api/shop/upgrade-plan
 // Body: { package_id }
-//
 // Transaction steps:
-//   1. Verify new package exists and is a genuine upgrade (higher price).
-//   2. Expire the current active subscription.
-//   3. Insert a new active subscription (1-year term).
-//   4. Update shops.package_id so limits take effect immediately.
-//   5. Record the payment in the payments table.
+//   1. Verify caller is authenticated shop_admin for their shop.
+//   2. Verify new package exists and is a genuine upgrade (higher price).
+//   3. Record a pending subscription (status = 'pending_approval') — do NOT activate or alter shops.package_id.
+//   4. Record the pending payment in the payments table (status = 'pending_approval').
 //
 // All steps run inside a single DB transaction — either all succeed or all roll back.
 exports.upgradePlan = async (req, res) => {
   const { package_id } = req.body;
   if (!package_id)
     return res.status(400).json({ message: "package_id is required" });
+
+  if (!req.user || req.user.role !== "shop_admin") {
+    return res.status(403).json({
+      message: "Forbidden: Only shop administrators can request plan upgrades",
+    });
+  }
 
   const client = await masterPool.connect();
   try {
@@ -251,50 +255,33 @@ exports.upgradePlan = async (req, res) => {
       });
     }
 
-    //  3. Expire old active subscription 
-    await client.query(
-      `UPDATE subscriptions
-       SET status = 'expired'
-       WHERE shop_id = $1 AND status = 'active'`,
-      [shopId]
-    );
-
-    //  4. Create new subscription (1 year) 
-    await client.query(
+    // 3. Create pending subscription record (1 year) — DO NOT activate or expire current plan
+    const subRes = await client.query(
       `INSERT INTO subscriptions (shop_id, package_id, start_date, end_date, status)
-       VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE + INTERVAL '1 year', 'active')`,
+       VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE + INTERVAL '1 year', 'pending_approval')
+       RETURNING subscription_id, shop_id, package_id, status, start_date, end_date`,
       [shopId, package_id]
     );
 
-    //  5. Update shops.package_id (limits take effect immediately) 
-    await client.query(
-      `UPDATE shops SET package_id = $1 WHERE shop_id = $2`,
-      [package_id, shopId]
-    );
-
-    //  5b. Re-enable the user account (was disabled by the trial-expiry cron) 
-    await client.query(
-      `UPDATE users SET is_disabled = false WHERE shop_id = $1 AND role = 'shop_admin'`,
-      [shopId]
-    );
-
-    //  6. Record the payment 
+    // 4. Record the pending payment
     await client.query(
       `INSERT INTO payments
          (user_id, shop_id, package_id, payment_method, amount, payment_date, status)
-       VALUES ($1, $2, $3, 'online', $4, CURRENT_DATE, 'paid')`,
+       VALUES ($1, $2, $3, 'online', $4, CURRENT_DATE, 'pending_approval')`,
       [userId, shopId, package_id, newPkg.price]
     );
 
     await client.query("COMMIT");
 
     console.log(
-      `[UPGRADE-PLAN] shop_id=${shopId} upgraded to "${newPkg.name}" (package_id=${package_id})`
+      `[UPGRADE-PLAN] shop_id=${shopId} upgrade request submitted for "${newPkg.name}" (package_id=${package_id}) - pending approval`
     );
 
     res.json({
-      message: `Successfully upgraded to ${newPkg.name} plan`,
+      message: `Upgrade request submitted for ${newPkg.name} plan. Your request is pending approval.`,
       package: newPkg,
+      subscription: subRes.rows[0],
+      status: "pending_approval",
     });
   } catch (error) {
     await client.query("ROLLBACK");

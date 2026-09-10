@@ -1,6 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const auth    = require("../middlewares/auth.middleware");
+const authorizeRoles = require("../middlewares/role.middleware");
 const {
   getAllShops,
   getShopById,
@@ -8,9 +9,9 @@ const {
   toggleShopStatus,
 } = require("../controllers/manageshops.controller");
 
-router.get("/",                auth, getAllShops);
-router.get("/:id",             auth, getShopById);
-router.put("/:id",             auth, updateShop);
-router.patch("/:id/status",    auth, toggleShopStatus);
+router.get("/",                auth, authorizeRoles("system_admin"), getAllShops);
+router.get("/:id",             auth, authorizeRoles("system_admin"), getShopById);
+router.put("/:id",             auth, authorizeRoles("system_admin"), updateShop);
+router.patch("/:id/status",    auth, authorizeRoles("system_admin"), toggleShopStatus);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const auth = require('../middlewares/auth.middleware');
 const shop = require('../middlewares/shop.middleware');
+const authorizeRoles = require('../middlewares/role.middleware');
 const {
   getStores,
   createStore,
@@ -9,8 +10,8 @@ const {
 } = require('../controllers/store.controller');
 
 router.get('/',       auth, shop, getStores);
-router.post('/',      auth, shop, createStore);
+router.post('/',      auth, shop, authorizeRoles('shop_admin'), createStore);
 router.get('/:id',    auth, shop, getStoreById);
-router.put('/:id',    auth, shop, updateStore);
+router.put('/:id',    auth, shop, authorizeRoles('shop_admin'), updateStore);
 
 module.exports = router;

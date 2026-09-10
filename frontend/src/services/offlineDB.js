@@ -129,28 +129,45 @@ export const incrementCachedStock = async (items) => {
 
 export const savePendingSale = async (saleRecord) => {
   const db = await getDB();
-  // saleRecord = { client_sale_id, saleData, created_at, sync_status, retry_count }
-  await db.put('pending_sales', saleRecord);
+  // Ensure status and sync_status are both consistently set
+  const record = {
+    ...saleRecord,
+    status: saleRecord.status || saleRecord.sync_status || 'pending',
+    sync_status: saleRecord.sync_status || saleRecord.status || 'pending',
+  };
+  await db.put('pending_sales', record);
 };
 
 export const getAllPendingSales = async () => {
   const db = await getDB();
   const all = await db.getAll('pending_sales');
+  // Return ONLY records with status === 'pending' (exclude failed/synced records)
+  const pending = all.filter((s) => (s.status === 'pending' || s.sync_status === 'pending'));
   // Oldest first — sales must sync in the order they happened.
-  return all.sort((a, b) => a.created_at - b.created_at);
+  return pending.sort((a, b) => a.created_at - b.created_at);
+};
+
+export const getFailedSalesRecords = async () => {
+  const db = await getDB();
+  const all = await db.getAll('pending_sales');
+  return all.filter((s) => (s.status === 'failed' || s.sync_status === 'failed'));
 };
 
 export const getPendingSalesCount = async () => {
-  const db = await getDB();
-  return db.count('pending_sales');
+  const pending = await getAllPendingSales();
+  return pending.length;
 };
 
-export const updatePendingSaleStatus = async (client_sale_id, sync_status, retry_count) => {
+export const updatePendingSaleStatus = async (client_sale_id, sync_status, retry_count, error = null) => {
   const db = await getDB();
   const record = await db.get('pending_sales', client_sale_id);
   if (!record) return;
   record.sync_status = sync_status;
+  record.status = sync_status;
   record.retry_count = retry_count;
+  if (error !== null && error !== undefined) {
+    record.error = error;
+  }
   await db.put('pending_sales', record);
 };
 
@@ -225,30 +242,42 @@ export const updateCachedSaleReturnedQty = async (receiptNo, returnedItems) => {
 
 export const savePendingReturn = async (returnRecord) => {
   const db = await getDB();
-  // returnRecord = {
-  //   client_return_id, sale_id (nullable), client_sale_id (nullable),
-  //   receipt_no, reason, items, created_at, sync_status, retry_count
-  // }
-  await db.put('pending_returns', returnRecord);
+  const record = {
+    ...returnRecord,
+    status: returnRecord.status || returnRecord.sync_status || 'pending',
+    sync_status: returnRecord.sync_status || returnRecord.status || 'pending',
+  };
+  await db.put('pending_returns', record);
 };
 
 export const getAllPendingReturns = async () => {
   const db = await getDB();
   const all = await db.getAll('pending_returns');
-  return all.sort((a, b) => a.created_at - b.created_at);
+  const pending = all.filter((r) => (r.status === 'pending' || r.sync_status === 'pending'));
+  return pending.sort((a, b) => a.created_at - b.created_at);
+};
+
+export const getFailedReturnsRecords = async () => {
+  const db = await getDB();
+  const all = await db.getAll('pending_returns');
+  return all.filter((r) => (r.status === 'failed' || r.sync_status === 'failed'));
 };
 
 export const getPendingReturnsCount = async () => {
-  const db = await getDB();
-  return db.count('pending_returns');
+  const pending = await getAllPendingReturns();
+  return pending.length;
 };
 
-export const updatePendingReturnStatus = async (client_return_id, sync_status, retry_count) => {
+export const updatePendingReturnStatus = async (client_return_id, sync_status, retry_count, error = null) => {
   const db = await getDB();
   const record = await db.get('pending_returns', client_return_id);
   if (!record) return;
   record.sync_status = sync_status;
+  record.status = sync_status;
   record.retry_count = retry_count;
+  if (error !== null && error !== undefined) {
+    record.error = error;
+  }
   await db.put('pending_returns', record);
 };
 

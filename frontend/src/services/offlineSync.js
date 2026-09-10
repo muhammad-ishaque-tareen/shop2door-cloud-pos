@@ -14,6 +14,7 @@ import { API_BASE_URL } from '../config';
 import {
   savePendingSale,
   getAllPendingSales,
+  getFailedSalesRecords,
   getPendingSalesCount,
   updatePendingSaleStatus,
   deletePendingSale,
@@ -25,10 +26,91 @@ import {
   updateCachedSaleReturnedQty,
   savePendingReturn,
   getAllPendingReturns,
+  getFailedReturnsRecords,
   getPendingReturnsCount,
   updatePendingReturnStatus,
   deletePendingReturn,
 } from './offlineDB';
+
+// Classify whether an error represents a true network/connectivity outage
+// vs an active server-side rejection (e.g. HTTP 400 Insufficient Stock, Price Mismatch)
+export const isConnectivityError = (err) => {
+  if (!navigator.onLine) return true;
+  if (err.code === 'ECONNABORTED') return true;
+  if (err.message === 'Network Error') return true;
+  // Browser native fetch network failure (server down, DNS fail, offline)
+  if (err.name === 'TypeError' && typeof err.message === 'string' && (
+    err.message.toLowerCase().includes('fetch') ||
+    err.message.toLowerCase().includes('network') ||
+    err.message.toLowerCase().includes('load')
+  )) {
+    return true;
+  }
+  const status = err.response?.status || err.status;
+  if (status === 503 || status === 504) return true;
+  return false;
+};
+
+// Rich caller that preserves HTTP response status and error payload
+const invokeSalesCreate = async (saleData) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}/api/sales`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(saleData)
+  });
+
+  if (!response.ok) {
+    let errorData = {};
+    try {
+      errorData = await response.json();
+    } catch {}
+    const err = new Error(errorData.error || `Server responded with status ${response.status}`);
+    err.status = response.status;
+    err.response = {
+      status: response.status,
+      data: errorData
+    };
+    throw err;
+  }
+
+  return response.json();
+};
+
+const invokeReturnProcess = async (returnData) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}/api/sales/return`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(returnData)
+  });
+
+  if (!response.ok) {
+    let errorData = {};
+    try {
+      errorData = await response.json();
+    } catch {}
+    const err = new Error(errorData.error || `Server responded with status ${response.status}`);
+    err.status = response.status;
+    err.response = {
+      status: response.status,
+      data: errorData
+    };
+    throw err;
+  }
+
+  return response.json();
+};
+
+// Enhance salesAPI so all callers receive rich response/status inspection
+salesAPI.create = invokeSalesCreate;
+salesAPI.processReturn = invokeReturnProcess;
 
 const HEALTH_CHECK_URL = `${API_BASE_URL}/api/health`;
 const HEALTH_CHECK_INTERVAL_MS = 20000; // 20s heartbeat
@@ -152,6 +234,7 @@ export const queueOrSendSale = async (saleData) => {
       saleData: payload,
       created_at: Date.now(),
       sync_status: 'pending',
+      status: 'pending',
       retry_count: 0,
     });
     // Optimistically reflect the sale in the cached stock so the very next
@@ -175,14 +258,31 @@ export const queueOrSendSale = async (saleData) => {
     await onSaleSynced(client_sale_id, result.sale, saleData);
     return { ...result, queued: false };
   } catch (err) {
-    // Could be a real network drop (window B above) or a genuine business
-    // error (e.g. "Insufficient stock") returned by the server. We can't
-    // safely tell those apart from a thrown fetch error alone, but
-    // queuing a true validation failure just means it will fail again
-    // (and stop) on sync — see syncPendingSales below. Safer to queue than
-    // to silently lose a sale the cashier believes went through.
-    setState({ isOnline: false });
-    return enqueue();
+    const status = err.response?.status || err.status;
+    if (status && status >= 400 && status < 500) {
+      // Real rejection from the server (e.g. insufficient stock, invalid product, price mismatch):
+      // Do NOT toggle offline mode.
+      // Do NOT enqueue the sale into IndexedDB.
+      // Do NOT print a success receipt.
+      const serverMessage = err.response?.data?.error || err.message || 'Sale rejected by server';
+      const errorToThrow = new Error(serverMessage);
+      errorToThrow.status = status;
+      errorToThrow.response = err.response;
+      throw errorToThrow;
+    }
+
+    // Only fall back to offline enqueue when it's a genuine connectivity issue
+    if (isConnectivityError(err)) {
+      setState({ isOnline: false });
+      return enqueue();
+    }
+
+    // For any other unexpected error (e.g. server 500), throw to surface to user
+    const serverMessage = err.response?.data?.error || err.message || 'Failed to complete sale';
+    const errorToThrow = new Error(serverMessage);
+    errorToThrow.status = status;
+    errorToThrow.response = err.response;
+    throw errorToThrow;
   }
 };
 
@@ -244,22 +344,41 @@ export const syncPendingSales = async () => {
         await deletePendingSale(record.client_sale_id);
         setState({ pendingCount: await getPendingSalesCount() });
       } catch (err) {
-        const nextRetryCount = record.retry_count + 1;
-
-        if (nextRetryCount >= MAX_RETRY_COUNT) {
-          // Likely a genuine, permanent business error (e.g. stock sold out
-          // in the meantime by another terminal) rather than a transient
-          // network blip. Mark as failed instead of retrying forever, and
-          // surface it for manual review rather than silently dropping it.
-          await updatePendingSaleStatus(record.client_sale_id, 'failed', nextRetryCount);
-        } else {
+        // Check for genuine connectivity / network error
+        if (isConnectivityError(err)) {
+          // Network is down: keep record as pending for retry when connection returns
+          const nextRetryCount = (record.retry_count || 0) + 1;
           await updatePendingSaleStatus(record.client_sale_id, 'pending', nextRetryCount);
+          setState({ isOnline: false });
+          // Stop loop on network disconnect and wait for reconnection
+          break;
         }
 
-        // Stop on first failure so sales stay in order — don't let sale #5
-        // sync before sale #3 has had its chance.
-        setState({ isOnline: false });
-        break;
+        // Business validation error (HTTP 4xx, e.g. insufficient stock, invalid product, price mismatch)
+        const errorReason = err.response?.data?.error || err.message || 'Business validation failed';
+        console.error(`[SYNC] Offline sale ${record.client_sale_id} failed validation:`, errorReason);
+
+        const nextRetryCount = (record.retry_count || 0) + 1;
+        // Mark this single sale as 'failed' with error reason attached
+        await updatePendingSaleStatus(record.client_sale_id, 'failed', nextRetryCount, errorReason);
+        setState({ pendingCount: await getPendingSalesCount() });
+
+        // Dispatch UI notification / alert so cashier can see it
+        window.dispatchEvent(new CustomEvent('offline-sync-error', {
+          detail: {
+            type: 'sale',
+            client_sale_id: record.client_sale_id,
+            receipt_no: record.saleData?.receipt_no || record.client_sale_id?.slice(0, 8),
+            error: errorReason
+          }
+        }));
+
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert(`[Sync Alert] Offline sale failed to sync: ${errorReason}`);
+        }
+
+        // CONTINUE processing the rest of the pending queue — DO NOT BREAK!
+        continue;
       }
     }
   } finally {
@@ -269,14 +388,14 @@ export const syncPendingSales = async () => {
 };
 
 export const getFailedSales = async () => {
-  const pending = await getAllPendingSales();
-  return pending.filter((s) => s.sync_status === 'failed');
+  return getFailedSalesRecords();
 };
 
 // Manual retry for a sale stuck in 'failed' state — e.g. cashier/admin
 // reviewed it and wants to try again (stock may have been restocked since).
 export const retryFailedSale = async (client_sale_id) => {
-  await updatePendingSaleStatus(client_sale_id, 'pending', 0);
+  await updatePendingSaleStatus(client_sale_id, 'pending', 0, null);
+  setState({ pendingCount: await getPendingSalesCount() });
   syncAll();
 };
 
@@ -328,8 +447,29 @@ export const queueOrSendReturn = async ({ sale_id, client_sale_id, receipt_no, r
     await updateCachedSaleReturnedQty(receipt_no, items);
     return { ...result, queued: false };
   } catch (err) {
-    setState({ isOnline: false });
-    return enqueue();
+    const status = err.response?.status || err.status;
+    if (status && status >= 400 && status < 500) {
+      // Real rejection from the server (e.g. return window expired, product already returned):
+      // Do NOT toggle offline mode.
+      // Do NOT enqueue the return into IndexedDB.
+      const serverMessage = err.response?.data?.error || err.message || 'Return rejected by server';
+      const errorToThrow = new Error(serverMessage);
+      errorToThrow.status = status;
+      errorToThrow.response = err.response;
+      throw errorToThrow;
+    }
+
+    // Fall back to offline enqueue only on genuine connectivity issues
+    if (isConnectivityError(err)) {
+      setState({ isOnline: false });
+      return enqueue();
+    }
+
+    const serverMessage = err.response?.data?.error || err.message || 'Failed to process return';
+    const errorToThrow = new Error(serverMessage);
+    errorToThrow.status = status;
+    errorToThrow.response = err.response;
+    throw errorToThrow;
   }
 };
 
@@ -373,17 +513,39 @@ export const syncPendingReturns = async () => {
         await deletePendingReturn(record.client_return_id);
         setState({ pendingReturnsCount: await getPendingReturnsCount() });
       } catch (err) {
-        const nextRetryCount = record.retry_count + 1;
-
-        if (nextRetryCount >= MAX_RETRY_COUNT) {
-          await updatePendingReturnStatus(record.client_return_id, 'failed', nextRetryCount);
-        } else {
+        if (isConnectivityError(err)) {
+          const nextRetryCount = (record.retry_count || 0) + 1;
           await updatePendingReturnStatus(record.client_return_id, 'pending', nextRetryCount);
+          setState({ isOnline: false });
+          // Stop loop on network disconnect and wait for reconnection
+          break;
         }
 
-        // Same ordering guarantee as sales: stop on first real failure.
-        setState({ isOnline: false });
-        break;
+        // Business validation error (HTTP 4xx, e.g. return window expired, already returned)
+        const errorReason = err.response?.data?.error || err.message || 'Business validation failed';
+        console.error(`[SYNC] Offline return ${record.client_return_id} failed validation:`, errorReason);
+
+        const nextRetryCount = (record.retry_count || 0) + 1;
+        // Mark this single return as 'failed' with error reason attached
+        await updatePendingReturnStatus(record.client_return_id, 'failed', nextRetryCount, errorReason);
+        setState({ pendingReturnsCount: await getPendingReturnsCount() });
+
+        // Dispatch UI notification / alert so cashier can see it
+        window.dispatchEvent(new CustomEvent('offline-sync-error', {
+          detail: {
+            type: 'return',
+            client_return_id: record.client_return_id,
+            receipt_no: record.receipt_no,
+            error: errorReason,
+          }
+        }));
+
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert(`[Sync Alert] Offline return failed to sync: ${errorReason}`);
+        }
+
+        // CONTINUE processing the rest of the pending returns queue — DO NOT BREAK!
+        continue;
       }
     }
   } finally {
@@ -393,12 +555,12 @@ export const syncPendingReturns = async () => {
 };
 
 export const getFailedReturns = async () => {
-  const pending = await getAllPendingReturns();
-  return pending.filter((r) => r.sync_status === 'failed');
+  return getFailedReturnsRecords();
 };
 
 export const retryFailedReturn = async (client_return_id) => {
-  await updatePendingReturnStatus(client_return_id, 'pending', 0);
+  await updatePendingReturnStatus(client_return_id, 'pending', 0, null);
+  setState({ pendingReturnsCount: await getPendingReturnsCount() });
   syncAll();
 };
 

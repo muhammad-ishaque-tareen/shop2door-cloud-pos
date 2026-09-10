@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   ShoppingCart, Search, User, LogOut, BarChart3,
-  FileText, Settings, Package, ChevronDown, ChevronUp
+  FileText, Settings, Package, ChevronDown, ChevronUp, Truck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { salesAPI } from '../services/api';
@@ -90,6 +90,9 @@ const MySales = () => {
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}><Search size={18} /><span>Find Products</span></button>
           <button className="nav-item" onClick={() => navigate('/returnproduct')}><Package size={18} /><span>Return Product</span></button>
+                    <button className="nav-item" onClick={() => navigate('/incomingdeliveries')}>
+             <Truck size={18} /><span>Incoming Deliveries</span>
+          </button>
 
           <div className="nav-divider" />
           <button className="nav-item active"><BarChart3 size={18} /><span>My Sales</span></button>

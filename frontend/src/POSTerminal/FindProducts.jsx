@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, LogOut, BarChart3, FileText, Settings, Package, Filter, X } from 'lucide-react';
+import { ShoppingCart, Search, User, LogOut, BarChart3, FileText, Settings, Package, Filter, X, Truck } from 'lucide-react';
 import './POSTerminalstyles/FindProducts.css';
 import { useNavigate } from 'react-router-dom';
 import { productAPI } from '../services/api';
@@ -121,6 +121,9 @@ const FindProducts = () => {
           </button>
           <button className="nav-item" onClick={() => navigate('/returnproduct')}>
             <Package size={18} /><span>Return Product</span>
+          </button>
+          <button className="nav-item" onClick={() => navigate('/incomingdeliveries')}>
+             <Truck size={18} /><span>Incoming Deliveries</span>
           </button>
 
           <div className="nav-divider" />

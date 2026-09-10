@@ -8,7 +8,7 @@ import {
   FileText, 
   Settings, 
   Package, 
-  ShoppingBag 
+  ShoppingBag, Truck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productAPI, salesAPI } from '../services/api';
@@ -525,6 +525,9 @@ const handleLogOut = () => {
           <button className="nav-item" onClick={() => navigate('/returnproduct')}>
             <Package size={18} />
             <span>Return Product</span>
+          </button>
+                    <button className="nav-item" onClick={() => navigate('/incomingdeliveries')}>
+             <Truck size={18} /><span>Incoming Deliveries</span>
           </button>
 
           <div className="nav-divider" />

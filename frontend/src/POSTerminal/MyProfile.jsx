@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   ShoppingCart, User, LogOut, BarChart3, FileText,
-  Settings, Search, RefreshCw, X, Edit2, Camera
+  Settings, Search, RefreshCw, X, Edit2, Camera, Truck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './POSTerminalstyles/MyProfile.css';
@@ -195,6 +195,9 @@ const MyProfile = () => {
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/findproducts')}><Search size={18} /><span>Find Products</span></button>
           <button className="nav-item" onClick={() => navigate('/returnproduct')}><RefreshCw size={18} /><span>Return Product</span></button>
+                    <button className="nav-item" onClick={() => navigate('/incomingdeliveries')}>
+             <Truck size={18} /><span>Incoming Deliveries</span>
+          </button>
 
           <div className="nav-divider" />
           <button className="nav-item" onClick={() => navigate('/mysales')}><BarChart3 size={18} /><span>My Sales</span></button>

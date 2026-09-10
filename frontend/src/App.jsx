@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import PendingApproval from "./pages/PendingApproval";
 import TrialExpiredWall from "./pages/TrialExpiredWall";
 import ForgotPassword from "./pages/ForgotPassword"
+import Contactpage from './components/Contactpage';
 
 
 import PaymentConfirmation from "./pages/PaymentConfirmation";
@@ -24,6 +25,7 @@ import Packages from "./SystemTerminal/Packages";
 import Subscriptions from "./SystemTerminal/Subscriptions"
 import SystemAdminProfile from "./SystemTerminal/SystemAdminProfile";
 import SystemSettings from "./SystemTerminal/SystemSettings";
+import IncomingDeliveries from "./POSTerminal/IncomingDeliveries";
 
 
 import ShopSetup from "./pages/ShopSetup";
@@ -66,6 +68,7 @@ const App = () => {
       <Route path="/subscriptions" element={<Subscriptions/>} />
       <Route path="/systemadminprofile" element={<SystemAdminProfile />} />
       <Route path="/systemsettings" element={<SystemSettings />} />
+      <Route path="/incomingdeliveries" element={<IncomingDeliveries />} />
 
 
 
@@ -84,6 +87,7 @@ const App = () => {
       <Route path="/salesrecords" element={<SalesRecords />} />
       <Route path="/suppliers" element={<Suppliers />} />
       <Route path="/reportsandanalytics" element={<ReportsAndAnalytics />} />
+      <Route path="/contact" element={<Contactpage />} />
 
     </Routes>
   );

@@ -61,6 +61,7 @@ app.use("/api/inventory",            require("./routes/inventory.routes"));
 app.use("/api/salesrecords",         require("./routes/salesrecords.routes"));
 app.use("/api/reportsandanalytics",  require("./routes/reportsandanalytics.routes"));
 app.use("/api/suppliers",            require("./routes/suppliers.routes"));
+app.use("/api/incoming-deliveries",  require("./routes/incomingdeliveries.routes"));  
 app.use("/api/signup",               require("./routes/signup.routes"));
 app.use("/api/shopsetup",            require("./routes/shopsetup.routes"));
 app.use("/api/freetrail",            require("./routes/freetrail.routes")); 
